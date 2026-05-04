@@ -15,12 +15,24 @@ const rajdhani = Rajdhani({
 });
 
 export const metadata: Metadata = {
-  title: "TOTAL GYM - Entrena como un campeón",
-  description: "Tu centro de entrenamiento diario. Mensajes motivacionales para cada día.",
+  title: "TOTAL GYM - Entrena como un campeão",
+  description: "Tu centro de entrenamiento diario. Crea rutinas, registra series y sigue tu progreso.",
+  manifest: "/manifest.json",
   icons: {
-    icon: "/favicon.svg",
-    apple: "/favicon.svg",
+    icon: "/icon-192.png",
+    apple: "/icon-192.png",
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "TotalGym",
+  },
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({
