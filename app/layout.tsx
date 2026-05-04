@@ -17,6 +17,10 @@ const rajdhani = Rajdhani({
 export const metadata: Metadata = {
   title: "TOTAL GYM - Entrena como un campeón",
   description: "Tu centro de entrenamiento diario. Mensajes motivacionales para cada día.",
+  icons: {
+    icon: "/favicon.svg",
+    apple: "/favicon.svg",
+  },
 };
 
 export default function RootLayout({

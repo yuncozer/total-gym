@@ -1,135 +1,60 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { 
   Dumbbell, 
-  ArrowLeft, 
   Check,
   ArrowRight,
-  UserCheck
+  ArrowLeft,
+  UserCheck,
+  Plus,
+  Trash2,
+  Play,
+  Loader2,
+  AlertCircle
 } from "lucide-react";
+import { ExerciseCard } from "@/app/components/EjercicioCard";
+import { UserHeader } from "@/app/components/UserHeader";
+import { exercisesDatabase, muscleGroupsData, Exercise } from "@/app/data/ejercicios";
+import type { Session } from "@supabase/supabase-js";
 
-const muscleGroups = [
-  { 
-    id: "pecho", 
-    name: "PECHO", 
-    description: "Músculos pectorales mayores y menores",
-    icon: "🫃"
-  },
-  { 
-    id: "espalda", 
-    name: "ESPALDA", 
-    description: "Dorsales, trapecios y lumbares",
-    icon: "🔙"
-  },
-  { 
-    id: "hombros", 
-    name: "HOMBROS", 
-    description: "Deltoides anterior, lateral y posterior",
-    icon: "🎯"
-  },
-  { 
-    id: "brazos", 
-    name: "BRAZOS", 
-    description: "Bíceps, tríceps y antebrazos",
-    icon: "💪"
-  },
-  { 
-    id: "piernas", 
-    name: "PIERNAS", 
-    description: "Cuádriceps y gemelos",
-    icon: "🦵"
-  },
-  { 
-    id: "gluteos", 
-    name: "GLUTEOS", 
-    description: "Glúteos mayores y médios",
-    icon: "🍑"
-  },
-  { 
-    id: "abdomen", 
-    name: "ABDOMEN", 
-    description: "Rectos, oblicuos y transverso",
-    icon: "🎽"
-  },
-  { 
-    id: "cardio", 
-    name: "CARDIO", 
-    description: "Sistema cardiovascular",
-    icon: "❤️"
-  },
-];
+const muscleGroups = muscleGroupsData;
+const DEFAULT_SETS = 3;
 
-const exercisesDatabase: Record<string, Array<{
+interface ResumenEjercicio {
   id: string;
-  name: string;
+  nombre: string;
   description: string;
-  difficulty: "principiante" | "intermedio" | "avanzado";
   equipment: string;
-}>> = {
-  pecho: [
-    { id: "press-banca", name: "Press de banca", description: "Ejercicio básico para pecho. Te recuestas en un banco y empujas una barra hacia arriba. Trabaja pectorales, tríceps y hombro anterior.", difficulty: "principiante", equipment: "Barra y banco" },
-    { id: "fondos", name: "Fondos", description: "Bajas el cuerpo entre dos barras paraleles. Excelente para pectorales inferiores y tríceps.", difficulty: "intermedio", equipment: "Barras paralelas" },
-    { id: "aperturas", name: "Aperturas", description: "Con mancuernas, abres los brazos hacia los lados como abrazando. Aísla pectorales.", difficulty: "principiante", equipment: "Mancuernas" },
-    { id: "press-inclinado", name: "Press inclinado", description: "Similar al press de banca pero el banco está inclinado. Enfatiza pectorales superiores.", difficulty: "intermedio", equipment: "Barra y banco inclinado" },
-    { id: "pullover", name: "Pullover", description: "Con mancuerna, lanzas el peso hacia atrás sobre la cabeza. Estira y contrae pectorales.", difficulty: "principiante", equipment: "Mancuerna" },
-  ],
-  espalda: [
-    { id: "dominadas", name: "Dominadas", description: "Te cuelgas de una barra y subes tu cuerpo con los brazos. El ejercicio rey para espalda.", difficulty: "avanzado", equipment: "Barra de dominadas" },
-    { id: "remo", name: "Remo con barra", description: "Inclinado hacia adelante, jalas una barra hacia el abdomen. Construye espalda media.", difficulty: "intermedio", equipment: "Barra" },
-    { id: "jalon-pecho", name: "Jalón al pecho", description: "Te sentás en una máquina y jalas una barra hacia tu pecho. Versión guiada de dominadas.", difficulty: "principiante", equipment: "Máquina" },
-    { id: "remov-islo", name: "Remo con mancuerna", description: "Una mano apoiada, jalas mancuerna hacia el costado. Para cada lado.", difficulty: "principiante", equipment: "Mancuerna" },
-    { id: "pulldown", name: "Pulldown", description: "En máquina, bajas la barra hacia los omóplatos. Excelente para dorsales.", difficulty: "principiante", equipment: "Máquina" },
-  ],
-  hombros: [
-    { id: "press-militar", name: "Press militar", description: "Con barra o mancuernas, levantas el peso sobre tu cabeza. Ejercicio fundamental.", difficulty: "intermedio", equipment: "Barra/Mancuernas" },
-    { id: "elev-lateral", name: "Elevaciones laterales", description: "Con mancuernas, levantas los brazos hacia los lados. Para deltoides lateral.", difficulty: "principiante", equipment: "Mancuernas" },
-    { id: "crucifix", name: "Crucifix", description: "Con mancuernas, extiendes los brazos a los lados a la altura de los hombros. Para deltoides posterior.", difficulty: "principiante", equipment: "Mancuernas" },
-    { id: "face-pull", name: "Face pull", description: "Con banda o polea alta, jalas hacia tu cara. Fortalece manguito rotador y posterior.", difficulty: "principiante", equipment: "Polea" },
-    { id: "arnold", name: "Press Arnold", description: "Press con rotación de muneca. Introducido por Arnold Schwarzenegger.", difficulty: "intermedio", equipment: "Mancuernas" },
-  ],
-  brazos: [
-    { id: "curl-bicep", name: "Curl biceps", description: "Con mancuernas o barra, subes el peso enrollando los brazos. Ejercicio clásico de bíceps.", difficulty: "principiante", equipment: "Mancuernas/Barra" },
-    { id: "curl-martillo", name: "Curl martillo", description: "Con mancuernas, palmas enfrentadas. Trabaja braquial y bíceps lateral.", difficulty: "principiante", equipment: "Mancuernas" },
-    { id: "press-cierre", name: "Press closes", description: "Con mancuernas arriba, las acercas. Trabaja tríceps y pecho inner.", difficulty: "intermedio", equipment: "Mancuernas" },
-    { id: "ext-tricep", name: "Extensiones", description: "Con mancuerna arriba, bajas el peso flexionando los codos. Para tríceps.", difficulty: "principiante", equipment: "Mancuerna" },
-    { id: "curl-concentr", name: "Curl concentrado", description: "Sentado, apoyas el codo y subes la mancuerna. Para bíiceps isolated.", difficulty: "principiante", equipment: "Mancuerna" },
-  ],
-  piernas: [
-    { id: "sentadilla", name: "Sentadilla", description: "Bajas las rodillas como sentándote en una silla invisible. Ejercicio rey de piernas.", difficulty: "principiante", equipment: "Barra/Sin peso" },
-    { id: "peso-muerto", name: "Peso muerto", description: "Desde el suelo, levantas la barra manteniendo espalda recta. Trabaja isquiotibiales y glúteos.", difficulty: "intermedio", equipment: "Barra" },
-    { id: "prensa", name: "Prensa de piernas", description: "En máquina, empujas el peso con las piernas. Versión guiada de sentadilla.", difficulty: "principiante", equipment: "Máquina" },
-    { id: "ext-cuadri", name: "Extensión de cuádriceps", description: "En máquina, extiendes las piernas. Aísla cuádriceps.", difficulty: "principiante", equipment: "Máquina" },
-    { id: "curl-femoral", name: "Curl femoral", description: "En máquina, doblas las rodillas. Trabaja isquiotibiales.", difficulty: "principiante", equipment: "Máquina" },
-  ],
-  gluteos: [
-    { id: "hip-thrust", name: "Hip thrust", description: "Con espalda en banco, empujas tus glúteos hacia arriba con peso. El mejor para glúteos.", difficulty: "intermedio", equipment: "Barra/Banco" },
-    { id: "patada-gluteo", name: "Patada de glúteo", description: "En cuatro puntos, patadas hacia atrás con pierna. Aísla glúteos.", difficulty: "principiante", equipment: "Sin equipo/Máquina" },
-    { id: "puente", name: "Puente de cadera", description: "Acostado, levantas las caderas. Versión sin peso del hip thrust.", difficulty: "principiante", equipment: "Sin equipo" },
-    { id: "zancadas", name: "Zancadas", description: "Pasos largos alternando piernas. Funciona glúteos y cuádriceps.", difficulty: "principiante", equipment: "Mancuernas" },
-    { id: "squat-glute", name: "Sentadilla sumo", description: "Sentadilla con pies separados y puntas hacia afuera. Enfatiza glúteos internos.", difficulty: "principiante", equipment: "Barra" },
-  ],
-  abdomen: [
-    { id: "crunch", name: "Crunch", description: "Acostado, elevas el torso hacia las rodillas.versian clásica de abdominales.", difficulty: "principiante", equipment: "Sin equipo" },
-    { id: "plank", name: "Plank", description: "En posición de plancha, mantienes el cuerpo recto. Resiste y fortalece.", difficulty: "principiante", equipment: "Sin equipo" },
-    { id: "elev-piernas", name: "Elevación de piernas", description: "Acostado, elevas las piernas rectas. Trabaja abdominales inferiores.", difficulty: "intermedio", equipment: "Sin equipo" },
-    { id: "rueda", name: "Rueda abdominal", description: "Con una rueda, avanzas y regresas. Entrenamiento avanzado.", difficulty: "avanzado", equipment: "Rueda abdominal" },
-    { id: "russian-twist", name: "Torsión rusa", description: "Sentado, rotas el torso a cada lado. Trabaja oblicuos.", difficulty: "principiante", equipment: "Mancuerna/Opcional" },
-  ],
-  cardio: [
-    { id: "cinta", name: "Cinta/Pasillo", description: "Caminar o trotar en cinta rodante. Cardiovascular básico.", difficulty: "principiante", equipment: "Cinta" },
-    { id: "bicicleta", name: "Bicicleta", description: "Ejercicio cardiovascular de bajo impacto. Mejor para rodillas.", difficulty: "principiante", equipment: "Bicicleta estática" },
-    { id: "eliptica", name: "Elíptica", description: "Movimiento combinado de pedalear y caminar. Bajo impacto.", difficulty: "principiante", equipment: "Elíptica" },
-    { id: "escaladora", name: "Escaladora", description: "Subes escalones repetidamente. Intensivo y efectivo.", difficulty: "intermedio", equipment: "Escaladora" },
-    { id: "remadora", name: "Remadora", description: "Simula remar. Trabaja espalda y cardio simultáneamente.", difficulty: "intermedio", equipment: "Remadora" },
-  ],
-};
+  sets: { reps: number; peso: number }[];
+}
 
 export default function EntrenamientoPage() {
+  const router = useRouter();
+  const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
+  
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
   const [selectedExercises, setSelectedExercises] = useState<Record<string, string[]>>({});
-  const [step, setStep] = useState<"muscles" | "exercises">("muscles");
+  const [step, setStep] = useState<"muscles" | "exercises" | "summary" | "saving">("muscles");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [workoutId, setWorkoutId] = useState<string | null>(null);
+  
+  const [resumen, setResumen] = useState<ResumenEjercicio[]>([]);
+
+  useEffect(() => {
+    async function initSupabase() {
+      const { createBrowserClient } = await import("@supabase/ssr");
+      const client = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
+      );
+      setSupabase(client);
+    }
+    initSupabase();
+  }, []);
 
   const toggleMuscle = (id: string) => {
     setSelectedMuscles(prev => 
@@ -149,47 +74,227 @@ export default function EntrenamientoPage() {
     });
   };
 
-  const getDifficultyColor = (difficulty: string) => {
-    switch (difficulty) {
-      case "principiante": return "text-green-400 bg-green-400/10 border-green-400/30";
-      case "intermedio": return "text-yellow-400 bg-yellow-400/10 border-yellow-400/30";
-      case "avanzado": return "text-red-400 bg-red-400/10 border-red-400/30";
-      default: return "text-gray-400";
+  const findExerciseById = (exerciseId: string): Exercise | undefined => {
+    for (const exercises of Object.values(exercisesDatabase)) {
+      const found = exercises.find(e => e.id === exerciseId);
+      if (found) return found;
+    }
+    return undefined;
+  };
+
+  const getSelectedExercisesList = (): ResumenEjercicio[] => {
+    const exercises: ResumenEjercicio[] = [];
+    Object.entries(selectedExercises).forEach(([muscleId, exerciseIds]) => {
+      exerciseIds.forEach(exerciseId => {
+        const exerciseData = findExerciseById(exerciseId);
+        if (exerciseData) {
+          const defaultSets = Array.from({ length: DEFAULT_SETS }, (_, i) => ({
+            reps: 0,
+            peso: 0
+          }));
+          exercises.push({
+            id: exerciseId,
+            nombre: exerciseData.name,
+            description: exerciseData.description,
+            equipment: exerciseData.equipment,
+            sets: defaultSets
+          });
+        }
+      });
+    });
+    return exercises;
+  };
+
+  const agregarSet = (ejercicioId: string) => {
+    setResumen(prev => prev.map(ej => {
+      if (ej.id === ejercicioId) {
+        return { ...ej, sets: [...ej.sets, { reps: 0, peso: 0 }] };
+      }
+      return ej;
+    }));
+  };
+
+  const eliminarSet = (ejercicioId: string, setIndex: number) => {
+    setResumen(prev => prev.map(ej => {
+      if (ej.id === ejercicioId && ej.sets.length > 1) {
+        return { ...ej, sets: ej.sets.filter((_, i) => i !== setIndex) };
+      }
+      return ej;
+    }));
+  };
+
+  const actualizarSet = (ejercicioId: string, setIndex: number, field: 'reps' | 'peso', value: number) => {
+    setResumen(prev => prev.map(ej => {
+      if (ej.id === ejercicioId) {
+        const newSets = [...ej.sets];
+        newSets[setIndex] = { ...newSets[setIndex], [field]: value };
+        return { ...ej, sets: newSets };
+      }
+      return ej;
+    }));
+  };
+
+  const handleConfirmar = async () => {
+    const exList = getSelectedExercisesList();
+    setResumen(exList);
+    setStep("summary");
+  };
+
+  const handleGuardarYEjecutar = async () => {
+    if (!supabase) return;
+    
+    setSaving(true);
+    setError(null);
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setError("Debes iniciar sesión para guardar el entrenamiento");
+        setSaving(false);
+        return;
+      }
+
+const fecha = new Date().toISOString().split('T')[0];
+        
+        const { data: workout, error: workoutError } = await supabase
+        .from("workouts")
+        .insert({
+          user_id: session.user.id,
+          date: fecha,
+          status: "pendiente"
+        })
+        .select()
+        .single();
+
+      if (workoutError) throw workoutError;
+
+      const setsToInsert = resumen.flatMap(ej => 
+        ej.sets.map((_, index) => ({
+          workout_id: workout.id,
+          exercise_id: ej.id,
+          exercise_name: ej.nombre,
+          set_number: index + 1,
+          reps: 0,
+          weight_kg: 0,
+          is_completed: false
+        }))
+      );
+
+      const { error: setsError } = await supabase
+        .from("workout_sets")
+        .insert(setsToInsert);
+
+      if (setsError) throw setsError;
+
+      setWorkoutId(workout.id);
+      router.push(`/workout/${workout.id}`);
+    } catch (err: any) {
+      setError(err.message || "Error al guardar el entrenamiento");
+      setSaving(false);
     }
   };
 
-  const getDifficultyLabel = (difficulty: string) => {
-    switch (difficulty) {
-      case "principiante": return "Principiante";
-      case "intermedio": return "Intermedio";
-      case "avanzado": return "Avanzado";
-      default: return difficulty;
-    }
+  const getEquipmentLabel = (equipment: string) => {
+    const barraKeywords = ['barbell', 'máquina', 'prensa', 'smith'];
+    const isBarra = barraKeywords.some(k => equipment.toLowerCase().includes(k));
+    return isBarra ? "Peso (kg)" : "Peso por lado (kg)";
   };
+
+  if (step === "summary") {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white">
+        <UserHeader showBack backHref="/" />
+
+        <main className="pt-24 pb-12 px-4">
+          <div className="max-w-2xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 
+                className="text-3xl font-bold mb-2"
+                style={{ fontFamily: "var(--font-oswald)" }}
+              >
+                RESUMEN DE <span className="text-[#eab308]">ENTRENAMIENTO</span>
+              </h1>
+              <p className="text-[#a1a1aa]">
+                Configura el número de series por ejercicio
+              </p>
+            </div>
+
+            {error && (
+              <div className="flex items-center gap-2 p-3 mb-4 bg-[#ef4444]/10 border border-[#ef4444]/30 rounded-xl text-[#ef4444]">
+                <AlertCircle className="w-5 h-5 flex-shrink-0" />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            <div className="space-y-4 mb-8">
+              {resumen.map((ej) => (
+                <div key={ej.id} className="bg-[#18181b] rounded-xl p-4 border border-[#3f3f46]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg">{ej.nombre}</h3>
+                      <p className="text-sm text-[#71717a] mt-1 line-clamp-2">{ej.description}</p>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                      <button
+                        onClick={() => eliminarSet(ej.id, ej.sets.length - 1)}
+                        disabled={ej.sets.length <= 1}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0a0a0a] border border-[#3f3f46] text-[#71717a] hover:text-[#ef4444] hover:border-[#ef4444] disabled:opacity-30 disabled:cursor-not-allowed"
+                      >
+                        -
+                      </button>
+                      <div className="text-center">
+                        <span className="block font-bold text-lg">{ej.sets.length}</span>
+                        <span className="text-xs text-[#71717a]">series</span>
+                      </div>
+                      <button
+                        onClick={() => agregarSet(ej.id)}
+                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-[#0a0a0a] border border-[#3f3f46] text-[#71717a] hover:text-[#eab308] hover:border-[#eab308] cursor-pointer"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleGuardarYEjecutar}
+                disabled={saving}
+                className="flex items-center justify-center gap-3 w-full py-4 bg-[#eab308] hover:bg-[#ca9a04] disabled:bg-[#3f3f46] disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl transition-colors"
+                style={{ fontFamily: "var(--font-oswald)" }}
+              >
+                {saving ? (
+                  <>
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                    GUARDANDO...
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-5 h-5" />
+                    INICIAR ENTRENAMIENTO
+                  </>
+                )}
+              </button>
+              
+              <button
+                onClick={() => setStep("exercises")}
+                className="flex items-center justify-center gap-2 w-full py-3 border border-[#3f3f46] text-[#a1a1aa] hover:text-white rounded-xl transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Volver a ejercicios
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#3f3f46]">
-        <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <Link 
-            href={step === "exercises" ? "/" : "/"}
-            onClick={(e) => {
-              if (step === "exercises") {
-                e.preventDefault();
-                setStep("muscles");
-                setSelectedExercises({});
-              }
-            }}
-            className="flex items-center gap-2 text-[#a1a1aa] hover:text-white transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">VOLVER</span>
-          </Link>
-          <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
-            TOTAL<span className="text-[#eab308]">GYM</span>
-          </span>
-        </div>
-      </header>
+      <UserHeader showBack backHref="/" />
 
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
@@ -219,7 +324,7 @@ export default function EntrenamientoPage() {
                     key={muscle.id}
                     onClick={() => toggleMuscle(muscle.id)}
                     className={`
-                      relative p-6 rounded-2xl border-2 transition-all duration-300
+                      relative p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer
                       ${selectedMuscles.includes(muscle.id) 
                         ? "bg-[#eab308] border-[#eab308] text-black scale-105" 
                         : "bg-[#18181b] border-[#3f3f46] hover:border-[#eab308]/50 hover:bg-[#27272a]"
@@ -246,18 +351,18 @@ export default function EntrenamientoPage() {
               </div>
 
               <div className="text-center">
-                <button
-                  onClick={() => setStep("exercises")}
-                  disabled={selectedMuscles.length === 0}
-                  className={`
-                    group flex items-center justify-center gap-3 font-bold px-10 py-4 rounded-xl transition-all
-                    ${selectedMuscles.length > 0 
-                      ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105 cursor-pointer" 
-                      : "bg-[#3f3f46] text-[#71717a] cursor-not-allowed"
-                    }
-                  `}
-                  style={{ fontFamily: "var(--font-oswald)" }}
-                >
+<button
+                    onClick={() => setStep("exercises")}
+                    disabled={selectedMuscles.length === 0}
+                    className={`
+                      group flex items-center justify-center gap-3 font-bold px-10 py-4 rounded-xl transition-all cursor-pointer
+                      ${selectedMuscles.length > 0 
+                        ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105" 
+                        : "bg-[#3f3f46] text-[#71717a] cursor-not-allowed"
+                      }
+                    `}
+                    style={{ fontFamily: "var(--font-oswald)" }}
+                  >
                   <Dumbbell className="w-5 h-5" />
                   ELEGIR EJERCICIOS
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -286,54 +391,18 @@ export default function EntrenamientoPage() {
                           {muscle?.name}
                         </h3>
                         <span className="text-sm text-[#71717a] ml-auto">
-                          {selected.length}/{exercises.length} seleccionados
+                          {selected.length}/{exercises.length}
                         </span>
                       </div>
                       
                       <div className="space-y-3">
                         {exercises.map((exercise) => (
-                          <button
+                          <ExerciseCard
                             key={exercise.id}
-                            onClick={() => toggleExercise(muscleId, exercise.id)}
-                            className={`
-                              w-full p-4 rounded-xl border-2 transition-all text-left
-                              ${selected.includes(exercise.id)
-                                ? "border-[#eab308] bg-[#eab308]/10"
-                                : "border-[#3f3f46] hover:border-[#eab308]/50 bg-[#0a0a0a]"
-                              }
-                            `}
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-start gap-3 flex-1">
-                                <div className={`
-                                  w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5
-                                  ${selected.includes(exercise.id) 
-                                    ? "border-[#eab308] bg-[#eab308]" 
-                                    : "border-[#3f3f46]"
-                                  }
-                                `}>
-                                  {selected.includes(exercise.id) && (
-                                    <Check className="w-3 h-3 text-black" />
-                                  )}
-                                </div>
-                                <div>
-                                  <h4 className="font-bold">{exercise.name}</h4>
-                                  <p className="text-sm text-[#a1a1aa] mt-1">{exercise.description}</p>
-                                  <div className="flex items-center gap-3 mt-2">
-                                    <span className={`
-                                      text-xs px-2 py-1 rounded-full border
-                                      ${getDifficultyColor(exercise.difficulty)}
-                                    `}>
-                                      {getDifficultyLabel(exercise.difficulty)}
-                                    </span>
-                                    <span className="text-xs text-[#71717a]">
-                                      {exercise.equipment}
-                                    </span>
-                                  </div>
-                                </div>
-                              </div>
-                            </div>
-                          </button>
+                            exercise={exercise}
+                            selected={selected.includes(exercise.id)}
+                            onSelect={() => toggleExercise(muscleId, exercise.id)}
+                          />
                         ))}
                       </div>
                     </div>
@@ -346,11 +415,12 @@ export default function EntrenamientoPage() {
                   {Object.values(selectedExercises).flat().length} ejercicios seleccionados
                 </div>
                 <button
+                  onClick={handleConfirmar}
                   disabled={Object.values(selectedExercises).flat().length === 0}
                   className={`
-                    group flex items-center justify-center gap-3 font-bold px-10 py-4 rounded-xl transition-all
+                    group flex items-center justify-center gap-3 font-bold px-10 py-4 rounded-xl transition-all cursor-pointer
                     ${Object.values(selectedExercises).flat().length > 0 
-                      ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105 cursor-pointer" 
+                      ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105" 
                       : "bg-[#3f3f46] text-[#71717a] cursor-not-allowed"
                     }
                   `}

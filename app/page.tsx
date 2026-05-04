@@ -1,11 +1,16 @@
 "use client";
 
-import { Dumbbell, Flame, Zap, Trophy, ArrowRight, Calendar } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { Dumbbell, Flame, Zap, Trophy, ArrowRight, Calendar, User, Loader2, Play } from "lucide-react";
 import Link from "next/link";
+import { AuthModal } from "@/app/components/AuthModal";
+import { UserHeader } from "@/app/components/UserHeader";
+import type { Session } from "@supabase/supabase-js";
 
 const motivationalQuotes = [
   "El dolor que sientes hoy es la fuerza que sentirás mañana.",
-  "No pares cuando estés fatiguado. Para cuando hayas terminado.",
+  "No.pares cuando estés fatigued. Para cuando hayas terminado.",
   "La grandeza se construye en el gimnasio, pero se forja en la mente.",
   "Cada repetición te acerca más a tu mejor versión.",
   "No hay secretos. Solo entrenamiento consistencia.",
@@ -37,7 +42,7 @@ const motivationalQuotes = [
   "El dolor es temporal, el orgullo es eterno.",
 ];
 
-function getDailyQuote(): string {
+export function getDailyQuote(): string {
   const today = new Date();
   const start = new Date(today.getFullYear(), 0, 0);
   const diff = today.getTime() - start.getTime();
@@ -46,7 +51,7 @@ function getDailyQuote(): string {
   return motivationalQuotes[dayOfYear % motivationalQuotes.length];
 }
 
-function getFormattedDate(): string {
+export function getFormattedDate(): string {
   const now = new Date();
   return now.toLocaleDateString("es-ES", {
     weekday: "long",
@@ -57,29 +62,115 @@ function getFormattedDate(): string {
 }
 
 export default function Home() {
+  const router = useRouter();
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
+  const [pendingWorkout, setPendingWorkout] = useState<{ id: string; date: string; completed: number; total: number } | null>(null);
+  const [checkingPending, setCheckingPending] = useState(false);
+
   const quote = getDailyQuote();
   const dateStr = getFormattedDate();
 
+  useEffect(() => {
+    async function initSupabase() {
+      const { createBrowserClient } = await import("@supabase/ssr");
+      const client = createBrowserClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
+      );
+      setSupabase(client);
+    }
+    initSupabase();
+  }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    supabase.auth.getSession().then((result: { data: { session: Session | null } }) => {
+      if (result.data.session?.user) {
+        setUser({ email: result.data.session.user.email || "" });
+        checkPendingWorkout(supabase, result.data.session.user.id);
+      }
+    });
+  }, [supabase]);
+
+  const checkPendingWorkout = async (supabaseClient: typeof supabase, userId: string) => {
+    setCheckingPending(true);
+    
+    const { data: pending } = await supabaseClient
+      .from("workouts")
+      .select("id, date, started_at, status")
+      .eq("user_id", userId)
+      .neq("status", "completed")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (pending) {
+      const startedAt = new Date(pending.started_at).getTime();
+      const now = Date.now();
+      const threeHours = 3 * 60 * 60 * 1000;
+
+      if (now - startedAt > threeHours) {
+        await supabaseClient
+          .from("workouts")
+          .update({ status: "completed" })
+          .eq("id", pending.id);
+        setPendingWorkout(null);
+      } else {
+        const { data: setsData } = await supabaseClient
+          .from("workout_sets")
+          .select("id, is_completed")
+          .eq("workout_id", pending.id);
+        
+        const completed = setsData?.filter((s: { is_completed: boolean }) => s.is_completed).length || 0;
+        const total = setsData?.length || 0;
+        
+        if (completed === total && total > 0) {
+          await supabaseClient
+            .from("workouts")
+            .update({ status: "completed" })
+            .eq("id", pending.id);
+          setPendingWorkout(null);
+        } else {
+          setPendingWorkout({ 
+            id: pending.id, 
+            date: pending.date,
+            completed,
+            total 
+          });
+        }
+      }
+    }
+    
+    setCheckingPending(false);
+  };
+
+  const handleStartTraining = () => {
+    if (pendingWorkout) {
+      router.push(`/workout/${pendingWorkout.id}`);
+    } else if (user) {
+      router.push("/entrenamiento");
+    } else {
+      setShowAuthModal(true);
+    }
+  };
+
+  const handleContinueAsGuest = () => {
+    setShowAuthModal(false);
+    router.push("/entrenamiento");
+  };
+
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-[#3f3f46]">
-        <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#eab308] rounded flex items-center justify-center">
-              <Dumbbell className="w-6 h-6 text-black" />
-            </div>
-            <span className="text-2xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
-              TOTAL<span className="text-[#eab308]">GYM</span>
-            </span>
-          </div>
-          <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
-            <a href="#" className="text-[#eab308] hover:text-white transition-colors">INICIO</a>
-            <a href="#" className="text-[#a1a1aa] hover:text-white transition-colors">ENTRENAMIENTOS</a>
-            <a href="#" className="text-[#a1a1aa] hover:text-white transition-colors">PROGRAMAS</a>
-            <a href="#" className="text-[#a1a1aa] hover:text-white transition-colors">CONTACTO</a>
-          </nav>
-        </div>
-      </header>
+      <UserHeader />
+
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
+        onContinueAsGuest={handleContinueAsGuest}
+      />
 
       <main className="pt-20">
         <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
@@ -121,17 +212,38 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link 
-                href="/entrenamiento"
-                className="group flex items-center justify-center gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
-                style={{ fontFamily: "var(--font-oswald)" }}
-              >
-                <Zap className="w-5 h-5" />
-                COMENZAR RUTINA
-                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
+              {checkingPending ? (
+                <button 
+                  disabled
+                  className="flex items-center justify-center gap-3 bg-[#27272a] text-[#71717a] font-bold px-8 py-4 rounded-xl w-full sm:w-auto cursor-wait"
+                  style={{ fontFamily: "var(--font-oswald)" }}
+                >
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  VERIFICANDO...
+                </button>
+              ) : pendingWorkout ? (
+                <button 
+                  onClick={() => router.push(`/workout/${pendingWorkout.id}`)}
+                  className="group flex items-center justify-center gap-3 bg-[#22c55e] hover:bg-[#16a34a] text-black font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
+                  style={{ fontFamily: "var(--font-oswald)" }}
+                >
+                  <Play className="w-5 h-5" />
+                  CONTINUAR ENTRENAMIENTO
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              ) : (
+                <button 
+                  onClick={handleStartTraining}
+                  className="group flex items-center justify-center gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
+                  style={{ fontFamily: "var(--font-oswald)" }}
+                >
+                  <Zap className="w-5 h-5" />
+                  COMENZAR RUTINA
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              )}
               <button 
-                className="flex items-center justify-center gap-3 border-2 border-[#3f3f46] hover:border-[#eab308] text-white font-bold px-8 py-4 rounded-xl transition-all hover:bg-[#eab308]/10"
+                className="flex items-center justify-center gap-3 border-2 border-[#3f3f46] hover:border-[#eab308] text-white font-bold px-8 py-4 rounded-xl transition-all hover:bg-[#eab308]/10 cursor-pointer"
                 style={{ fontFamily: "var(--font-oswald)" }}
               >
                 <Trophy className="w-5 h-5" />
