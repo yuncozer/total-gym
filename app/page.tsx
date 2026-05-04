@@ -1,6 +1,7 @@
 "use client";
 
 import { Dumbbell, Flame, Zap, Trophy, ArrowRight, Calendar } from "lucide-react";
+import Link from "next/link";
 
 const motivationalQuotes = [
   "El dolor que sientes hoy es la fuerza que sentirás mañana.",
@@ -120,14 +121,15 @@ export default function Home() {
             </div>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <button 
-                className="group flex items-center justify-center gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-8 py-4 rounded-xl transition-all hover:scale-105"
+              <Link 
+                href="/entrenamiento"
+                className="group flex items-center justify-center gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                 style={{ fontFamily: "var(--font-oswald)" }}
               >
                 <Zap className="w-5 h-5" />
-                EMPEZAR AHORA
+                COMENZAR RUTINA
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              </Link>
               <button 
                 className="flex items-center justify-center gap-3 border-2 border-[#3f3f46] hover:border-[#eab308] text-white font-bold px-8 py-4 rounded-xl transition-all hover:bg-[#eab308]/10"
                 style={{ fontFamily: "var(--font-oswald)" }}
