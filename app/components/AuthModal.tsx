@@ -1,15 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { X, AlertTriangle, ArrowRight, LogIn, UserPlus } from "lucide-react";
+import { X, AlertTriangle, LogIn, UserPlus, Database, History, Trophy } from "lucide-react";
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onContinueAsGuest: () => void;
 }
 
-export function AuthModal({ isOpen, onClose, onContinueAsGuest }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   if (!isOpen) return null;
 
   return (
@@ -32,40 +31,48 @@ export function AuthModal({ isOpen, onClose, onContinueAsGuest }: AuthModalProps
             className="text-2xl font-bold text-white"
             style={{ fontFamily: "var(--font-oswald)" }}
           >
-            IMPORTANTE
+            CREA TU CUENTA
           </h2>
         </div>
 
         <p className="text-[#a1a1aa] text-center mb-6">
-          Para mantener tus datos y consultarlos en el futuro, necesitas crear una cuenta.
+          Necesitas una cuenta para guardar tu progreso y consultar tu historial de entrenamiento.
         </p>
 
-        <div className="bg-[#27272a] rounded-xl p-4 mb-6">
-          <h3 className="text-white font-medium mb-3">Si continuas sin registrarte:</h3>
-          <ul className="space-y-2">
-            <li className="flex items-center gap-2 text-sm">
-              <span className="text-[#22c55e]">✓</span>
-              <span className="text-[#a1a1aa]">Podrás crear tu rutina de entrenamiento</span>
-            </li>
-            <li className="flex items-center gap-2 text-sm">
-              <span className="text-[#22c55e]">✓</span>
-              <span className="text-[#a1a1aa]">Podrás registrar series, repeticiones y peso</span>
-            </li>
-            <li className="flex items-center gap-2 text-sm">
-              <span className="text-[#ef4444]">✗</span>
-              <span className="text-[#a1a1aa]">Los datos se PERDERÁN al cerrar la página</span>
-            </li>
-            <li className="flex items-center gap-2 text-sm">
-              <span className="text-[#ef4444]">✗</span>
-              <span className="text-[#a1a1aa]">No podrás consultarlos más adelante</span>
-            </li>
-          </ul>
+        <div className="space-y-3 mb-6">
+          <div className="flex items-start gap-3 p-3 bg-[#27272a] rounded-xl">
+            <Database className="w-5 h-5 text-[#eab308] mt-0.5" />
+            <div>
+              <span className="text-white font-medium block">Tus datos siempre seguros</span>
+              <span className="text-[#71717a] text-sm">Puedes continuar entrenando desde cualquier dispositivo</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-3 bg-[#27272a] rounded-xl">
+            <History className="w-5 h-5 text-[#eab308] mt-0.5" />
+            <div>
+              <span className="text-white font-medium block">Consulta tu historial</span>
+              <span className="text-[#71717a] text-sm">Revisa cuánto levantaste la última vez que hiciste cada ejercicio</span>
+            </div>
+          </div>
+          <div className="flex items-start gap-3 p-3 bg-[#27272a] rounded-xl">
+            <Trophy className="w-5 h-5 text-[#eab308] mt-0.5" />
+            <div>
+              <span className="text-white font-medium block">Tu progreso queda registrado</span>
+              <span className="text-[#71717a] text-sm">Ve tu evolución workout tras workout</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#18181b] border border-[#ef4444]/30 rounded-xl p-3 mb-6">
+          <p className="text-[#ef4444] text-sm">
+            <span className="font-medium">Sin cuenta:</span> tus datos se perderán al cerrar esta página y no podrás recuperarlos.
+          </p>
         </div>
 
         <div className="space-y-3">
           <Link
             href="/register"
-            className="flex items-center justify-center gap-2 w-full py-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold rounded-xl transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold rounded-xl transition-colors cursor-pointer"
             style={{ fontFamily: "var(--font-oswald)" }}
           >
             <UserPlus className="w-5 h-5" />
@@ -74,21 +81,12 @@ export function AuthModal({ isOpen, onClose, onContinueAsGuest }: AuthModalProps
           
           <Link
             href="/login"
-            className="flex items-center justify-center gap-2 w-full py-3 bg-[#27272a] border border-[#3f3f46] hover:border-[#eab308] text-white font-bold rounded-xl transition-colors"
+            className="flex items-center justify-center gap-2 w-full py-3 bg-[#27272a] border border-[#3f3f46] hover:border-[#eab308] text-white font-bold rounded-xl transition-colors cursor-pointer"
             style={{ fontFamily: "var(--font-oswald)" }}
           >
             <LogIn className="w-5 h-5" />
-            INICIAR SESIÓN
+            YA TENGO CUENTA
           </Link>
-          
-          <button
-            onClick={onContinueAsGuest}
-            className="flex items-center justify-center gap-2 w-full py-3 text-[#71717a] hover:text-white font-medium rounded-xl transition-colors cursor-pointer"
-            style={{ fontFamily: "var(--font-oswald)" }}
-          >
-            CONTINUAR COMO INVITADO
-            <ArrowRight className="w-5 h-5" />
-          </button>
         </div>
       </div>
     </div>

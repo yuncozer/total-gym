@@ -169,7 +169,6 @@ export default function Home() {
       <AuthModal
         isOpen={showAuthModal}
         onClose={() => setShowAuthModal(false)}
-        onContinueAsGuest={handleContinueAsGuest}
       />
 
       <main className="pt-20">

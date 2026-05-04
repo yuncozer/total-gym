@@ -37,14 +37,13 @@ export default function RegisterPage() {
 
     supabase.auth.getSession().then((result: { data: { session: Session | null } }) => {
       if (result.data.session) {
-        router.push("/entrenamiento");
+router.push("/login");
       }
     });
   }, [router, supabase]);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!supabase) return;
     
     setLoading(true);
     setError(null);
@@ -67,23 +66,26 @@ export default function RegisterPage() {
       return;
     }
 
-    const { data, error: signUpError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          sexo,
-        }
+    try {
+      const response = await fetch("/api/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || "Error al crear cuenta");
+        setLoading(false);
+        return;
       }
-    });
 
-    if (signUpError) {
-      setError(signUpError.message);
+      router.push("/entrenamiento");
+    } catch (err) {
+      setError("Error de conexión");
       setLoading(false);
-      return;
     }
-
-    router.push("/entrenamiento");
   };
 
   return (
