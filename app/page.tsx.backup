@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target } from "lucide-react";
+import { Dumbbell, Flame, Zap, Trophy, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer } from "lucide-react";
+import Link from "next/link";
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
-import { GuestCarousel } from "@/app/components/GuestCarousel";
 import type { Session } from "@supabase/supabase-js";
 import { getDailyQuote } from "@/app/data/quote";
 
@@ -17,44 +17,6 @@ export function getFormattedDate(): string {
     month: "long",
     day: "numeric",
   });
-}
-
-function ScrollIndicator() {
-  return (
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-      <span className="text-[#71717a] text-sm uppercase tracking-widest" style={{ fontFamily: "var(--font-oswald)" }}>
-        Descubre más
-      </span>
-      <ChevronDown className="w-6 h-6 text-[#eab308]" />
-    </div>
-  );
-}
-
-function UserDashboard({ user }: { user: { email: string } }) {
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8 w-full max-w-4xl mx-auto">
-      <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
-        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>HOY</div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Entrena</div>
-      </div>
-      <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
-        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>0</div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Racha</div>
-      </div>
-      <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <Target className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
-        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>0</div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Workouts</div>
-      </div>
-      <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
-        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>0</div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Series</div>
-      </div>
-    </div>
-  );
 }
 
 export default function Home() {
@@ -87,25 +49,8 @@ export default function Home() {
       if (result.data.session?.user) {
         setUser({ email: result.data.session.user.email || "" });
         checkPendingWorkout(supabase, result.data.session.user.id);
-      } else {
-        setUser(null);
-        setPendingWorkout(null);
       }
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event: string, session: Session | null) => {
-      if (event === 'SIGNED_OUT' || !session) {
-        setUser(null);
-        setPendingWorkout(null);
-      } else if (event === 'SIGNED_IN' && session?.user) {
-        setUser({ email: session.user.email || "" });
-        checkPendingWorkout(supabase, session.user.id);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, [supabase]);
 
   const checkPendingWorkout = async (supabaseClient: typeof supabase, userId: string) => {
@@ -166,8 +111,13 @@ export default function Home() {
     } else if (user) {
       router.push("/entrenamiento");
     } else {
-      router.push("/entrenamiento");
+      setShowAuthModal(true);
     }
+  };
+
+  const handleContinueAsGuest = () => {
+    setShowAuthModal(false);
+    router.push("/entrenamiento");
   };
 
   return (
@@ -180,46 +130,20 @@ export default function Home() {
       />
 
       <main className="pt-20">
-        {!user && (
-          <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden px-4 sm:px-6">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#18181b] opacity-90" />
-            <div 
-              className="absolute inset-0 opacity-20"
-              style={{
-                backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80')`,
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
-
-            <div className="relative z-10 max-w-5xl mx-auto text-center w-full">
-              <GuestCarousel onAuth={() => setShowAuthModal(true)} />
-            </div>
-            <ScrollIndicator />
-          </section>
-        )}
-
-        <section className={`relative ${!user ? 'py-20' : 'min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center'} overflow-hidden`}>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#18181b] opacity-95" />
+        <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#18181b] opacity-90" />
           <div 
-            className="absolute inset-0 opacity-10"
+            className="absolute inset-0 opacity-20"
             style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80')`,
+              backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80')`,
               backgroundSize: 'cover',
               backgroundPosition: 'center',
             }}
           />
-          {!user && (
-            <div className="absolute inset-0">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#eab308]/5 rounded-full blur-[120px]" />
-            </div>
-          )}
-          
-          <div className={`relative z-10 max-w-4xl mx-auto px-4 text-center ${user ? 'py-12' : ''}`}>
-            {user && <UserDashboard user={user} />}
-            
-            <div className="inline-flex items-center gap-2 bg-[#eab308]/10 border border-[#eab308]/30 rounded-full px-4 py-2 mb-6 sm:mb-8">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+
+          <div className="relative z-10 max-w-4xl mx-auto px-4 text-center">
+            <div className="inline-flex items-center gap-2 bg-[#eab308]/10 border border-[#eab308]/30 rounded-full px-4 py-2 mb-8">
               <Calendar className="w-4 h-4 text-[#eab308]" />
               <span className="text-sm text-[#eab308] uppercase tracking-wider" style={{ fontFamily: "var(--font-rajdhani)" }}>
                 {dateStr}
@@ -227,59 +151,60 @@ export default function Home() {
             </div>
 
             <h1 
-              className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 sm:mb-8"
+              className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-8 animate-fade-in-up"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
               <span className="text-[#eab308]">CADA DÍA</span> <br />
               UNA NUEVA <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#eab308]">OPORTUNIDAD</span>
             </h1>
 
-            <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-2xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8 backdrop-blur-sm">
-              <Flame className="w-6 h-6 sm:w-8 sm:h-8 text-[#eab308] mx-auto mb-3 sm:mb-4" />
+            <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-2xl p-8 md:p-12 mb-10 backdrop-blur-sm animate-pulse-glow">
+              <Flame className="w-8 h-8 text-[#eab308] mx-auto mb-4" />
               <p 
-                className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold leading-relaxed text-white"
+                className="text-xl md:text-2xl lg:text-3xl font-semibold leading-relaxed text-white"
                 style={{ fontFamily: "var(--font-rajdhani)" }}
               >
                 &ldquo;{quote}&rdquo;
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               {checkingPending ? (
                 <button 
                   disabled
-                  className="flex items-center justify-center gap-2 sm:gap-3 bg-[#27272a] text-[#71717a] font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto cursor-wait"
+                  className="flex items-center justify-center gap-3 bg-[#27272a] text-[#71717a] font-bold px-8 py-4 rounded-xl w-full sm:w-auto cursor-wait"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
-                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                   VERIFICANDO...
                 </button>
               ) : pendingWorkout ? (
                 <button 
                   onClick={() => router.push(`/workout/${pendingWorkout.id}`)}
-                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#22c55e] hover:bg-[#16a34a] text-black font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
+                  className="group flex items-center justify-center gap-3 bg-[#22c55e] hover:bg-[#16a34a] text-black font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
-                  <Play className="w-4 h-4 sm:w-5 sm:h-5" />
-                  CONTINUAR ({pendingWorkout.completed}/{pendingWorkout.total})
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                  <Play className="w-5 h-5" />
+                  CONTINUAR ENTRENAMIENTO
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               ) : (
                 <button 
                   onClick={handleStartTraining}
-                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
+                  className="group flex items-center justify-center gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
-                  <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <Zap className="w-5 h-5" />
                   COMENZAR RUTINA
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               )}
+              
             </div>
           </div>
         </section>
 
-        <section className="py-24 bg-[#0a0a0a] relative overflow-hidden">
+<section className="py-24 bg-[#0a0a0a] relative overflow-hidden">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-0" style={{
               backgroundImage: `radial-gradient(circle at 25% 25%, #eab308 1px, transparent 1px), radial-gradient(circle at 75% 75%, #eab308 1px, transparent 1px)`,
@@ -540,7 +465,7 @@ export default function Home() {
               </div>
               <div className="text-center p-6 bg-[#18181b]/50 border border-[#3f3f46] rounded-xl hover:border-[#eab308] transition-colors group">
                 <div className="w-14 h-14 bg-[#eab308]/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
-                  <svg className="w-7 h-7 text-[#eab308]" fill="none" viewBox="0 0 24 24" stroke="currentModel">
+                  <svg className="w-7 h-7 text-[#eab308]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
