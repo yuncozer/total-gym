@@ -66,8 +66,73 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
   const [timer, setTimer] = useState<TimerState>({
     segundos: 0,
     activo: false,
-    descansando: false
+    descansando: false,
+    timestampInicio: undefined
   });
+
+  const TIMER_STORAGE_KEY = `totalgym_timer_${workoutId}`;
+  const TIMER_MAX_HOURS = 3;
+
+  const getTimerFromStorage = (): { startTime: number; descanso: boolean; ejercicioId: string } | null => {
+    if (typeof window === 'undefined') return null;
+    const stored = localStorage.getItem(TIMER_STORAGE_KEY);
+    if (!stored) return null;
+    try {
+      return JSON.parse(stored);
+    } catch {
+      return null;
+    }
+  };
+
+  const saveTimerToStorage = (startTime: number, descanso: boolean, ejercicioId: string) => {
+    if (typeof window === 'undefined') return;
+    localStorage.setItem(TIMER_STORAGE_KEY, JSON.stringify({ startTime, descanso, ejercicioId }));
+  };
+
+  const clearTimerStorage = () => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(TIMER_STORAGE_KEY);
+  };
+
+  const restoreTimerFromStorage = useCallback(() => {
+    const stored = getTimerFromStorage();
+    if (!stored) return;
+
+    const elapsedMs = Date.now() - stored.startTime;
+    const elapsedSeconds = Math.floor(elapsedMs / 1000);
+    const maxSeconds = TIMER_MAX_HOURS * 60 * 60;
+
+    if (elapsedSeconds > maxSeconds) {
+      clearTimerStorage();
+      return;
+    }
+
+    if (stored.descanso) {
+      setTimer({
+        segundos: elapsedSeconds,
+        activo: true,
+        descansando: true,
+        timestampInicio: stored.startTime
+      });
+    }
+  }, [TIMER_STORAGE_KEY]);
+
+  useEffect(() => {
+    restoreTimerFromStorage();
+  }, [restoreTimerFromStorage]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        restoreTimerFromStorage();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [restoreTimerFromStorage]);
 
   useEffect(() => {
     async function load() {
@@ -100,26 +165,26 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
   }, [currentSetIndex, selectedExercise, isExerciseComplete]);
 
   useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (timer.activo && !timer.descansando) {
-      interval = setInterval(() => {
-        setTimer(prev => {
-          const newTime = prev.segundos + 1;
-          if (newTime > 0 && newTime % 30 === 0) {
-            if (navigator.vibrate) navigator.vibrate(200);
-          }
-          return { ...prev, segundos: newTime };
-        });
-      }, 1000);
-    } else if (timer.descansando) {
-      interval = setInterval(() => {
-        setTimer(prev => ({ ...prev, segundos: prev.segundos + 1 }));
-      }, 1000);
-    }
-    
+    if (!timer.activo || !timer.timestampInicio) return;
+
+    const updateTimer = () => {
+      const elapsed = Math.floor((Date.now() - timer.timestampInicio!) / 1000);
+      setTimer(prev => ({ ...prev, segundos: elapsed }));
+    };
+
+    updateTimer();
+    const interval = setInterval(updateTimer, 1000);
+
     return () => clearInterval(interval);
-  }, [timer.activo, timer.descansando]);
+  }, [timer.activo, timer.timestampInicio]);
+
+  const [prevDescansando, setPrevDescansando] = useState<boolean | null>(null);
+  useEffect(() => {
+    if (prevDescansando === true && timer.descansando === false) {
+      clearTimerStorage();
+    }
+    setPrevDescansando(timer.descansando);
+  }, [timer.descansando, prevDescansando]);
 
   const saveSets = useCallback(async (exercisesToSave?: ExerciseInWorkout[]) => {
     const ejs = exercisesToSave || exercises;
@@ -136,6 +201,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
   const selectExercise = useCallback((exercise: ExerciseInWorkout) => {
     setIsExerciseComplete(false);
     setTimer({ segundos: 0, activo: false, descansando: false });
+    clearTimerStorage();
     
     const idx = progressFn.findFirstIncompleteSet(exercise);
     setCurrentSetIndex(idx);
@@ -150,6 +216,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     if (prog.completed === prog.total && prog.total > 0) {
       setIsWorkoutComplete(true);
       service.completeWorkout(workoutId);
+      clearTimerStorage();
     }
     setSelectedExercise(null);
     setTimer({ segundos: 0, activo: false, descansando: false });
@@ -216,8 +283,11 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     if (prog.completed === prog.total) {
       setIsWorkoutComplete(true);
       await service.completeWorkout(workoutId);
+      clearTimerStorage();
     } else {
-      setTimer({ segundos: 0, activo: false, descansando: true });
+      const now = Date.now();
+      setTimer({ segundos: 0, activo: true, descansando: true, timestampInicio: now });
+      saveTimerToStorage(now, true, selectedExercise?.exerciseId || '');
     }
   }, [selectedExercise, currentSetIndex, isLastSet, exercises, saveSets, workoutId]);
 

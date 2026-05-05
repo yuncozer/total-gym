@@ -36,4 +36,5 @@ export interface TimerState {
   segundos: number;
   activo: boolean;
   descansando: boolean;
+  timestampInicio?: number;
 }

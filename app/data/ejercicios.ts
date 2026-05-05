@@ -243,6 +243,57 @@ export const exercisesDatabase: Record<string, Exercise[]> = {
         "Mantener chest up",
         "Controlar el movimiento"
       ]
+    },
+    {
+      id: "remo-maquina",
+      name: "Remo con máquina",
+      description: "Ejercicio en máquina que aísla los músculos de la espalda. Movimiento controlado con resistencia ajustable.",
+      difficulty: "principiante",
+      equipment: "Máquina",
+      muscles: ["dorsal", "dorsal-medio"],
+      secondary: ["biceps", "deltoid-posterior"],
+      muscleNames: ["Dorsal ancho", "Dorsal medio"],
+      secondaryNames: ["Bíceps", "Deltoide posterior"],
+      technique: [
+        "Ajusta el asiento y el apoyo de pecho para que los agarres queden a la mitad del torso",
+        "Apoya bien los pies, pecho contra el apoyo, columna neutra, core activo",
+        "Agarra los agarres con las muñecas rectas y los hombros abajo",
+        "Empieza llevando las escápulas hacia atrás (retracción) antes de doblar los codos",
+        "Tira de los codos hacia los costados hasta que los agarres lleguen a las costillas; aprieta la espalda",
+        "Baja el peso despacio, con control y hombros encajados"
+      ],
+      tips: [
+        "Mantén el pecho en el apoyo; no te encojas ni arquees la zona lumbar",
+        "Exhala al tirar, inhala al volver",
+        "Aísla eficazmente los músculos de la espalda",
+        "Menos riesgo de lesiones debido al movimiento controlado"
+      ]
+    },
+    {
+      id: "remo-t",
+      name: "Remo T",
+      description: "Ejercicio compuesto para espalda superior y media usando una barra T. Excelente para desarrollar anchura y grosor.",
+      difficulty: "intermedio",
+      equipment: "Barra T / Máquina",
+      muscles: ["dorsal", "dorsal-medio"],
+      secondary: ["biceps", "deltoid-posterior", "trapecio"],
+      muscleNames: ["Dorsal ancho", "Dorsal medio"],
+      secondaryNames: ["Bíceps", "Deltoide posterior", "Trapecio"],
+      technique: [
+        "Colócate a horcajadas sobre la barra con los pies al ancho de los hombros",
+        "Flexiona ligeramente las rodillas e inclínate aproximadamente 45 grados",
+        "Agarra el mango con ambas manos, con las palmas enfrentadas o mirando hacia ti",
+        "Mantén la espalda recta, core activado y columna neutral",
+        "Tira de la barra hacia tu pecho inferior o abdomen superior",
+        "Mantén los codos cerca de tu cuerpo y concéntrate en apretar las escápulas arriba",
+        "Baja lentamente la barra a la posición inicial con control"
+      ],
+      tips: [
+        "No arquear la espalda - mantén columna neutral",
+        "Evita balancear el torso o dar tirones al peso",
+        "Usa un mango ancho para enfatizar parte superior de la espalda",
+        "Para mayor énfasis en bíceps, usa agarre supino"
+      ]
     }
   ],
   hombros: [
@@ -355,13 +406,40 @@ export const exercisesDatabase: Record<string, Exercise[]> = {
         "Don't use excessive weight",
         "Great for anterior development"
       ]
+    },
+    {
+      id: "aperturas-posteriores-maquina",
+      name: "Aperturas posteriores en máquina",
+      description: "Ejercicio de aislamiento en máquina para deltoides posteriores. Sentado con el pecho contra el cojín, empujas las manijas hacia atrás en un arco controlado.",
+      difficulty: "principiante",
+      equipment: "Máquina",
+      muscles: ["deltoid-posterior"],
+      secondary: ["trapecio-medio", "romboides"],
+      muscleNames: ["Deltoide posterior"],
+      secondaryNames: ["Trapecio medio", "Romboides"],
+      technique: [
+        "Ajusta los brazos de la máquina a la posición adecuada",
+        "Regula la altura del asiento para que tus manos estén al nivel de tus hombros",
+        "Siéntate de cara a la máquina con el pecho firmemente apoyado contra el cojín",
+        "Agarra las manijas con un agarre neutral o prono",
+        "Mantén los brazos ligeramente flexionados en los codos",
+        "Exhala mientras tires de las manijas hacia afuera y hacia atrás en un arco controlado",
+        "Enfócate en juntar los omóplatos en el punto máximo del movimiento",
+        "Inhala mientras regresas lentamente las manijas a la posición inicial con control"
+      ],
+      tips: [
+        "Mantén el pecho firmly against the cojín para prevenir movimientos compensatorios",
+        "Evita balancear el torso o usar impulso",
+        "No bloquear los codos - mantén slight flexión durante todo el movimiento",
+        "Perfecto para equilibrar el desarrollo de los hombros"
+      ]
     }
   ],
-  brazos: [
+  biceps: [
     {
       id: "curl-bicep",
       name: "Curl biceps",
-      description: "Ejercicio经典的 para bíceps. Con mancuernas o barra, subes el peso enrollando los brazos.",
+      description: "Ejercicio clásico para bíceps. Con mancuernas o barra, subes el peso enrollando los brazos.",
       difficulty: "principiante",
       equipment: "Mancuernas/Barra",
       muscles: ["biceps"],
@@ -402,6 +480,30 @@ export const exercisesDatabase: Record<string, Exercise[]> = {
         "Alternate arms or do together"
       ]
     },
+    {
+      id: "curl-concentr",
+      name: "Curl concentrado",
+      description: "Sentado, apoyas el codo y subes la mancuerna. Para bíceps aislado.",
+      difficulty: "principiante",
+      equipment: "Mancuerna",
+      muscles: ["biceps"],
+      secondary: [],
+      muscleNames: ["Bíceps"],
+      secondaryNames: [],
+      technique: [
+        "Sentado, codo apoiado en el muslo",
+        "Coger mancuerna con misma mano",
+        "Elevar exclusivamente con bíceps",
+        "Bajar con control"
+      ],
+      tips: [
+        "Maximum peak contraction",
+        "Don't let elbow drift",
+        "Strict form essential"
+      ]
+    }
+  ],
+  triceps: [
     {
       id: "press-cierre",
       name: "Press cierre",
@@ -445,27 +547,51 @@ export const exercisesDatabase: Record<string, Exercise[]> = {
         "Don't flare elbows out",
         "Control throughout"
       ]
-    },
+    }
+  ],
+  antebrazo: [
     {
-      id: "curl-concentr",
-      name: "Curl concentrado",
-      description: "Sentado, apoyas el codo y subes la mancuerna. Para bíceps isolated.",
+      id: "curl-muneca",
+      name: "Curl de muñecas",
+      description: "Ejercicio para antebrazos. Sentado con los antebrazos en los muslos, enrollas la muñeca hacia arriba.",
       difficulty: "principiante",
-      equipment: "Mancuerna",
-      muscles: ["biceps"],
+      equipment: "Barra/Mancuerna",
+      muscles: ["antebrazo-flexores"],
       secondary: [],
-      muscleNames: ["Bíceps"],
+      muscleNames: ["Flexores de antebrazo"],
       secondaryNames: [],
       technique: [
-        "Sentado, codo apoiado en el muslo",
-        "Coger mancuerna con misma mano",
-        "Elevar exclusivamente con bíceps",
-        "Bajar con control"
+        "Sentado, antebrazos sobre los muslos con muñecas libre al borde",
+        "Agarra la barra o mancuerna con palma hacia arriba",
+        "Enrolla la muñeca hacia arriba contra la resistencia",
+        "Baja con control lentamente"
       ],
       tips: [
-        "Maximum peak contraction",
-        "Don't let elbow drift",
-        "Strict form essential"
+        "Usa peso ligero - los antebrazos se fatigan rápido",
+        "Mantén la muñeca estable",
+        "No balancear los brazos"
+      ]
+    },
+    {
+      id: "ext-muneca",
+      name: "Extensión de muñecas",
+      description: "Ejercicio para extensores de antebrazo. Inverso al curl de muñecas, trabajas la parte superior del antebrazo.",
+      difficulty: "principiante",
+      equipment: "Barra/Mancuerna",
+      muscles: ["antebrazo-extensores"],
+      secondary: [],
+      muscleNames: ["Extensores de antebrazo"],
+      secondaryNames: [],
+      technique: [
+        "Sentado, antebrazos sobre los muslos con muñecas libre al borde",
+        "Agarra la barra o mancuerna con palma hacia abajo",
+        "Extiende la muñeca hacia arriba contra la resistencia",
+        "Baja con control lentamente"
+      ],
+      tips: [
+        "Peso ligero es suficiente",
+        "Importante para equilibrar con los flexores",
+        "Ayuda a prevenir túnel carpiano"
       ]
     }
   ],
@@ -924,14 +1050,14 @@ export const muscleGroupsData: MuscleGroup[] = [
     id: "pecho",
     name: "PECHO",
     description: "Músculos pectorales mayores y menores",
-    icon: "🫃",
+    icon: "⛹️",
     exercises: exercisesDatabase.pecho
   },
   {
     id: "espalda",
     name: "ESPALDA",
     description: "Dorsales, trapecios y lumbares",
-    icon: "🔙",
+    icon: "🏋️",
     exercises: exercisesDatabase.espalda
   },
   {
@@ -942,11 +1068,25 @@ export const muscleGroupsData: MuscleGroup[] = [
     exercises: exercisesDatabase.hombros
   },
   {
-    id: "brazos",
-    name: "BRAZOS",
-    description: "Bíceps, tríceps y antebrazos",
+    id: "biceps",
+    name: "BÍCEPS",
+    description: "Músculos frontales del brazo",
     icon: "💪",
-    exercises: exercisesDatabase.brazos
+    exercises: exercisesDatabase.biceps
+  },
+  {
+    id: "triceps",
+    name: "TRÍCEPS",
+    description: "Músculos posteriores del brazo",
+    icon: "🦾",
+    exercises: exercisesDatabase.triceps
+  },
+  {
+    id: "antebrazo",
+    name: "ANTEBRAZO",
+    description: "Flexores y extensores del antebrazo",
+    icon: "🤜",
+    exercises: exercisesDatabase.antebrazo
   },
   {
     id: "piernas",
