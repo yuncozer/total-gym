@@ -458,10 +458,27 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="mt-12 p-6 bg-[#eab308]/10 border border-[#eab308]/30 rounded-xl text-center">
-              <p className="text-[#eab308] font-medium">
-                💡 <strong className="text-white">Tip:</strong> Una vez instalada, funciona SIN conexión a internet (tus datos se guardan localmente).
-              </p>
+            <div className="mt-12 p-6 bg-[#eab308]/10 border border-[#eab308]/30 rounded-xl">
+              <h3 className="text-xl font-bold mb-3 text-center" style={{ fontFamily: "var(--font-oswald)" }}>
+                ¿POR QUÉ UNA <span className="text-[#eab308]">PWA</span>?
+              </h3>
+              <div className="grid md:grid-cols-3 gap-4 text-[#a1a1aa] text-sm">
+                <div className="text-center">
+                  <div className="text-2xl mb-2">🚀</div>
+                  <p className="text-white font-bold mb-1">SIN DESCARGAS</p>
+                  <p>No esperes instalación. opens immediately when la necesitas.</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">💾</div>
+                  <p className="text-white font-bold mb-1">SIEMPRE ACTUALIZADA</p>
+                  <p>Cada vez que abras, tienes la latest version. Sin updates old school.</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl mb-2">📱</div>
+                  <p className="text-white font-bold mb-1">COMO NATIVA</p>
+                  <p>Se siente como app real en tu home screen. native experience, no browser BS.</p>
+                </div>
+              </div>
             </div>
           </div>
         </section>
