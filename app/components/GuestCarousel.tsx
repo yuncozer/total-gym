@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Flame, Zap, ArrowRight, ChevronDown, Play } from "lucide-react";
 
 const carouselSlides = [
@@ -35,6 +36,7 @@ interface GuestCarouselProps {
 }
 
 export function GuestCarousel({ onAuth }: GuestCarouselProps) {
+  const router = useRouter();
   const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
@@ -97,7 +99,7 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
-                  onClick={onAuth}
+                  onClick={() => router.push('/register')}
                   className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black text-base sm:text-lg font-bold px-6 sm:px-8 py-4 sm:py-5 rounded-xl transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(234,179,8,0.5)] cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
