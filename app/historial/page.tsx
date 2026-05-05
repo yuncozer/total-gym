@@ -2,32 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Calendar, CheckCircle2, Clock, Target, Loader2, ArrowLeft, Dumbbell, ChevronDown, ChevronUp, Scale, Search, X } from "lucide-react";
+import { CheckCircle2, Clock, Target, Loader2, Dumbbell, ChevronDown, ChevronUp, Scale, Search, X } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
-
-interface Workout {
-  id: string;
-  date: string;
-  status: string;
-  completed_at: string | null;
-  workout_sets: WorkoutSet[];
-}
-
-interface WorkoutSet {
-  id: string;
-  exercise_id: string;
-  exercise_name: string;
-  set_number: number;
-  reps: number;
-  weight_kg: number;
-  is_completed: boolean;
-}
+import { loadWorkoutHistory, type WorkoutSummary, type WorkoutSet, type ExerciseInWorkout } from "@/lib/workout";
 
 export default function HistorialPage() {
   const router = useRouter();
-  const [workouts, setWorkouts] = useState<Workout[]>([]);
+  const [workouts, setWorkouts] = useState<WorkoutSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
   const [expandedWorkouts, setExpandedWorkouts] = useState<Set<string>>(new Set());
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
   const [fechaInicio, setFechaInicio] = useState("");
@@ -35,44 +17,17 @@ export default function HistorialPage() {
   const [showFilters, setShowFilters] = useState(false);
 
   useEffect(() => {
-    async function initSupabase() {
-      const { createBrowserClient } = await import("@supabase/ssr");
-      const client = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
-      );
-      setSupabase(client);
-
-      const { data: { session } } = await client.auth.getSession();
-      console.log("Session:", session?.user?.id);
-      
-      if (session?.user) {
-        const { data: workoutsData, error } = await client
-          .from("workouts")
-          .select("id, date, started_at, status")
-          .eq("user_id", session.user.id)
-          .order("started_at", { ascending: false });
-
-        console.log("Workouts data:", workoutsData, "error:", error);
-        
-        if (workoutsData && workoutsData.length > 0) {
-          const workoutsWithSets = await Promise.all(
-            workoutsData.map(async (workout) => {
-              const { data: sets } = await client
-                .from("workout_sets")
-                .select("id, exercise_id, exercise_name, set_number, reps, weight_kg, is_completed")
-                .eq("workout_id", workout.id);
-              return { ...workout, workout_sets: sets || [] };
-            })
-          );
-          
-          console.log("Workouts with sets:", workoutsWithSets);
-          setWorkouts(workoutsWithSets as unknown as Workout[]);
-        }
+    async function loadWorkouts() {
+      try {
+        const history = await loadWorkoutHistory();
+        setWorkouts(history);
+      } catch (error) {
+        console.error("Error loading history:", error);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     }
-    initSupabase();
+    loadWorkouts();
   }, []);
 
   const formatDate = (dateStr: string) => {
@@ -149,18 +104,20 @@ export default function HistorialPage() {
     setExpandedExercises(newExpanded);
   };
 
-  const getGroupedSets = (sets: WorkoutSet[]) => {
+  const getGroupedSets = (exercises: ExerciseInWorkout[]) => {
     const groups: Record<string, WorkoutSet[]> = {};
-    sets.forEach((set) => {
-      const key = set.exercise_name;
+    exercises.forEach((exercise) => {
+      const key = exercise.name;
       if (!groups[key]) groups[key] = [];
-      groups[key].push(set);
+      (exercise.sets || []).forEach((set) => {
+        groups[key].push(set);
+      });
     });
     return groups;
   };
 
-  const groupWorkoutsByMonth = (workouts: Workout[]) => {
-    const groups: Record<string, Workout[]> = {};
+  const groupWorkoutsByMonth = (workouts: WorkoutSummary[]) => {
+    const groups: Record<string, WorkoutSummary[]> = {};
     workouts.forEach((workout) => {
       try {
         const parts = workout.date.split("-");
@@ -183,16 +140,16 @@ export default function HistorialPage() {
     return groups;
   };
 
-  const getWorkoutStats = (workout: Workout) => {
-    const total = workout.workout_sets?.length || 0;
-    const completed = workout.workout_sets?.filter((s) => s.is_completed).length || 0;
-    const uniqueExercises = new Set(workout.workout_sets?.map((s) => s.exercise_name)).size;
+  const getWorkoutStats = (workout: WorkoutSummary) => {
+    const total = workout.exercises?.reduce((acc, e) => acc + (e.sets?.length || 0), 0) || 0;
+    const completed = workout.exercises?.reduce((acc, e) => acc + (e.sets?.filter(s => s.is_completed).length || 0), 0) || 0;
+    const uniqueExercises = workout.exercises?.length || 0;
     return { total, completed, uniqueExercises };
   };
 
-  const isCompleted = (workout: Workout) => workout.status === "completed";
+  const isCompleted = (workout: WorkoutSummary) => workout.status === "completed";
 
-  const filterWorkoutsByDate = (workouts: Workout[]) => {
+  const filterWorkoutsByDate = (workouts: WorkoutSummary[]) => {
     return workouts.filter((workout) => {
       try {
         const parts = workout.date.split("-");
@@ -355,7 +312,7 @@ export default function HistorialPage() {
                       const stats = getWorkoutStats(workout);
                       const completed = isCompleted(workout);
                       const isExpanded = expandedWorkouts.has(workout.id);
-                      const groupedSets = getGroupedSets(workout.workout_sets || []);
+                      const groupedSets = getGroupedSets(workout.exercises || []);
 
                       return (
                         <div
@@ -466,7 +423,7 @@ export default function HistorialPage() {
                                 );
                               })}
                               
-                              {workout.workout_sets?.length === 0 && (
+                              {workout.exercises?.length === 0 && (
                                 <p className="text-center text-[#71717a] py-4">
                                   Sin ejercicios registrados
                                 </p>
