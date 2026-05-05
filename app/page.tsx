@@ -373,6 +373,98 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        <section className="py-24 bg-[#18181b] relative overflow-hidden">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `linear-gradient(135deg, #eab308 1px, transparent 1px), linear-gradient(45deg, #eab308 1px, transparent 1px)`,
+              backgroundSize: '30px 30px',
+            }} />
+          </div>
+          
+          <div className="max-w-5xl mx-auto px-4 relative z-10">
+            <h2 
+              className="text-3xl md:text-5xl font-bold text-center mb-4"
+              style={{ fontFamily: "var(--font-oswald)" }}
+            >
+              <span className="text-white">INSTALA LA </span>
+              <span className="text-[#eab308]">APP</span>
+            </h2>
+            <p className="text-[#71717a] text-center text-lg mb-12 max-w-2xl mx-auto">
+              Úsala como app nativa. SinPlay Store, sinApp Store. Directamente desde tu navegador.
+            </p>
+
+            <div className="grid md:grid-cols-2 gap-8">
+              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-8 hover:border-[#eab308] transition-all group">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
+                    <svg className="w-10 h-10 text-[#eab308]" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85c-.3-.16-.69-.04-.85.26l-1.83 3.18c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.7c-.15-.31-.55-.42-.85-.26c-.31.15-.42.54-.26.85l1.83 3.18c-2.86 1.21-6.08 1.21-8.94 0L2.53 5.7c-.15-.31-.55-.42-.85-.26c-.31.15-.42.54-.26.85l1.84 3.18C1.22 9.37.01 10.83.01 12.37c0 2.22 1.21 4.22 3.05 5.34L2.53 19.5c-.15.31-.04.69.26.85.3.16.69.04.85-.26l1.83-3.18c2.86 1.21 6.08 1.21 8.94 0l1.83 3.18c.15.31.55.42.85.26.31-.15.42-.54.26-.85l-1.53-1.84c1.84-1.12 3.05-3.12 3.05-5.34c0-1.54-1.21-3-3.05-4.03zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold" style={{ fontFamily: "var(--font-oswald)" }}>
+                    ANDROID
+                  </h3>
+                </div>
+                <ol className="space-y-4 text-[#a1a1aa]">
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-[#eab308]/20 rounded-full flex items-center justify-center flex-shrink-0 text-[#eab308] text-sm font-bold">1</span>
+                    <span>Abre <strong className="text-white">Chrome</strong> y visita totalgym.life</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-[#eab308]/20 rounded-full flex items-center justify-center flex-shrink-0 text-[#eab308] text-sm font-bold">2</span>
+                    <span>Toca los <strong className="text-white">tres puntos</strong> (menú)</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-[#eab308]/20 rounded-full flex items-center justify-center flex-shrink-0 text-[#eab308] text-sm font-bold">3</span>
+                    <span>Selecciona <strong className="text-white">"Instalar app"</strong> o <strong className="text-white">"Agregar a pantalla de inicio"</strong></span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-[#eab308]/20 rounded-full flex items-center justify-center flex-shrink-0 text-[#eab308] text-sm font-bold">4</span>
+                    <span>Confirmá y <strong className="text-white">listo</strong></span>
+                  </li>
+                </ol>
+              </div>
+
+              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-8 hover:border-[#eab308] transition-all group">
+                <div className="text-center mb-6">
+                  <div className="w-20 h-20 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
+                    <svg className="w-10 h-10 text-[#eab308]" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47 1.34-.03 2.99-.92 3.42-2.04-.89-.83-2.22-1.49-3.5-1.49-2.72 0-4.93 2.2-4.93 4.93 0 .38.03.76.1 1.12-4.11-.2-7.76-2.18-10.2-5.18-2.26 3.9-3.59 8.39-1.32 12.3 1.03 1.33 2.33 2.4 4.41 3-1.74-.05-3.37-.53-4.77-1.31-.16.3-.29.61-.29.97 0 1.73 1.25 3.14 2.92 3.14-.23.2-.44.44-.61.68-.47.66-1.35 1.32-2.31 1.31-.18-.01-.35-.01-.52-.01 1.07 1.95 3.24 3.08 5.71 3.08-3.54 2.77-8.07 2.78-8.07 2.78h-.18c2.76 0 5.26-1.12 7.37-3.1 1.88-1.76 2.96-4.3 2.96-7.46 0-.61-.05-1.21-.16-1.79zM12.65 2.09c1.31 0 2.36 1.06 2.36 2.36s-1.06 2.36-2.36 2.36-2.36-1.06-2.36-2.36 1.06-2.36 2.36-2.36z"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold" style={{ fontFamily: "var(--font-oswald)" }}>
+                    iOS
+                  </h3>
+                </div>
+                <ol className="space-y-4 text-[#a1a1aa]">
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-[#eab308]/20 rounded-full flex items-center justify-center flex-shrink-0 text-[#eab308] text-sm font-bold">1</span>
+                    <span>Abre <strong className="text-white">Safari</strong> y visita totalgym.life</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-[#eab308]/20 rounded-full flex items-center justify-center flex-shrink-0 text-[#eab308] text-sm font-bold">2</span>
+                    <span>Toca el botón de <strong className="text-white">compartir</strong> (□)</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-[#eab308]/20 rounded-full flex items-center justify-center flex-shrink-0 text-[#eab308] text-sm font-bold">3</span>
+                    <span>Desplázate y selecciona <strong className="text-white">"Agregar a inicio"</strong></span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <span className="w-6 h-6 bg-[#eab308]/20 rounded-full flex items-center justify-center flex-shrink-0 text-[#eab308] text-sm font-bold">4</span>
+                    <span>Toca <strong className="text-white">"Agregar"</strong> y Listo</span>
+                  </li>
+                </ol>
+              </div>
+            </div>
+
+            <div className="mt-12 p-6 bg-[#eab308]/10 border border-[#eab308]/30 rounded-xl text-center">
+              <p className="text-[#eab308] font-medium">
+                💡 <strong className="text-white">Tip:</strong> Una vez instalada, funciona SIN conexión a internet (tus datos se guardan localmente).
+              </p>
+            </div>
+          </div>
+        </section>
       </main>
 
       <footer className="bg-[#0a0a0a] border-t border-[#3f3f46] py-12">
