@@ -415,8 +415,10 @@ export default function Home() {
                   
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                      <svg className="w-8 h-8 text-black" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M17.6 9.48l1.84-3.18c.16-.31.04-.69-.26-.85c-.3-.16-.69-.04-.85.26l-1.83 3.18c-2.86-1.21-6.08-1.21-8.94 0L5.65 5.7c-.15-.31-.55-.42-.85-.26c-.31.15-.42.54-.26.85l1.83 3.18c-2.86 1.21-6.08 1.21-8.94 0L2.53 5.7c-.15-.31-.55-.42-.85-.26c-.31.15-.42.54-.26.85l1.84 3.18C1.22 9.37.01 10.83.01 12.37c0 2.22 1.21 4.22 3.05 5.34L2.53 19.5c-.15.31-.04.69.26.85.3.16.69.04.85-.26l1.83-3.18c2.86 1.21 6.08 1.21 8.94 0l1.83 3.18c.15.31.55.42.85.26.31-.15.42-.54.26-.85l-1.53-1.84c1.84-1.12 3.05-3.12 3.05-5.34c0-1.54-1.21-3-3.05-4.03zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/>
+                      <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="5" y="2" width="14" height="20" rx="2" stroke="black"/>
+                        <line x1="12" y1="6" x2="12" y2="6.01" strokeWidth="2"/>
+                        <circle cx="12" cy="18" r="1"/>
                       </svg>
                     </div>
                     <div>
@@ -455,8 +457,9 @@ export default function Home() {
                   
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                      <svg className="w-8 h-8 text-black" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47 1.34-.03 2.99-.92 3.42-2.04-.89-.83-2.22-1.49-3.5-1.49-2.72 0-4.93 2.2-4.93 4.93 0 .38.03.76.1 1.12-4.11-.2-7.76-2.18-10.2-5.18-2.26 3.9-3.59 8.39-1.32 12.3 1.03 1.33 2.33 2.4 4.41 3-1.74-.05-3.37-.53-4.77-1.31-.16.3-.29.61-.29.97 0 1.73 1.25 3.14 2.92 3.14-.23.2-.44.44-.61.68-.47.66-1.35 1.32-2.31 1.31-.18-.01-.35-.01-.52-.01 1.07 1.95 3.24 3.08 5.71 3.08-3.54 2.77-8.07 2.78-8.07 2.78h-.18c2.76 0 5.26-1.12 7.37-3.1 1.88-1.76 2.96-4.3 2.96-7.46 0-.61-.05-1.21-.16-1.79zM12.65 2.09c1.31 0 2.36 1.06 2.36 2.36s-1.06 2.36-2.36 2.36-2.36-1.06-2.36-2.36 1.06-2.36 2.36-2.36z"/>
+                      <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <path d="M12 2C9.243 2 7 4.243 7 7v10c0 2.757 2.243 5 5 5s5-2.243 5-5V7c0-2.757-2.243-5-5-5z" fill="none" stroke="black"/>
+                        <circle cx="12" cy="18" r="2" fill="black"/>
                       </svg>
                     </div>
                     <div>
