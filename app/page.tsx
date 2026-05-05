@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dumbbell, Flame, Zap, Trophy, ArrowRight, Calendar, User, Loader2, Play } from "lucide-react";
+import { Dumbbell, Flame, Zap, Trophy, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer } from "lucide-react";
 import Link from "next/link";
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
@@ -260,38 +260,49 @@ export default function Home() {
             >
               ¿POR QUÉ <span className="text-[#eab308]">ELEGIRNOS?</span>
             </h2>
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-8 text-center hover:border-[#eab308] transition-colors group">
-                <div className="w-16 h-16 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-[#eab308]/20 transition-colors">
-                  <Dumbbell className="w-8 h-8 text-[#eab308]" />
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-6 text-center hover:border-[#eab308] transition-colors group">
+                <div className="w-14 h-14 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
+                  <Smartphone className="w-7 h-7 text-[#eab308]" />
                 </div>
-                <h3 className="text-xl font-bold mb-4" style={{ fontFamily: "var(--font-oswald)" }}>
-                  EQUIPAMIENTO PREMIUM
+                <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-oswald)" }}>
+                  TU GYM EN EL BOLSILLO
                 </h3>
-                <p className="text-[#a1a1aa]">
-                  Las mejores marcas y equipos de última generación para tu entrenamiento.
+                <p className="text-[#a1a1aa] text-sm">
+                  Una webapp que te acompaña antes, durante y después de cada entrenamiento. Donde quieras, cuando quieras.
                 </p>
               </div>
-              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-8 text-center hover:border-[#eab308] transition-colors group">
-                <div className="w-16 h-16 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-[#eab308]/20 transition-colors">
-                  <Flame className="w-8 h-8 text-[#eab308]" />
+              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-6 text-center hover:border-[#eab308] transition-colors group">
+                <div className="w-14 h-14 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
+                  <History className="w-7 h-7 text-[#eab308]" />
                 </div>
-                <h3 className="text-xl font-bold mb-4" style={{ fontFamily: "var(--font-oswald)" }}>
-                  ENTRENADORES EXPERTOS
+                <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-oswald)" }}>
+                  NO PIERDAS DE VISTA NADA
                 </h3>
-                <p className="text-[#a1a1aa]">
-                  Profesionales certificados que te guia hacia tus metas.
+                <p className="text-[#a1a1aa] text-sm">
+                  Tu historial guardadito. Consulta cuánto levantaste la última vez que hiciste cada ejercicio y supera tu propio registro.
                 </p>
               </div>
-              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-8 text-center hover:border-[#eab308] transition-colors group">
-                <div className="w-16 h-16 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-[#eab308]/20 transition-colors">
-                  <Trophy className="w-8 h-8 text-[#eab308]" />
+              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-6 text-center hover:border-[#eab308] transition-colors group">
+                <div className="w-14 h-14 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
+                  <User className="w-7 h-7 text-[#eab308]" />
                 </div>
-                <h3 className="text-xl font-bold mb-4" style={{ fontFamily: "var(--font-oswald)" }}>
-                  RESULTADOS REALES
+                <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-oswald)" }}>
+                  TU GYMBRO DIGITAL
                 </h3>
-                <p className="text-[#a1a1aa]">
-                  Metodología probada para transformations visibles.
+                <p className="text-[#a1a1aa] text-sm">
+                  Un compañero que lleva tu registro, mide tu disciplina y te motiva a romper tus propios récords.
+                </p>
+              </div>
+              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-6 text-center hover:border-[#eab308] transition-colors group">
+                <div className="w-14 h-14 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
+                  <Timer className="w-7 h-7 text-[#eab308]" />
+                </div>
+                <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-oswald)" }}>
+                  TIMER INTEGRADO
+                </h3>
+                <p className="text-[#a1a1aa] text-sm">
+                  Descansa entre series con cronómetro automático. Enfócate en lo que importa: entrenar duro.
                 </p>
               </div>
             </div>
