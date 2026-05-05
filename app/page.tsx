@@ -252,58 +252,123 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-20 bg-[#18181b]">
-          <div className="max-w-6xl mx-auto px-4">
+<section className="py-24 bg-[#0a0a0a] relative overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute inset-0" style={{
+              backgroundImage: `radial-gradient(circle at 25% 25%, #eab308 1px, transparent 1px), radial-gradient(circle at 75% 75%, #eab308 1px, transparent 1px)`,
+              backgroundSize: '40px 40px',
+            }} />
+          </div>
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
+          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
+          
+          <div className="max-w-7xl mx-auto px-4 relative z-10">
             <h2 
-              className="text-3xl md:text-4xl font-bold text-center mb-16"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              ¿POR QUÉ <span className="text-[#eab308]">ELEGIRNOS?</span>
+              <span className="text-white">POR QUÉ </span>
+              <span className="text-[#eab308]">ELEGIRNOS</span>
             </h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-6 text-center hover:border-[#eab308] transition-colors group">
-                <div className="w-14 h-14 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
-                  <Smartphone className="w-7 h-7 text-[#eab308]" />
+            <p className="text-[#71717a] text-center text-lg mb-16 max-w-2xl mx-auto">
+              Esto no es una app más. Es tu weapon para transformar tu físico.
+            </p>
+             
+            <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
+              <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
+                <div className="relative z-10">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-16 h-16 bg-[#eab308]/10 rounded-xl flex items-center justify-center group-hover:bg-[#eab308]/20 group-hover:scale-110 transition-all duration-300">
+                      <Smartphone className="w-8 h-8 text-[#eab308]" />
+                    </div>
+                    <div className="w-px h-16 bg-[#3f3f46]" />
+                    <div className="flex-1">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                        TU GYM
+                      </h3>
+                      <h3 className="text-2xl md:text-3xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                        EN EL BOLSILLO
+                      </h3>
+                    </div>
+                  </div>
+                  <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
+                    Una webapp que te acompaña ANTES, DURANTE y DESPUÉS de cada entrenamiento. 
+                    <span className="text-white font-medium block mt-2">Llévatela a everywhere. Sin excusas.</span>
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-oswald)" }}>
-                  TU GYM EN EL BOLSILLO
-                </h3>
-                <p className="text-[#a1a1aa] text-sm">
-                  Una webapp que te acompaña antes, durante y después de cada entrenamiento. Donde quieras, cuando quieras.
-                </p>
               </div>
-              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-6 text-center hover:border-[#eab308] transition-colors group">
-                <div className="w-14 h-14 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
-                  <History className="w-7 h-7 text-[#eab308]" />
+              
+              <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
+                <div className="relative z-10">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-16 h-16 bg-[#eab308]/10 rounded-xl flex items-center justify-center group-hover:bg-[#eab308]/20 group-hover:scale-110 transition-all duration-300">
+                      <History className="w-8 h-8 text-[#eab308]" />
+                    </div>
+                    <div className="w-px h-16 bg-[#3f3f46]" />
+                    <div className="flex-1">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                        CONTROL TOTAL
+                      </h3>
+                      <h3 className="text-2xl md:text-3xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                        DE TU HISTORIAL
+                      </h3>
+                    </div>
+                  </div>
+                  <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
+                    Cada serie, cada repetición, cada kilogramo queda registrado. 
+                    <span className="text-white font-medium block mt-2">Mira cuánto levantaste y SUPERA ese número.</span>
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-oswald)" }}>
-                  NO PIERDAS DE VISTA NADA
-                </h3>
-                <p className="text-[#a1a1aa] text-sm">
-                  Tu historial guardadito. Consulta cuánto levantaste la última vez que hiciste cada ejercicio y supera tu propio registro.
-                </p>
               </div>
-              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-6 text-center hover:border-[#eab308] transition-colors group">
-                <div className="w-14 h-14 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
-                  <User className="w-7 h-7 text-[#eab308]" />
+              
+              <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
+                <div className="relative z-10">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-16 h-16 bg-[#eab308]/10 rounded-xl flex items-center justify-center group-hover:bg-[#eab308]/20 group-hover:scale-110 transition-all duration-300">
+                      <User className="w-8 h-8 text-[#eab308]" />
+                    </div>
+                    <div className="w-px h-16 bg-[#3f3f46]" />
+                    <div className="flex-1">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                        TU GYMBRO
+                      </h3>
+                      <h3 className="text-2xl md:text-3xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                        DIGITAL
+                      </h3>
+                    </div>
+                  </div>
+                  <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
+                    Tu compañero entrenando CONTIGO. Lleva la cuenta de tu disciplina 
+                    <span className="text-white font-medium block mt-2">y te exige romper tus propios RÉCORDS.</span>
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-oswald)" }}>
-                  TU GYMBRO DIGITAL
-                </h3>
-                <p className="text-[#a1a1aa] text-sm">
-                  Un compañero que lleva tu registro, mide tu disciplina y te motiva a romper tus propios récords.
-                </p>
               </div>
-              <div className="bg-[#0a0a0a] border border-[#3f3f46] rounded-2xl p-6 text-center hover:border-[#eab308] transition-colors group">
-                <div className="w-14 h-14 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
-                  <Timer className="w-7 h-7 text-[#eab308]" />
+              
+              <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
+                <div className="relative z-10">
+                  <div className="flex items-start gap-4 mb-4">
+                    <div className="w-16 h-16 bg-[#eab308]/10 rounded-xl flex items-center justify-center group-hover:bg-[#eab308]/20 group-hover:scale-110 transition-all duration-300">
+                      <Timer className="w-8 h-8 text-[#eab308]" />
+                    </div>
+                    <div className="w-px h-16 bg-[#3f3f46]" />
+                    <div className="flex-1">
+                      <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                        CRONÓMETRO
+                      </h3>
+                      <h3 className="text-2xl md:text-3xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                        INTEGRADO
+                      </h3>
+                    </div>
+                  </div>
+                  <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
+                    Descansa BETWEEN series. El timer corre automatically. 
+                    <span className="text-white font-medium block mt-2">Enfócate en LO QUE IMPORTA: entrenar DURO.</span>
+                  </p>
                 </div>
-                <h3 className="text-lg font-bold mb-3" style={{ fontFamily: "var(--font-oswald)" }}>
-                  TIMER INTEGRADO
-                </h3>
-                <p className="text-[#a1a1aa] text-sm">
-                  Descansa entre series con cronómetro automático. Enfócate en lo que importa: entrenar duro.
-                </p>
               </div>
             </div>
           </div>
