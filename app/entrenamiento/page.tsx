@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { 
-  Dumbbell, 
+import type { Session } from "@supabase/supabase-js";
+import {
+  Dumbbell,
   Check,
   ArrowRight,
   ArrowLeft,
@@ -17,6 +18,7 @@ import {
 } from "lucide-react";
 import { ExerciseCard, ImageModal, type WgerExercise } from "@/app/components/EjercicioCard";
 import { UserHeader } from "@/app/components/UserHeader";
+import { RegisterModal } from "@/app/components/RegisterModal";
 import { muscleGroupsData, MuscleGroup } from "@/lib/data/ejercicios";
 
 const DEFAULT_SETS = 3;
@@ -54,7 +56,15 @@ export default function EntrenamientoPage() {
   const [selectedEquipment, setSelectedEquipment] = useState<Record<string, string>>({});
   const [modalImage, setModalImage] = useState<string | null>(null);
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+  const [registerModalKey, setRegisterModalKey] = useState(0);
 
+  const openRegisterModal = () => {
+    setShowRegisterModal(true);
+    setRegisterModalKey(prev => prev + 1);
+  };
+
+  console.log("[Entrenamiento] showRegisterModal state:", showRegisterModal);
   useEffect(() => {
     async function initSupabase() {
       const { createBrowserClient } = await import("@supabase/ssr");
@@ -66,6 +76,30 @@ export default function EntrenamientoPage() {
     }
     initSupabase();
   }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, session: Session | null) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        const pendingData = sessionStorage.getItem("pending_workout_summary");
+        if (pendingData) {
+          sessionStorage.removeItem("pending_workout_summary");
+          const pendingWorkout: ResumenEjercicio[] = JSON.parse(pendingData);
+
+          if (pendingWorkout.length > 0 && supabase) {
+            setResumen(pendingWorkout);
+            setStep("summary");
+            setShowRegisterModal(false);
+          }
+        }
+      }
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [supabase]);
 
   const fetchExercises = async (muscleGroup: MuscleGroup) => {
     if (exercises[muscleGroup.id]) return;
@@ -97,9 +131,9 @@ export default function EntrenamientoPage() {
     const newSelected = selectedMuscles.includes(id)
       ? selectedMuscles.filter(m => m !== id)
       : [...selectedMuscles, id];
-    
+
     setSelectedMuscles(newSelected);
-    
+
     if (!selectedMuscles.includes(id) && !exercises[id]) {
       const muscle = muscleGroups.find(m => m.id === id);
       if (muscle) {
@@ -122,22 +156,22 @@ export default function EntrenamientoPage() {
     });
   };
 
-const getFilteredExercises = (muscleId: string): WgerExercise[] => {
+  const getFilteredExercises = (muscleId: string): WgerExercise[] => {
     const muscleExercises = exercises[muscleId] || [];
     const equipment = selectedEquipment[muscleId] || "all";
     const search = searchQueries[muscleId] || "";
-    
-    let filtered = equipment === "all" 
-      ? muscleExercises 
+
+    let filtered = equipment === "all"
+      ? muscleExercises
       : muscleExercises.filter(ex => ex.equipmentCategory === equipment);
-    
+
     if (search.trim()) {
       const lowerSearch = search.toLowerCase();
-      filtered = filtered.filter(ex => 
+      filtered = filtered.filter(ex =>
         ex.name.toLowerCase().includes(lowerSearch)
       );
     }
-    
+
     return [...filtered].sort((a, b) => {
       if (a.imageUrl && !b.imageUrl) return -1;
       if (!a.imageUrl && b.imageUrl) return 1;
@@ -208,20 +242,25 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
 
   const handleGuardarYEjecutar = async () => {
     if (!supabase) return;
-    
+
     setSaving(true);
     setError(null);
 
+    const { data: { session } } = await supabase.auth.getSession();
+    console.log("[handleGuardarYEjecutar] session:", session?.user?.id);
+    if (!session?.user) {
+      console.log("[handleGuardarYEjecutar] no session, showing modal");
+      setError("Debes iniciar sesión para guardar el entrenamiento");
+      sessionStorage.setItem("pending_workout_summary", JSON.stringify(resumen));
+      setSaving(false);
+      openRegisterModal();
+      return;
+    }
+
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        setError("Debes iniciar sesión para guardar el entrenamiento");
-        setSaving(false);
-        return;
-      }
 
       const fecha = new Date().toISOString().split('T')[0];
-      
+
       const { data: workout, error: workoutError } = await supabase
         .from("workouts")
         .insert({
@@ -234,7 +273,7 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
 
       if (workoutError) throw workoutError;
 
-      const setsToInsert = resumen.flatMap(ej => 
+      const setsToInsert = resumen.flatMap(ej =>
         ej.sets.map((_, index) => ({
           workout_id: workout.id,
           exercise_id: ej.id,
@@ -268,7 +307,7 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
         <main className="pt-24 pb-12 px-4">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
-              <h1 
+              <h1
                 className="text-3xl font-bold mb-2"
                 style={{ fontFamily: "var(--font-oswald)" }}
               >
@@ -337,7 +376,7 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
                   </>
                 )}
               </button>
-              
+
               <button
                 onClick={() => setStep("exercises")}
                 className="flex items-center justify-center gap-2 w-full py-3 border border-[#3f3f46] text-[#a1a1aa] hover:text-white rounded-xl transition-colors cursor-pointer"
@@ -348,6 +387,15 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
             </div>
           </div>
         </main>
+        <RegisterModal
+          key={`register-modal-${registerModalKey}`}
+          isOpen={showRegisterModal}
+          onClose={() => setShowRegisterModal(false)}
+          onLoginSuccess={() => {
+            setError(null);
+            handleGuardarYEjecutar();
+          }}
+        />
       </div>
     );
   }
@@ -359,19 +407,19 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">
-            <h1 
+            <h1
               className="text-3xl md:text-4xl font-bold mb-4"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-{step === "muscles" ? (
+              {step === "muscles" ? (
                 <>¿QUE VAS A <span className="text-[#eab308]">ENTRENAR</span> HOY?</>
               ) : (
                 <>ELIGE TUS <span className="text-[#eab308]">EJERCICIOS</span></>
               )}
             </h1>
             <p className="text-[#a1a1aa]">
-              {step === "muscles" 
-                ? "Selecciona los grupos musculares que vas a trabajar" 
+              {step === "muscles"
+                ? "Selecciona los grupos musculares que vas a trabajar"
                 : "Selecciona los ejercicios para cada grupo"
               }
             </p>
@@ -395,8 +443,8 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
                     onClick={() => toggleMuscle(muscle.id)}
                     className={`
                       relative p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer
-                      ${selectedMuscles.includes(muscle.id) 
-                        ? "bg-[#eab308] border-[#eab308] text-black scale-105" 
+                      ${selectedMuscles.includes(muscle.id)
+                        ? "bg-[#eab308] border-[#eab308] text-black scale-105"
                         : "bg-[#18181b] border-[#3f3f46] hover:border-[#eab308]/50 hover:bg-[#27272a]"
                       }
                     `}
@@ -414,7 +462,7 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
                         className="object-contain"
                       />
                     </div>
-                    <h3 
+                    <h3
                       className="font-bold text-lg"
                       style={{ fontFamily: "var(--font-oswald)" }}
                     >
@@ -436,8 +484,8 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
                   disabled={selectedMuscles.length === 0}
                   className={`
                     group flex items-center justify-center gap-3 font-bold px-10 py-4 rounded-xl transition-all cursor-pointer
-                    ${selectedMuscles.length > 0 
-                      ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105" 
+                    ${selectedMuscles.length > 0
+                      ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105"
                       : "bg-[#3f3f46] text-[#71717a] cursor-not-allowed"
                     }
                   `}
@@ -464,7 +512,7 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
                   const selected = selectedExercises[muscleId] || [];
                   const isLoading = loadingExercises[muscleId];
                   const currentEquipment = selectedEquipment[muscleId] || "all";
-                  
+
                   return (
                     <div key={muscleId} className="bg-[#18181b] rounded-2xl p-6 border border-[#3f3f46] flex flex-col max-h-[calc(100vh-280px)]">
                       <div className="flex-none">
@@ -542,9 +590,9 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
                                 onImageClick={handleImageClick}
                               />
                             ))
-) : (
+                          ) : (
                             <div className="text-center py-8 text-[#71717a]">
-                              {searchQueries[muscleId] 
+                              {searchQueries[muscleId]
                                 ? `No se encontraron ejercicios para "${searchQueries[muscleId]}"`
                                 : "No hay ejercicios con este equipo"
                               }
@@ -578,16 +626,16 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
                     const muscle = muscleGroups.find(m => m.id === muscleId);
                     const isActive = index === currentMuscleIndex;
                     const hasSelected = (selectedExercises[muscleId] || []).length > 0;
-                    
+
                     return (
                       <button
                         key={muscleId}
                         onClick={() => setCurrentMuscleIndex(index)}
                         className={`
                           w-3 h-3 rounded-full transition-all cursor-pointer
-                          ${isActive 
-                            ? "bg-[#eab308] scale-125" 
-                            : hasSelected 
+                          ${isActive
+                            ? "bg-[#eab308] scale-125"
+                            : hasSelected
                               ? "bg-[#eab308]/50 hover:bg-[#eab308]"
                               : "bg-[#3f3f46] hover:bg-[#52525b]"
                           }
@@ -624,9 +672,9 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
               </div>
 
               {modalImage && (
-                <ImageModal 
-                  imageUrl={modalImage} 
-                  onClose={() => setModalImage(null)} 
+                <ImageModal
+                  imageUrl={modalImage}
+                  onClose={() => setModalImage(null)}
                 />
               )}
 
@@ -639,8 +687,8 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
                   disabled={Object.values(selectedExercises).flat().length === 0}
                   className={`
                     group flex items-center justify-center gap-3 font-bold px-10 py-4 rounded-xl transition-all cursor-pointer
-                    ${Object.values(selectedExercises).flat().length > 0 
-                      ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105" 
+                    ${Object.values(selectedExercises).flat().length > 0
+                      ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105"
                       : "bg-[#3f3f46] text-[#71717a] cursor-not-allowed"
                     }
                   `}
@@ -655,6 +703,8 @@ const getFilteredExercises = (muscleId: string): WgerExercise[] => {
           )}
         </div>
       </main>
+
+
     </div>
   );
 }
