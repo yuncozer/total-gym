@@ -95,7 +95,7 @@ export const muscleGroupsData: MuscleGroup[] = [
     name: "PANTORRILLAS",
     description: "Gemelos y sóleo",
     icon: "🦶",
-    image: "/images/exercises/pantorrillas.png",
+    image: "/images/exercises/Pantorrillas.png",
     wgerCategoryId: 14,
     wgerMuscleIds: [7, 15],
     wgerSecondaryMuscleIds: []
