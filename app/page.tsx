@@ -8,6 +8,7 @@ import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
 import type { Session } from "@supabase/supabase-js";
 import { getDailyQuote } from "@/lib/data/quote";
+import { getDashboardStats, type DashboardStats } from "@/lib/workout/service";
 
 export function getFormattedDate(): string {
   const now = new Date();
@@ -30,27 +31,35 @@ function ScrollIndicator() {
   );
 }
 
-function UserDashboard({ user }: { user: { email: string } }) {
+function UserDashboard({ stats, loading }: { stats: DashboardStats | null; loading: boolean }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8 w-full max-w-4xl mx-auto">
       <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <Activity className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
-        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>HOY</div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Entrena</div>
+        <Activity className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2" style={{ color: stats?.todayWorkout ? "#22c55e" : "#eab308" }} />
+        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
+          {loading ? "..." : stats?.todayWorkout ? "Sí" : "No"}
+        </div>
+        <div className="text-[#71717a] text-xs sm:text-sm">Entrenó</div>
       </div>
       <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
         <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
-        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>0</div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Racha</div>
+        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
+          {loading ? "..." : stats?.streak || 0}
+        </div>
+        <div className="text-[#71717a] text-xs sm:text-sm">Racha (días)</div>
       </div>
       <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
         <Target className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
-        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>0</div>
+        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
+          {loading ? "..." : stats?.totalWorkouts || 0}
+        </div>
         <div className="text-[#71717a] text-xs sm:text-sm">Workouts</div>
       </div>
       <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
         <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
-        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>0</div>
+        <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
+          {loading ? "..." : stats?.totalSets || 0}
+        </div>
         <div className="text-[#71717a] text-xs sm:text-sm">Series</div>
       </div>
     </div>
@@ -60,22 +69,98 @@ function UserDashboard({ user }: { user: { email: string } }) {
 export default function Home() {
   const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const [user, setUser] = useState<{ email: string } | null>(null);
+  const [user, setUser] = useState<{ email: string; id: string } | null>(null);
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
   const [pendingWorkout, setPendingWorkout] = useState<{ id: string; date: string; completed: number; total: number } | null>(null);
   const [checkingPending, setCheckingPending] = useState(false);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const quote = getDailyQuote();
   const dateStr = getFormattedDate();
 
+  const loadStats = async () => {
+    setLoadingStats(true);
+    try {
+      const response = await fetch("/api/dashboard-stats");
+      const dashboardStats = await response.json();
+      setStats(dashboardStats);
+    } catch (error) {
+      console.error("Error loading stats:", error);
+    } finally {
+      setLoadingStats(false);
+    }
+  };
+
+  const checkPendingWorkout = async (supabaseClient: typeof supabase, userId: string) => {
+    setCheckingPending(true);
+    
+    const { data: pending, error } = await supabaseClient
+      .from("workouts")
+      .select("id, date, started_at, status")
+      .eq("user_id", userId)
+      .neq("status", "completed")
+      .order("started_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !pending) {
+      setCheckingPending(false);
+      return;
+    }
+    
+    const startedAt = new Date(pending.started_at).getTime();
+    const now = Date.now();
+    const threeHours = 3 * 60 * 60 * 1000;
+
+    if (now - startedAt > threeHours) {
+      await supabaseClient
+        .from("workouts")
+        .update({ status: "completed" })
+        .eq("id", pending.id);
+      setPendingWorkout(null);
+    } else {
+      const { data: setsData } = await supabaseClient
+        .from("workout_sets")
+        .select("id, is_completed")
+        .eq("workout_id", pending.id);
+      
+      const completed = setsData?.filter((s: { is_completed: boolean }) => s.is_completed).length || 0;
+      const total = setsData?.length || 0;
+      
+      if (completed === total && total > 0) {
+        await supabaseClient
+          .from("workouts")
+          .update({ status: "completed" })
+          .eq("id", pending.id);
+        setPendingWorkout(null);
+      } else {
+        setPendingWorkout({ 
+          id: pending.id, 
+          date: pending.date,
+          completed,
+          total 
+        });
+      }
+    }
+    
+    setCheckingPending(false);
+  };
+
   useEffect(() => {
     async function initSupabase() {
-      const { createBrowserClient } = await import("@supabase/ssr");
-      const client = createBrowserClient(
-        process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-        process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
-      );
-      setSupabase(client);
+      try {
+        const { createBrowserClient } = await import("@supabase/ssr");
+        const client = createBrowserClient(
+          process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+          process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ""
+        );
+        setSupabase(client);
+      } catch (error) {
+        console.error("Error initializing Supabase:", error);
+        setAuthLoading(false);
+      }
     }
     initSupabase();
   }, []);
@@ -84,12 +169,20 @@ export default function Home() {
     if (!supabase) return;
 
     supabase.auth.getSession().then((result: { data: { session: Session | null } }) => {
+      setAuthLoading(false);
       if (result.data.session?.user) {
-        setUser({ email: result.data.session.user.email || "" });
+        const userData = { 
+          email: result.data.session.user.email || "", 
+          id: result.data.session.user.id 
+        };
+        setUser(userData);
         checkPendingWorkout(supabase, result.data.session.user.id);
+        loadStats();
       } else {
         setUser(null);
         setPendingWorkout(null);
+        setStats(null);
+        setAuthLoading(false);
       }
     });
 
@@ -97,9 +190,15 @@ export default function Home() {
       if (event === 'SIGNED_OUT' || !session) {
         setUser(null);
         setPendingWorkout(null);
+        setStats(null);
       } else if (event === 'SIGNED_IN' && session?.user) {
-        setUser({ email: session.user.email || "" });
+        const userData = { 
+          email: session.user.email || "", 
+          id: session.user.id 
+        };
+        setUser(userData);
         checkPendingWorkout(supabase, session.user.id);
+        loadStats();
       }
     });
 
@@ -107,58 +206,6 @@ export default function Home() {
       subscription.unsubscribe();
     };
   }, [supabase]);
-
-  const checkPendingWorkout = async (supabaseClient: typeof supabase, userId: string) => {
-    setCheckingPending(true);
-    
-    const { data: pending } = await supabaseClient
-      .from("workouts")
-      .select("id, date, started_at, status")
-      .eq("user_id", userId)
-      .neq("status", "completed")
-      .order("started_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    if (pending) {
-      const startedAt = new Date(pending.started_at).getTime();
-      const now = Date.now();
-      const threeHours = 3 * 60 * 60 * 1000;
-
-      if (now - startedAt > threeHours) {
-        await supabaseClient
-          .from("workouts")
-          .update({ status: "completed" })
-          .eq("id", pending.id);
-        setPendingWorkout(null);
-      } else {
-        const { data: setsData } = await supabaseClient
-          .from("workout_sets")
-          .select("id, is_completed")
-          .eq("workout_id", pending.id);
-        
-        const completed = setsData?.filter((s: { is_completed: boolean }) => s.is_completed).length || 0;
-        const total = setsData?.length || 0;
-        
-        if (completed === total && total > 0) {
-          await supabaseClient
-            .from("workouts")
-            .update({ status: "completed" })
-            .eq("id", pending.id);
-          setPendingWorkout(null);
-        } else {
-          setPendingWorkout({ 
-            id: pending.id, 
-            date: pending.date,
-            completed,
-            total 
-          });
-        }
-      }
-    }
-    
-    setCheckingPending(false);
-  };
 
   const handleStartTraining = () => {
     if (pendingWorkout) {
@@ -172,6 +219,15 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
+      {authLoading && (
+        <div className="fixed inset-0 bg-[#0a0a0a] flex items-center justify-center z-50">
+          <div className="flex flex-col items-center gap-4">
+            <Dumbbell className="w-12 h-12 text-[#eab308] animate-pulse" />
+            <Loader2 className="w-8 h-8 text-[#eab308] animate-spin" />
+          </div>
+        </div>
+      )}
+
       <UserHeader />
 
       <AuthModal
@@ -219,7 +275,7 @@ export default function Home() {
           )}
           
           <div className={`relative z-10 max-w-4xl mx-auto px-4 text-center ${user ? 'py-12' : ''}`}>
-            {user && <UserDashboard user={user} />}
+            {user && <UserDashboard stats={stats} loading={loadingStats} />}
             
             <div className="inline-flex items-center gap-2 bg-[#eab308]/10 border border-[#eab308]/30 rounded-full px-4 py-2 mb-6 sm:mb-8">
               <Calendar className="w-4 h-4 text-[#eab308]" />

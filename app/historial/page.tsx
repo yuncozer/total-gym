@@ -83,7 +83,8 @@ export default function HistorialPage() {
 
   const formatDate = (dateStr: string) => {
     try {
-      const date = new Date(dateStr);
+      const [year, month, day] = dateStr.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString("es-ES", {
           weekday: "long",
@@ -99,7 +100,8 @@ export default function HistorialPage() {
 
   const formatShortDate = (dateStr: string) => {
     try {
-      const date = new Date(dateStr);
+      const [year, month, day] = dateStr.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString("es-ES", {
           day: "numeric",
@@ -148,7 +150,8 @@ export default function HistorialPage() {
     const groups: Record<string, WorkoutSummary[]> = {};
     workouts.forEach((workout) => {
       try {
-        const date = new Date(workout.date);
+        const [year, month, day] = workout.date.split("-").map(Number);
+        const date = new Date(year, month - 1, day);
         if (isNaN(date.getTime())) return;
         const key = date.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
         if (!groups[key]) groups[key] = [];
@@ -175,7 +178,8 @@ export default function HistorialPage() {
     
     return workouts.filter((workout) => {
       try {
-        const workoutDate = new Date(workout.date);
+        const [year, month, day] = workout.date.split("-").map(Number);
+        const workoutDate = new Date(year, month - 1, day);
         if (isNaN(workoutDate.getTime())) return true;
         
         const endOfDay = new Date(range.end);

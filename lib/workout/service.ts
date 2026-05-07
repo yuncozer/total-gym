@@ -59,3 +59,92 @@ export async function loadWorkoutStats(): Promise<{
 }> {
   return fetchAPI("/api/profile/stats");
 }
+
+export interface DashboardStats {
+  todayWorkout: boolean;
+  streak: number;
+  totalWorkouts: number;
+  totalSets: number;
+}
+
+export async function getDashboardStats(userId: string): Promise<DashboardStats> {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
+  
+  if (!supabaseUrl || !supabaseKey) {
+    console.error("Missing Supabase env vars:", { supabaseUrl: !!supabaseUrl, supabaseKey: !!supabaseKey });
+    return { todayWorkout: false, streak: 0, totalWorkouts: 0, totalSets: 0 };
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().split("T")[0];
+
+  const completedWorkouts = await supabaseFetch(
+    `${supabaseUrl}/rest/v1/workouts?user_id=eq.${userId}&status=eq.completed&select=id,date,completed_at`,
+    supabaseKey
+  );
+
+  if (!completedWorkouts || completedWorkouts.length === 0) {
+    return { todayWorkout: false, streak: 0, totalWorkouts: 0, totalSets: 0 };
+  }
+
+  const workoutDates = completedWorkouts
+    .map((w: { date: string | null; completed_at: string | null }) => {
+      if (w.date) return w.date;
+      if (w.completed_at) {
+        const d = new Date(w.completed_at);
+        d.setHours(0, 0, 0, 0);
+        return d.toISOString().split("T")[0];
+      }
+      return null;
+    })
+    .filter(Boolean) as string[];
+
+  const todayWorkout = workoutDates.includes(todayStr);
+
+  const uniqueDates = [...new Set(workoutDates)].sort((a, b) => b.localeCompare(a));
+
+  let streak = 0;
+  const checkDate = new Date(today);
+
+  if (todayWorkout) {
+    streak = 1;
+    checkDate.setDate(checkDate.getDate() - 1);
+  }
+
+  while (true) {
+    const dateStr = checkDate.toISOString().split("T")[0];
+    if (uniqueDates.includes(dateStr)) {
+      streak++;
+      checkDate.setDate(checkDate.getDate() - 1);
+    } else {
+      break;
+    }
+  }
+
+  let totalSets = 0;
+  const workoutIds: string[] = completedWorkouts.map((w: { id: string }) => w.id);
+
+  if (workoutIds.length > 0) {
+    const setsQuery = workoutIds.map(id => `workout_id=eq.${id}`).join(',');
+    const allSets = await supabaseFetch(
+      `${supabaseUrl}/rest/v1/workout_sets?or=(${setsQuery})&is_completed=eq.true&select=id`,
+      supabaseKey
+    );
+    totalSets = allSets?.length || 0;
+  }
+
+  return { todayWorkout, streak, totalWorkouts: completedWorkouts.length, totalSets };
+}
+
+async function supabaseFetch(url: string, key: string) {
+  const res = await fetch(url, {
+    headers: {
+      apikey: key,
+      Authorization: `Bearer ${key}`,
+    },
+  });
+  if (!res.ok) return null;
+  return res.json();
+}
