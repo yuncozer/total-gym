@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -16,11 +16,40 @@ import {
 } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
-import { getDailyQuote } from "@/app/data/quote";
+import { getDailyQuote } from "@/lib/data/quote";
 
 function WorkoutContent() {
   const router = useRouter();
   const workout = useWorkout();
+
+  const MOTIVATIONAL_PHRASES = [
+    "¡Excelente trabajo!",
+    "¡Lo estás logrando!",
+    "¡Sigue así!",
+    "¡Imparable!",
+    "¡Muy bien!",
+    "¡Gran esfuerzo!",
+    "¡Eres fuerte!",
+    "¡Sigue adelante!",
+    "¡Buen ritmo!",
+    "¡No te detengas!",
+  ];
+
+  const COMPLETED_PHRASES = [
+    "¡Muy Bien!",
+    "¡Buen Trabajo!",
+    "¡Bien Hecho!",
+    "¡Perfecto!",
+    "¡Increíble!",
+    "¡Genial!",
+    "¡Fantástico!",
+    "¡Asombroso!",
+  ];
+
+  const getRandomPhrase = (phrases: string[]) => {
+    const index = phraseSeed % phrases.length;
+    return phrases[index];
+  };
 
   const {
     loading,
@@ -50,9 +79,35 @@ function WorkoutContent() {
     isExerciseCompleted
   } = workout;
 
+  const [phraseSeed, setPhraseSeed] = useState(0);
+  const lastCompletedRef = useRef<string>("");
+  const extraSetIndexRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    if (!selectedExercise) return;
+    const set = selectedExercise.sets[currentSetIndex];
+    const setKey = `${selectedExercise.exerciseId}-${currentSetIndex}`;
+    if (set?.is_completed && lastCompletedRef.current !== setKey) {
+      lastCompletedRef.current = setKey;
+      setPhraseSeed(prev => prev + 1);
+    }
+  }, [selectedExercise, currentSetIndex]);
+
   const handleNextSet = () => {
     setTimer({ segundos: 0, activo: false, descansando: false });
-    setCurrentSetIndex(prev => prev + 1);
+    if (extraSetIndexRef.current !== null) {
+      setCurrentSetIndex(extraSetIndexRef.current);
+      extraSetIndexRef.current = null;
+    } else {
+      setCurrentSetIndex(prev => prev + 1);
+    }
+  };
+
+  const handleAddExtraSet = async () => {
+    if (!selectedExercise) return;
+    const originalSetsCount = selectedExercise.sets.length;
+    await addExtraSet();
+    extraSetIndexRef.current = originalSetsCount;
   };
 
   const getEquipmentLabel = (equipment: string) => {
@@ -207,7 +262,7 @@ function WorkoutContent() {
               {showExtraSetButton && set.reps > 0 && set.weight_kg > 0 && !set.is_completed && lastSet && (
                 <button
                   type="button"
-                  onClick={addExtraSet}
+                  onClick={handleAddExtraSet}
                   className="flex items-center justify-center gap-2 w-full py-3 mb-4 border border-[#eab308] text-[#eab308] hover:bg-[#eab308]/10 cursor-pointer rounded-xl"
                 >
                   <Plus className="w-4 h-4" />Agregar serie extra
@@ -243,9 +298,17 @@ function WorkoutContent() {
 
               {timer.descansando && (
                 <div className="mt-4 p-4 bg-[#18181b] rounded-xl border border-[#3f3f46]">
+                  {set.is_completed && (
+                    <div className="text-center mb-3 pb-3 border-b border-[#3f3f46]">
+                      <span className="text-[#22c55e] font-bold text-lg">
+                        {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
+                      </span>
+                      <div className="text-sm text-[#22c55e]/70 mt-1">Serie completada</div>
+                    </div>
+                  )}
                   <div className="text-center mb-3">
                     <span className="text-sm text-[#71717a]">Descanso entre series</span>
-                    <div className="text-4xl font-bold text-[#eab308] mt-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                    <div className="text-6xl font-bold text-[#eab308] mt-2" style={{ fontFamily: "var(--font-oswald)", textShadow: "0 0 20px rgba(234, 179, 8, 0.4)" }}>
                       {Math.floor(timer.segundos / 60).toString().padStart(2, '0')}:{(timer.segundos % 60).toString().padStart(2, '0')}
                     </div>
                   </div>
@@ -253,13 +316,18 @@ function WorkoutContent() {
                     onClick={handleNextSet}
                     className="flex items-center justify-center gap-2 w-full py-3 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl"
                   >
-                    <Play className="w-4 h-4" /> COMENZAR SERIE
+                    <Play className="w-4 h-4" /> COMENZAR SIGUIENTE SERIE
                   </button>
                 </div>
               )}
 
-              {set.is_completed && !isExerciseComplete && (
-                <div className="text-center py-4 text-[#22c55e] font-bold">Serie completada</div>
+              {!timer.descansando && set.is_completed && !isExerciseComplete && (
+                <div className="text-center py-4 text-[#22c55e]">
+                  <span className="font-bold text-lg">
+                    {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
+                  </span>
+                  <div className="text-sm text-[#22c55e]/70 mt-1">Serie completada</div>
+                </div>
               )}
 
               {isExerciseComplete && (

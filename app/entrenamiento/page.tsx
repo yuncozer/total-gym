@@ -1,30 +1,37 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { 
   Dumbbell, 
   Check,
   ArrowRight,
   ArrowLeft,
   UserCheck,
-  Plus,
-  Trash2,
   Play,
   Loader2,
-  AlertCircle
+  AlertCircle,
+  Search,
+  X,
 } from "lucide-react";
-import { ExerciseCard } from "@/app/components/EjercicioCard";
+import { ExerciseCard, ImageModal, type WgerExercise } from "@/app/components/EjercicioCard";
 import { UserHeader } from "@/app/components/UserHeader";
-import { exercisesDatabase, muscleGroupsData, Exercise } from "@/app/data/ejercicios";
-import type { Session } from "@supabase/supabase-js";
+import { muscleGroupsData, MuscleGroup } from "@/lib/data/ejercicios";
 
-const muscleGroups = muscleGroupsData;
 const DEFAULT_SETS = 3;
+
+const EQUIPMENT_TABS = [
+  { id: "all", label: "Todos" },
+  { id: "barbell", label: "Barra" },
+  { id: "dumbbell", label: "Mancuernas" },
+  { id: "body weight", label: "Peso corporal" },
+  { id: "other", label: "Otros" },
+];
 
 interface ResumenEjercicio {
   id: string;
+  uuid: string;
   nombre: string;
   description: string;
   equipment: string;
@@ -34,15 +41,19 @@ interface ResumenEjercicio {
 export default function EntrenamientoPage() {
   const router = useRouter();
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
-  
+  const [muscleGroups] = useState<MuscleGroup[]>(muscleGroupsData);
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
+  const [exercises, setExercises] = useState<Record<string, WgerExercise[]>>({});
   const [selectedExercises, setSelectedExercises] = useState<Record<string, string[]>>({});
   const [step, setStep] = useState<"muscles" | "exercises" | "summary" | "saving">("muscles");
+  const [currentMuscleIndex, setCurrentMuscleIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [workoutId, setWorkoutId] = useState<string | null>(null);
-  
+  const [loadingExercises, setLoadingExercises] = useState<Record<string, boolean>>({});
   const [resumen, setResumen] = useState<ResumenEjercicio[]>([]);
+  const [selectedEquipment, setSelectedEquipment] = useState<Record<string, string>>({});
+  const [modalImage, setModalImage] = useState<string | null>(null);
+  const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function initSupabase() {
@@ -56,12 +67,49 @@ export default function EntrenamientoPage() {
     initSupabase();
   }, []);
 
-  const toggleMuscle = (id: string) => {
-    setSelectedMuscles(prev => 
-      prev.includes(id) 
-        ? prev.filter(m => m !== id)
-        : [...prev, id]
-    );
+  const fetchExercises = async (muscleGroup: MuscleGroup) => {
+    if (exercises[muscleGroup.id]) return;
+
+    setLoadingExercises(prev => ({ ...prev, [muscleGroup.id]: true }));
+
+    try {
+      const params = new URLSearchParams();
+      params.append("muscleGroup", muscleGroup.id);
+      params.append("limit", "50");
+
+      const response = await fetch(`/api/exercises?${params.toString()}`);
+      const data = await response.json();
+
+      if (data.success) {
+        setExercises(prev => ({
+          ...prev,
+          [muscleGroup.id]: data.data
+        }));
+      }
+    } catch (err) {
+      console.error("Error fetching exercises:", err);
+    } finally {
+      setLoadingExercises(prev => ({ ...prev, [muscleGroup.id]: false }));
+    }
+  };
+
+  const toggleMuscle = async (id: string) => {
+    const newSelected = selectedMuscles.includes(id)
+      ? selectedMuscles.filter(m => m !== id)
+      : [...selectedMuscles, id];
+    
+    setSelectedMuscles(newSelected);
+    
+    if (!selectedMuscles.includes(id) && !exercises[id]) {
+      const muscle = muscleGroups.find(m => m.id === id);
+      if (muscle) {
+        await fetchExercises(muscle);
+      }
+    }
+
+    if (!selectedMuscles.includes(id)) {
+      setSelectedEquipment(prev => ({ ...prev, [id]: "all" }));
+    }
   };
 
   const toggleExercise = (muscleId: string, exerciseId: string) => {
@@ -74,26 +122,55 @@ export default function EntrenamientoPage() {
     });
   };
 
-  const findExerciseById = (exerciseId: string): Exercise | undefined => {
-    for (const exercises of Object.values(exercisesDatabase)) {
-      const found = exercises.find(e => e.id === exerciseId);
-      if (found) return found;
+const getFilteredExercises = (muscleId: string): WgerExercise[] => {
+    const muscleExercises = exercises[muscleId] || [];
+    const equipment = selectedEquipment[muscleId] || "all";
+    const search = searchQueries[muscleId] || "";
+    
+    let filtered = equipment === "all" 
+      ? muscleExercises 
+      : muscleExercises.filter(ex => ex.equipmentCategory === equipment);
+    
+    if (search.trim()) {
+      const lowerSearch = search.toLowerCase();
+      filtered = filtered.filter(ex => 
+        ex.name.toLowerCase().includes(lowerSearch)
+      );
     }
-    return undefined;
+    
+    return [...filtered].sort((a, b) => {
+      if (a.imageUrl && !b.imageUrl) return -1;
+      if (!a.imageUrl && b.imageUrl) return 1;
+      return 0;
+    });
+  };
+
+  const handleSearchChange = (muscleId: string, value: string) => {
+    setSearchQueries(prev => ({ ...prev, [muscleId]: value }));
+  };
+
+  const handleImageClick = (imageUrl: string) => {
+    setModalImage(imageUrl);
+  };
+
+  const isExerciseSelected = (muscleId: string, exerciseId: string): boolean => {
+    return (selectedExercises[muscleId] || []).includes(exerciseId);
   };
 
   const getSelectedExercisesList = (): ResumenEjercicio[] => {
-    const exercises: ResumenEjercicio[] = [];
+    const exerciseList: ResumenEjercicio[] = [];
     Object.entries(selectedExercises).forEach(([muscleId, exerciseIds]) => {
       exerciseIds.forEach(exerciseId => {
-        const exerciseData = findExerciseById(exerciseId);
+        const muscleExercises = exercises[muscleId] || [];
+        const exerciseData = muscleExercises.find(e => e.id === exerciseId);
         if (exerciseData) {
-          const defaultSets = Array.from({ length: DEFAULT_SETS }, (_, i) => ({
+          const defaultSets = Array.from({ length: DEFAULT_SETS }, () => ({
             reps: 0,
             peso: 0
           }));
-          exercises.push({
-            id: exerciseId,
+          exerciseList.push({
+            id: exerciseData.id,
+            uuid: exerciseData.uuid,
             nombre: exerciseData.name,
             description: exerciseData.description,
             equipment: exerciseData.equipment,
@@ -102,7 +179,7 @@ export default function EntrenamientoPage() {
         }
       });
     });
-    return exercises;
+    return exerciseList;
   };
 
   const agregarSet = (ejercicioId: string) => {
@@ -118,17 +195,6 @@ export default function EntrenamientoPage() {
     setResumen(prev => prev.map(ej => {
       if (ej.id === ejercicioId && ej.sets.length > 1) {
         return { ...ej, sets: ej.sets.filter((_, i) => i !== setIndex) };
-      }
-      return ej;
-    }));
-  };
-
-  const actualizarSet = (ejercicioId: string, setIndex: number, field: 'reps' | 'peso', value: number) => {
-    setResumen(prev => prev.map(ej => {
-      if (ej.id === ejercicioId) {
-        const newSets = [...ej.sets];
-        newSets[setIndex] = { ...newSets[setIndex], [field]: value };
-        return { ...ej, sets: newSets };
       }
       return ej;
     }));
@@ -154,9 +220,9 @@ export default function EntrenamientoPage() {
         return;
       }
 
-const fecha = new Date().toISOString().split('T')[0];
-        
-        const { data: workout, error: workoutError } = await supabase
+      const fecha = new Date().toISOString().split('T')[0];
+      
+      const { data: workout, error: workoutError } = await supabase
         .from("workouts")
         .insert({
           user_id: session.user.id,
@@ -186,18 +252,12 @@ const fecha = new Date().toISOString().split('T')[0];
 
       if (setsError) throw setsError;
 
-      setWorkoutId(workout.id);
       router.push(`/workout/${workout.id}`);
-    } catch (err: any) {
-      setError(err.message || "Error al guardar el entrenamiento");
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Error al guardar el entrenamiento";
+      setError(errorMessage);
       setSaving(false);
     }
-  };
-
-  const getEquipmentLabel = (equipment: string) => {
-    const barraKeywords = ['barbell', 'máquina', 'prensa', 'smith'];
-    const isBarra = barraKeywords.some(k => equipment.toLowerCase().includes(k));
-    return isBarra ? "Peso (kg)" : "Peso por lado (kg)";
   };
 
   if (step === "summary") {
@@ -303,7 +363,7 @@ const fecha = new Date().toISOString().split('T')[0];
               className="text-3xl md:text-4xl font-bold mb-4"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              {step === "muscles" ? (
+{step === "muscles" ? (
                 <>¿QUE VAS A <span className="text-[#eab308]">ENTRENAR</span> HOY?</>
               ) : (
                 <>ELIGE TUS <span className="text-[#eab308]">EJERCICIOS</span></>
@@ -312,8 +372,18 @@ const fecha = new Date().toISOString().split('T')[0];
             <p className="text-[#a1a1aa]">
               {step === "muscles" 
                 ? "Selecciona los grupos musculares que vas a trabajar" 
-                : "Selecciona los ejercicios para cada grupo"}
+                : "Selecciona los ejercicios para cada grupo"
+              }
             </p>
+            {step === "exercises" && (
+              <button
+                onClick={() => setStep("muscles")}
+                className="mt-4 flex items-center gap-2 mx-auto px-4 py-2 bg-[#27272a] hover:bg-[#3f3f46] text-[#a1a1aa] hover:text-white rounded-lg transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Cambiar grupos musculares ({selectedMuscles.length})
+              </button>
+            )}
           </div>
 
           {step === "muscles" ? (
@@ -336,7 +406,14 @@ const fecha = new Date().toISOString().split('T')[0];
                         <Check className="w-4 h-4 text-[#eab308]" />
                       </div>
                     )}
-                    <div className="text-4xl mb-3">{muscle.icon}</div>
+                    <div className="relative w-24 h-24 mb-3 mx-auto rounded-xl overflow-hidden">
+                      <Image
+                        src={muscle.image}
+                        alt={muscle.name}
+                        fill
+                        className="object-contain"
+                      />
+                    </div>
                     <h3 
                       className="font-bold text-lg"
                       style={{ fontFamily: "var(--font-oswald)" }}
@@ -351,18 +428,21 @@ const fecha = new Date().toISOString().split('T')[0];
               </div>
 
               <div className="text-center">
-<button
-                    onClick={() => setStep("exercises")}
-                    disabled={selectedMuscles.length === 0}
-                    className={`
-                      group flex items-center justify-center gap-3 font-bold px-10 py-4 rounded-xl transition-all cursor-pointer
-                      ${selectedMuscles.length > 0 
-                        ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105" 
-                        : "bg-[#3f3f46] text-[#71717a] cursor-not-allowed"
-                      }
-                    `}
-                    style={{ fontFamily: "var(--font-oswald)" }}
-                  >
+                <button
+                  onClick={() => {
+                    setStep("exercises");
+                    setCurrentMuscleIndex(0);
+                  }}
+                  disabled={selectedMuscles.length === 0}
+                  className={`
+                    group flex items-center justify-center gap-3 font-bold px-10 py-4 rounded-xl transition-all cursor-pointer
+                    ${selectedMuscles.length > 0 
+                      ? "bg-[#eab308] hover:bg-[#ca9a04] text-black hover:scale-105" 
+                      : "bg-[#3f3f46] text-[#71717a] cursor-not-allowed"
+                    }
+                  `}
+                  style={{ fontFamily: "var(--font-oswald)" }}
+                >
                   <Dumbbell className="w-5 h-5" />
                   ELEGIR EJERCICIOS
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -378,37 +458,177 @@ const fecha = new Date().toISOString().split('T')[0];
           ) : (
             <>
               <div className="space-y-8 mb-10">
-                {selectedMuscles.map(muscleId => {
+                {selectedMuscles.slice(currentMuscleIndex, currentMuscleIndex + 1).map(muscleId => {
                   const muscle = muscleGroups.find(m => m.id === muscleId);
-                  const exercises = exercisesDatabase[muscleId] || [];
+                  const filteredExercises = getFilteredExercises(muscleId);
                   const selected = selectedExercises[muscleId] || [];
+                  const isLoading = loadingExercises[muscleId];
+                  const currentEquipment = selectedEquipment[muscleId] || "all";
                   
                   return (
-                    <div key={muscleId} className="bg-[#18181b] rounded-2xl p-6 border border-[#3f3f46]">
-                      <div className="flex items-center gap-3 mb-4">
-                        <span className="text-3xl">{muscle?.icon}</span>
-                        <h3 className="font-bold text-xl text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
-                          {muscle?.name}
-                        </h3>
-                        <span className="text-sm text-[#71717a] ml-auto">
-                          {selected.length}/{exercises.length}
-                        </span>
-                      </div>
-                      
-                      <div className="space-y-3">
-                        {exercises.map((exercise) => (
-                          <ExerciseCard
-                            key={exercise.id}
-                            exercise={exercise}
-                            selected={selected.includes(exercise.id)}
-                            onSelect={() => toggleExercise(muscleId, exercise.id)}
+                    <div key={muscleId} className="bg-[#18181b] rounded-2xl p-6 border border-[#3f3f46] flex flex-col max-h-[calc(100vh-280px)]">
+                      <div className="flex-none">
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="relative w-10 h-10 rounded-lg overflow-hidden">
+                            {muscle?.image && (
+                              <Image
+                                src={muscle.image}
+                                alt={muscle?.name || ""}
+                                fill
+                                className="object-contain"
+                              />
+                            )}
+                          </div>
+                          <h3 className="font-bold text-xl text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                            {muscle?.name}
+                          </h3>
+                          <span className="text-sm text-[#71717a] ml-auto">
+                            {selected.length}/{filteredExercises.length}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2 mb-4">
+                          {EQUIPMENT_TABS.map(tab => (
+                            <button
+                              key={tab.id}
+                              onClick={() => setSelectedEquipment(prev => ({ ...prev, [muscleId]: tab.id }))}
+                              className={`
+                                px-3 py-1.5 rounded-full text-xs font-medium transition-all cursor-pointer
+                                ${currentEquipment === tab.id
+                                  ? "bg-[#eab308] text-black"
+                                  : "bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46]"
+                                }
+                              `}
+                            >
+                              {tab.label}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="relative mb-4">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#71717a]" />
+                          <input
+                            type="text"
+                            placeholder="Buscar ejercicio..."
+                            value={searchQueries[muscleId] || ""}
+                            onChange={(e) => handleSearchChange(muscleId, e.target.value)}
+                            className="w-full pl-10 pr-10 py-2 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-sm text-white placeholder:text-[#71717a] focus:outline-none focus:border-[#eab308]/50 transition-colors"
                           />
-                        ))}
+                          {searchQueries[muscleId] && (
+                            <button
+                              onClick={() => handleSearchChange(muscleId, "")}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-[#71717a] hover:text-white transition-colors"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-[#3f3f46] scrollbar-track-transparent hover:scrollbar-thumb-[#52525b]">
+                        <div className="space-y-3">
+                          {isLoading ? (
+                            <div className="flex items-center justify-center py-8">
+                              <Loader2 className="w-6 h-6 animate-spin text-[#eab308]" />
+                              <span className="ml-2 text-[#71717a]">Cargando ejercicios...</span>
+                            </div>
+                          ) : filteredExercises.length > 0 ? (
+                            filteredExercises.map((exercise) => (
+                              <ExerciseCard
+                                key={exercise.id}
+                                exercise={exercise}
+                                selected={isExerciseSelected(muscleId, exercise.id)}
+                                onSelect={() => toggleExercise(muscleId, exercise.id)}
+                                onImageClick={handleImageClick}
+                              />
+                            ))
+) : (
+                            <div className="text-center py-8 text-[#71717a]">
+                              {searchQueries[muscleId] 
+                                ? `No se encontraron ejercicios para "${searchQueries[muscleId]}"`
+                                : "No hay ejercicios con este equipo"
+                              }
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   );
                 })}
               </div>
+
+              <div className="flex items-center justify-between gap-4 mb-6">
+                <button
+                  onClick={() => setCurrentMuscleIndex(Math.max(0, currentMuscleIndex - 1))}
+                  disabled={currentMuscleIndex === 0}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer
+                    ${currentMuscleIndex === 0
+                      ? "bg-[#27272a] text-[#52525b] cursor-not-allowed"
+                      : "bg-[#27272a] hover:bg-[#3f3f46] text-white"
+                    }
+                  `}
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                  Anterior
+                </button>
+
+                <div className="flex items-center gap-2">
+                  {selectedMuscles.map((muscleId, index) => {
+                    const muscle = muscleGroups.find(m => m.id === muscleId);
+                    const isActive = index === currentMuscleIndex;
+                    const hasSelected = (selectedExercises[muscleId] || []).length > 0;
+                    
+                    return (
+                      <button
+                        key={muscleId}
+                        onClick={() => setCurrentMuscleIndex(index)}
+                        className={`
+                          w-3 h-3 rounded-full transition-all cursor-pointer
+                          ${isActive 
+                            ? "bg-[#eab308] scale-125" 
+                            : hasSelected 
+                              ? "bg-[#eab308]/50 hover:bg-[#eab308]"
+                              : "bg-[#3f3f46] hover:bg-[#52525b]"
+                          }
+                        `}
+                        title={muscle?.name || ""}
+                      />
+                    );
+                  })}
+                </div>
+
+                <button
+                  onClick={() => setCurrentMuscleIndex(Math.min(selectedMuscles.length - 1, currentMuscleIndex + 1))}
+                  disabled={currentMuscleIndex === selectedMuscles.length - 1}
+                  className={`
+                    flex items-center gap-2 px-4 py-2 rounded-lg transition-all cursor-pointer
+                    ${currentMuscleIndex === selectedMuscles.length - 1
+                      ? "bg-[#27272a] text-[#52525b] cursor-not-allowed"
+                      : "bg-[#eab308] hover:bg-[#ca9a04] text-black"
+                    }
+                  `}
+                >
+                  {selectedMuscles[currentMuscleIndex + 1] ? (
+                    <>
+                      {muscleGroups.find(m => m.id === selectedMuscles[currentMuscleIndex + 1])?.name || "Siguiente"}
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  ) : (
+                    <>
+                      Siguiente
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {modalImage && (
+                <ImageModal 
+                  imageUrl={modalImage} 
+                  onClose={() => setModalImage(null)} 
+                />
+              )}
 
               <div className="text-center">
                 <div className="mb-4 text-[#a1a1aa]">

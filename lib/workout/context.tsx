@@ -321,10 +321,13 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     
     setExercises(updatedExercises);
     setSelectedExercise(updatedExercises[exerciseIdx]);
-    setCurrentSetIndex(currentSetIndex + 1);
     setShowExtraSetButton(false);
     await saveSets(updatedExercises);
-  }, [selectedExercise, currentSetIndex, exercises, saveSets]);
+    
+    const now = Date.now();
+    setTimer({ segundos: 0, activo: true, descansando: true, timestampInicio: now });
+    saveTimerToStorage(now, true, selectedExercise.exerciseId);
+  }, [selectedExercise, currentSetIndex, exercises, saveSets, setTimer, saveTimerToStorage]);
 
   const setAsLastSet = useCallback((value: boolean) => {
     setIsLastSet(value);

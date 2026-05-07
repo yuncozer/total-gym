@@ -7,7 +7,7 @@ import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
 import type { Session } from "@supabase/supabase-js";
-import { getDailyQuote } from "@/app/data/quote";
+import { getDailyQuote } from "@/lib/data/quote";
 
 export function getFormattedDate(): string {
   const now = new Date();

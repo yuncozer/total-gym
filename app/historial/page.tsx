@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Target, Loader2, Dumbbell, ChevronDown, ChevronUp, Scale, Search, X } from "lucide-react";
+import { CheckCircle2, Clock, Target, Loader2, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { loadWorkoutHistory, type WorkoutSummary, type WorkoutSet, type ExerciseInWorkout } from "@/lib/workout";
+
+type DateFilter = "all" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year";
 
 export default function HistorialPage() {
   const router = useRouter();
@@ -12,9 +14,58 @@ export default function HistorialPage() {
   const [loading, setLoading] = useState(true);
   const [expandedWorkouts, setExpandedWorkouts] = useState<Set<string>>(new Set());
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
-  const [fechaInicio, setFechaInicio] = useState("");
-  const [fechaFin, setFechaFin] = useState("");
+  const [activeFilter, setActiveFilter] = useState<DateFilter>("all");
   const [showFilters, setShowFilters] = useState(false);
+
+  const DATE_FILTERS: { id: DateFilter; label: string }[] = [
+    { id: "all", label: "Todos" },
+    { id: "this_week", label: "Esta semana" },
+    { id: "last_week", label: "Semana pasada" },
+    { id: "this_month", label: "Este mes" },
+    { id: "last_month", label: "Mes pasado" },
+    { id: "this_year", label: "Este año" },
+  ];
+
+  const getDateRange = (filter: DateFilter): { start: Date; end: Date } | null => {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    switch (filter) {
+      case "all":
+        return null;
+      case "this_week": {
+        const dayOfWeek = today.getDay();
+        const startOfWeek = new Date(today);
+        startOfWeek.setDate(today.getDate() - dayOfWeek);
+        return { start: startOfWeek, end: today };
+      }
+      case "last_week": {
+        const dayOfWeek = today.getDay();
+        const startOfLastWeek = new Date(today);
+        startOfLastWeek.setDate(today.getDate() - dayOfWeek - 7);
+        const endOfLastWeek = new Date(startOfLastWeek);
+        endOfLastWeek.setDate(startOfLastWeek.getDate() + 6);
+        return { start: startOfLastWeek, end: endOfLastWeek };
+      }
+      case "this_month":
+        return {
+          start: new Date(today.getFullYear(), today.getMonth(), 1),
+          end: today
+        };
+      case "last_month":
+        return {
+          start: new Date(today.getFullYear(), today.getMonth() - 1, 1),
+          end: new Date(today.getFullYear(), today.getMonth(), 0)
+        };
+      case "this_year":
+        return {
+          start: new Date(today.getFullYear(), 0, 1),
+          end: today
+        };
+      default:
+        return null;
+    }
+  };
 
   useEffect(() => {
     async function loadWorkouts() {
@@ -32,18 +83,6 @@ export default function HistorialPage() {
 
   const formatDate = (dateStr: string) => {
     try {
-      const parts = dateStr.split("-");
-      if (parts.length === 3) {
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1;
-        const year = 2000 + parseInt(parts[2], 10);
-        const date = new Date(year, month, day);
-        return date.toLocaleDateString("es-ES", {
-          weekday: "long",
-          day: "numeric",
-          month: "long",
-        });
-      }
       const date = new Date(dateStr);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString("es-ES", {
@@ -60,17 +99,6 @@ export default function HistorialPage() {
 
   const formatShortDate = (dateStr: string) => {
     try {
-      const parts = dateStr.split("-");
-      if (parts.length === 3) {
-        const day = parseInt(parts[0], 10);
-        const month = parseInt(parts[1], 10) - 1;
-        const year = 2000 + parseInt(parts[2], 10);
-        const date = new Date(year, month, day);
-        return date.toLocaleDateString("es-ES", {
-          day: "numeric",
-          month: "short",
-        });
-      }
       const date = new Date(dateStr);
       if (!isNaN(date.getTime())) {
         return date.toLocaleDateString("es-ES", {
@@ -120,16 +148,8 @@ export default function HistorialPage() {
     const groups: Record<string, WorkoutSummary[]> = {};
     workouts.forEach((workout) => {
       try {
-        const parts = workout.date.split("-");
-        let date: Date;
-        if (parts.length === 3) {
-          const day = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10) - 1;
-          const year = 2000 + parseInt(parts[2], 10);
-          date = new Date(year, month, day);
-        } else {
-          date = new Date(workout.date);
-        }
+        const date = new Date(workout.date);
+        if (isNaN(date.getTime())) return;
         const key = date.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
         if (!groups[key]) groups[key] = [];
         groups[key].push(workout);
@@ -150,38 +170,18 @@ export default function HistorialPage() {
   const isCompleted = (workout: WorkoutSummary) => workout.status === "completed";
 
   const filterWorkoutsByDate = (workouts: WorkoutSummary[]) => {
+    const range = getDateRange(activeFilter);
+    if (!range) return workouts;
+    
     return workouts.filter((workout) => {
       try {
-        const parts = workout.date.split("-");
-        let workoutDate: Date;
-        if (parts.length === 3) {
-          const day = parseInt(parts[0], 10);
-          const month = parseInt(parts[1], 10) - 1;
-          const year = 2000 + parseInt(parts[2], 10);
-          workoutDate = new Date(year, month, day);
-        } else {
-          workoutDate = new Date(workout.date);
-        }
-
-        if (fechaInicio && fechaFin) {
-          const start = new Date(fechaInicio);
-          const end = new Date(fechaFin);
-          end.setHours(23, 59, 59, 999);
-          return workoutDate >= start && workoutDate <= end;
-        }
-
-        if (fechaInicio) {
-          const start = new Date(fechaInicio);
-          return workoutDate >= start;
-        }
-
-        if (fechaFin) {
-          const end = new Date(fechaFin);
-          end.setHours(23, 59, 59, 999);
-          return workoutDate <= end;
-        }
-
-        return true;
+        const workoutDate = new Date(workout.date);
+        if (isNaN(workoutDate.getTime())) return true;
+        
+        const endOfDay = new Date(range.end);
+        endOfDay.setHours(23, 59, 59, 999);
+        
+        return workoutDate >= range.start && workoutDate <= endOfDay;
       } catch (e) {
         return true;
       }
@@ -189,11 +189,10 @@ export default function HistorialPage() {
   };
 
   const clearFilters = () => {
-    setFechaInicio("");
-    setFechaFin("");
+    setActiveFilter("all");
   };
 
-  const hasActiveFilters = fechaInicio || fechaFin;
+  const hasActiveFilters = activeFilter !== "all";
 
   if (loading) {
     return (
@@ -235,41 +234,39 @@ export default function HistorialPage() {
                 : "bg-[#18181b] border-[#3f3f46] text-[#a1a1aa] hover:border-[#eab308]"
             }`}
           >
-            <Search className="w-4 h-4" />
-            {hasActiveFilters ? "Filtrar activo" : "Filtrar por fecha"}
+            <Filter className="w-4 h-4" />
+            {hasActiveFilters ? `Filtro: ${DATE_FILTERS.find(f => f.id === activeFilter)?.label}` : "Filtrar por fecha"}
           </button>
 
           {showFilters && (
             <div className="mb-6 p-4 bg-[#18181b] rounded-xl border border-[#3f3f46]">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm text-[#71717a] mb-2">Desde fecha</label>
-                  <input
-                    type="date"
-                    value={fechaInicio}
-                    onChange={(e) => setFechaInicio(e.target.value)}
-                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white cursor-pointer"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-[#71717a] mb-2">Hasta fecha</label>
-                  <input
-                    type="date"
-                    value={fechaFin}
-                    onChange={(e) => setFechaFin(e.target.value)}
-                    className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white cursor-pointer"
-                  />
-                </div>
-                {hasActiveFilters && (
+              <div className="grid grid-cols-2 gap-2">
+                {DATE_FILTERS.map((filter) => (
                   <button
-                    onClick={clearFilters}
-                    className="flex items-center justify-center gap-2 w-full py-3 border border-[#3f3f46] text-[#a1a1aa] hover:text-white rounded-xl cursor-pointer"
+                    key={filter.id}
+                    onClick={() => {
+                      setActiveFilter(filter.id);
+                      setShowFilters(false);
+                    }}
+                    className={`px-4 py-3 rounded-lg text-sm font-medium transition-all cursor-pointer ${
+                      activeFilter === filter.id
+                        ? "bg-[#eab308] text-black"
+                        : "bg-[#0a0a0a] text-[#a1a1aa] hover:bg-[#27272a]"
+                    }`}
                   >
-                    <X className="w-4 h-4" />
-                    Limpiar filtros
+                    {filter.label}
                   </button>
-                )}
+                ))}
               </div>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="flex items-center justify-center gap-2 w-full mt-4 py-3 border border-[#3f3f46] text-[#a1a1aa] hover:text-white rounded-xl cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                  Limpiar filtro
+                </button>
+              )}
             </div>
           )}
 
@@ -280,12 +277,12 @@ export default function HistorialPage() {
               </div>
               {hasActiveFilters ? (
                 <>
-                  <p className="text-[#a1a1aa] mb-4">No se encontraron workouts en ese rango de fechas</p>
+                  <p className="text-[#a1a1aa] mb-4">No hay workouts en este período</p>
                   <button
                     onClick={clearFilters}
                     className="text-[#eab308] hover:text-[#ca9a04] font-bold cursor-pointer"
                   >
-                    Limpiar filtros
+                    Ver todos
                   </button>
                 </>
               ) : (
