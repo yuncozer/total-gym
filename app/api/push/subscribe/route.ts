@@ -44,17 +44,24 @@ export async function POST(request: NextRequest) {
         .eq("user_id", user.id);
 
       if (updateError) {
+        console.error("Update push_sub error:", updateError);
         return NextResponse.json({ error: updateError.message }, { status: 500 });
       }
     } else {
+      console.error("Insert push_sub error:", error);
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
   }
 
-  await supabase
+  const { error: profileError } = await supabase
     .from("profiles")
     .update({ notify_enabled: true })
     .eq("id", user.id);
+
+  if (profileError) {
+    console.error("Update profile error:", profileError);
+    return NextResponse.json({ error: profileError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ success: true });
 }

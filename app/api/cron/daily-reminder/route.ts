@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
 import { getDailyNotification } from "@/lib/data/notifications";
 
@@ -10,42 +10,38 @@ webpush.setVapidDetails(
 );
 
 export async function POST(request: NextRequest) {
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || "",
-    {
-      cookies: {
-        getAll: () => request.cookies.getAll(),
-        setAll: () => {},
-      },
+  try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
+      process.env.SUPABASE_SERVICE_ROLE_KEY || ""
+    );
+
+    const today = new Date();
+    const dayOfWeek = today.getDay();
+
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return NextResponse.json({ 
+        message: "No reminder sent - weekend", 
+        sent: 0 
+      });
     }
-  );
 
-  const today = new Date();
-  const dayOfWeek = today.getDay();
+    const { data: users, error: usersError } = await supabase
+      .from("profiles")
+      .select("id, email")
+      .eq("notify_enabled", true);
 
-  if (dayOfWeek === 0 || dayOfWeek === 6) {
-    return NextResponse.json({ 
-      message: "No reminder sent - weekend", 
-      sent: 0 
-    });
-  }
+    if (usersError) {
+      return NextResponse.json({ error: usersError.message }, { status: 500 });
+    }
 
-  const { data: users, error: usersError } = await supabase
-    .from("profiles")
-    .select("id, email")
-    .eq("notify_enabled", true);
+    if (!users || users.length === 0) {
+      return NextResponse.json({ message: "No users with notifications enabled", sent: 0 });
+    }
 
-  if (usersError) {
-    return NextResponse.json({ error: usersError.message }, { status: 500 });
-  }
-
-  if (!users || users.length === 0) {
-    return NextResponse.json({ message: "No users with notifications enabled", sent: 0 });
-  }
-
-  const todayStart = new Date(today.setHours(0, 0, 0, 0)).toISOString();
-  const todayEnd = new Date(today.setHours(23, 59, 59, 999)).toISOString();
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+    const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString();
 
   let sentCount = 0;
 
@@ -106,4 +102,8 @@ export async function POST(request: NextRequest) {
     sent: sentCount,
     date: new Date().toISOString()
   });
+  } catch (error: any) {
+    console.error("Cron error:", error);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 }

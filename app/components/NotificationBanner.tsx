@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Bell, BellOff, Loader2, Check } from "lucide-react";
+import { Bell, Loader2 } from "lucide-react";
 import { usePushNotifications, saveSubscription, updateNotificationSettings } from "@/lib/push";
 
 interface NotificationBannerProps {
@@ -16,7 +16,9 @@ export function NotificationBanner({ userId, onEnabled }: NotificationBannerProp
   const { supported, subscribe, loading: subLoading } = usePushNotifications();
 
   useEffect(() => {
-    checkStatus();
+    if (userId) {
+      checkStatus();
+    }
   }, [userId]);
 
   const checkStatus = async () => {
