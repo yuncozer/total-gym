@@ -13,6 +13,7 @@ create table public.profiles (
   peso_kg numeric,
   nivel text check (nivel in ('principiante', 'intermedio', 'avanzado')),
   objetivo text check (objetivo in ('ganar_musculo', 'perder_grasa', 'mantener')),
+  notify_enabled boolean default false,
   created_at timestamp with time zone default now()
 );
 
@@ -57,8 +58,8 @@ create index idx_workout_sets_exercise_id on public.workout_sets(exercise_id);
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, email)
-  values (new.id, new.email);
+  insert into public.profiles (id, email, notify_enabled)
+  values (new.id, new.email, false);
   return new;
 end;
 $$ language plpgsql security definer;
@@ -123,6 +124,34 @@ create policy "Users can delete own workout sets" on public.workout_sets
       select user_id from public.workouts where id = workout_sets.workout_id
     )
   );
+
+-- -----------------------------------------------------
+-- 4. PUSH_SUBSCRIPTIONS TABLE
+-- -----------------------------------------------------
+create table public.push_subs (
+  id uuid default gen_random_uuid() primary key,
+  user_id uuid references auth.users not null,
+  endpoint text not null,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamp with time zone default now(),
+  
+  constraint fk_push_sub_user foreign key (user_id) references auth.users(id) on delete cascade
+);
+
+create index idx_push_subs_user_id on public.push_subs(user_id);
+
+-- Push subs: users can only see their own subscriptions
+alter table public.push_subs enable row level security;
+
+create policy "Users can view own push subs" on public.push_subs
+  for select using (auth.uid() = user_id);
+
+create policy "Users can insert own push subs" on public.push_subs
+  for insert with check (auth.uid() = user_id);
+
+create policy "Users can delete own push subs" on public.push_subs
+  for delete using (auth.uid() = user_id);
 
 -- -----------------------------------------------------
 -- 6. FUNCTION: Get or create today's workout
