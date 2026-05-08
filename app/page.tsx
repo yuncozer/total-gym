@@ -6,11 +6,7 @@ import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartp
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
-<<<<<<< HEAD
-import { NotificationBanner } from "@/app/components/NotificationBanner";
-=======
 import { NotificationButton } from "@/app/components/NotificationButton";
->>>>>>> origin/dev
 import type { Session } from "@supabase/supabase-js";
 import { getDailyQuote } from "@/lib/data/quote";
 import { getDashboardStats, type DashboardStats } from "@/lib/workout/service";
@@ -342,11 +338,7 @@ export default function Home() {
 
             {user && !loadingStats && stats && !stats.todayWorkout && (
               <div className="mt-6">
-<<<<<<< HEAD
-                <NotificationBanner userId={user.id} />
-=======
                 <NotificationButton userId={user.id} />
->>>>>>> origin/dev
               </div>
             )}
           </div>

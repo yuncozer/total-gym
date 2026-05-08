@@ -4,11 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Flame, Dumbbell, TrendingUp, CalendarDays, Bell, BellOff } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
-<<<<<<< HEAD
 import { usePushNotifications, updateNotificationSettings, saveSubscription } from "@/lib/push";
-=======
-import { updateNotificationSettings } from "@/lib/push";
->>>>>>> origin/dev
 
 interface ProfileData {
   email: string;
@@ -53,7 +49,6 @@ export default function PerfilPage() {
     totalVolume: 0,
   });
 
-  const [notifyLoading, setNotifyLoading] = useState(false);
   const { supported, subscribe, unsubscribe, loading: subLoading } = usePushNotifications();
 
   useEffect(() => {
