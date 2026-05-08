@@ -93,14 +93,14 @@ export function NotificationButton({ userId }: NotificationButtonProps) {
     <>
       <button
         onClick={() => setExpanded(true)}
-        className="fixed bottom-6 right-6 z-[100] bg-[#eab308] hover:bg-[#ca9a04] w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all cursor-pointer"
+        className="fixed bottom-6 right-6 z-[9999] bg-[#eab308] hover:bg-[#ca9a04] w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all cursor-pointer"
         title="Activar recordatorio"
       >
         <Bell className="w-6 h-6 text-black" />
       </button>
 
       {expanded && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => setExpanded(false)} />
           <div className="relative bg-[#18181b] border border-[#eab308]/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <button
@@ -121,7 +121,7 @@ export function NotificationButton({ userId }: NotificationButtonProps) {
                 RECORDATORIO DIARIO
               </h2>
               <p className="text-[#a1a1aa] mt-2">
-                Te avisaremos a las 18:00 si no has entrenado hoy
+                Te avisaremos a las 7PM si no has entrenado hoy
               </p>
               {error && (
                 <div className="mt-3 p-3 bg-red-500/10 border border-red-500/30 rounded-lg flex items-center gap-2">

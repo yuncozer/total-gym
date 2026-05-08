@@ -96,7 +96,7 @@ export default function Home() {
 
   const checkPendingWorkout = async (supabaseClient: typeof supabase, userId: string) => {
     setCheckingPending(true);
-    
+
     const { data: pending, error } = await supabaseClient
       .from("workouts")
       .select("id, date, started_at, status")
@@ -110,7 +110,7 @@ export default function Home() {
       setCheckingPending(false);
       return;
     }
-    
+
     const startedAt = new Date(pending.started_at).getTime();
     const now = Date.now();
     const threeHours = 3 * 60 * 60 * 1000;
@@ -126,10 +126,10 @@ export default function Home() {
         .from("workout_sets")
         .select("id, is_completed")
         .eq("workout_id", pending.id);
-      
+
       const completed = setsData?.filter((s: { is_completed: boolean }) => s.is_completed).length || 0;
       const total = setsData?.length || 0;
-      
+
       if (completed === total && total > 0) {
         await supabaseClient
           .from("workouts")
@@ -137,15 +137,15 @@ export default function Home() {
           .eq("id", pending.id);
         setPendingWorkout(null);
       } else {
-        setPendingWorkout({ 
-          id: pending.id, 
+        setPendingWorkout({
+          id: pending.id,
           date: pending.date,
           completed,
-          total 
+          total
         });
       }
     }
-    
+
     setCheckingPending(false);
   };
 
@@ -172,9 +172,9 @@ export default function Home() {
     supabase.auth.getSession().then((result: { data: { session: Session | null } }) => {
       setAuthLoading(false);
       if (result.data.session?.user) {
-        const userData = { 
-          email: result.data.session.user.email || "", 
-          id: result.data.session.user.id 
+        const userData = {
+          email: result.data.session.user.email || "",
+          id: result.data.session.user.id
         };
         setUser(userData);
         checkPendingWorkout(supabase, result.data.session.user.id);
@@ -193,9 +193,9 @@ export default function Home() {
         setPendingWorkout(null);
         setStats(null);
       } else if (event === 'SIGNED_IN' && session?.user) {
-        const userData = { 
-          email: session.user.email || "", 
-          id: session.user.id 
+        const userData = {
+          email: session.user.email || "",
+          id: session.user.id
         };
         setUser(userData);
         checkPendingWorkout(supabase, session.user.id);
@@ -240,7 +240,7 @@ export default function Home() {
         {!user && (
           <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden px-4 sm:px-6">
             <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#18181b] opacity-90" />
-            <div 
+            <div
               className="absolute inset-0 opacity-20"
               style={{
                 backgroundImage: `url('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=1920&q=80')`,
@@ -260,7 +260,7 @@ export default function Home() {
         <section id="daily-section" className={`relative ${!user ? 'py-20' : 'min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center'} overflow-hidden`}>
           <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#18181b] opacity-95" />
           {user && (
-            <div 
+            <div
               className="absolute inset-0 opacity-10"
               style={{
                 backgroundImage: `url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=1920&q=80')`,
@@ -274,10 +274,10 @@ export default function Home() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#eab308]/5 rounded-full blur-[120px]" />
             </div>
           )}
-          
+
           <div className={`relative z-10 max-w-4xl mx-auto px-4 text-center ${user ? 'py-12' : ''}`}>
             {user && <UserDashboard stats={stats} loading={loadingStats} />}
-            
+
             <div className="inline-flex items-center gap-2 bg-[#eab308]/10 border border-[#eab308]/30 rounded-full px-4 py-2 mb-6 sm:mb-8">
               <Calendar className="w-4 h-4 text-[#eab308]" />
               <span className="text-sm text-[#eab308] uppercase tracking-wider" style={{ fontFamily: "var(--font-rajdhani)" }}>
@@ -285,7 +285,7 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 
+            <h1
               className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 sm:mb-8"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
@@ -295,7 +295,7 @@ export default function Home() {
 
             <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-2xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8 backdrop-blur-sm">
               <Flame className="w-6 h-6 sm:w-8 sm:h-8 text-[#eab308] mx-auto mb-3 sm:mb-4" />
-              <p 
+              <p
                 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold leading-relaxed text-white"
                 style={{ fontFamily: "var(--font-rajdhani)" }}
               >
@@ -305,7 +305,7 @@ export default function Home() {
 
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full">
               {checkingPending ? (
-                <button 
+                <button
                   disabled
                   className="flex items-center justify-center gap-2 sm:gap-3 bg-[#27272a] text-[#71717a] font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto cursor-wait"
                   style={{ fontFamily: "var(--font-oswald)" }}
@@ -314,7 +314,7 @@ export default function Home() {
                   VERIFICANDO...
                 </button>
               ) : pendingWorkout ? (
-                <button 
+                <button
                   onClick={() => router.push(`/workout/${pendingWorkout.id}`)}
                   className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#22c55e] hover:bg-[#16a34a] text-black font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
@@ -324,7 +324,7 @@ export default function Home() {
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               ) : (
-                <button 
+                <button
                   onClick={handleStartTraining}
                   className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
@@ -335,12 +335,6 @@ export default function Home() {
                 </button>
               )}
             </div>
-
-            {user && !loadingStats && stats && !stats.todayWorkout && (
-              <div className="mt-6">
-                <NotificationButton userId={user.id} />
-              </div>
-            )}
           </div>
         </section>
 
@@ -353,9 +347,9 @@ export default function Home() {
           </div>
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
           <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
-          
+
           <div className="max-w-7xl mx-auto px-4 relative z-10">
-            <h2 
+            <h2
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
@@ -365,7 +359,7 @@ export default function Home() {
             <p className="text-[#71717a] text-center text-lg mb-16 max-w-2xl mx-auto">
               Esto no es una app más. Es tu weapon para transformar tu físico.
             </p>
-             
+
             <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
               <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
@@ -385,12 +379,12 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
-                    Una webapp que te acompaña ANTES, DURANTE y DESPUÉS de cada entrenamiento. 
+                    Una webapp que te acompaña ANTES, DURANTE y DESPUÉS de cada entrenamiento.
                     <span className="text-white font-medium block mt-2">Llévatela a everywhere. Sin excusas.</span>
                   </p>
                 </div>
               </div>
-              
+
               <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
                 <div className="relative z-10">
@@ -409,12 +403,12 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
-                    Cada serie, cada repetición, cada kilogramo queda registrado. 
+                    Cada serie, cada repetición, cada kilogramo queda registrado.
                     <span className="text-white font-medium block mt-2">Mira cuánto levantaste y SUPERA ese número.</span>
                   </p>
                 </div>
               </div>
-              
+
               <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
                 <div className="relative z-10">
@@ -433,12 +427,12 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
-                    Tu compañero entrenando CONTIGO. Lleva la cuenta de tu disciplina 
+                    Tu compañero entrenando CONTIGO. Lleva la cuenta de tu disciplina
                     <span className="text-white font-medium block mt-2">y te exige romper tus propios RÉCORDS.</span>
                   </p>
                 </div>
               </div>
-              
+
               <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
                 <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
                 <div className="relative z-10">
@@ -457,7 +451,7 @@ export default function Home() {
                     </div>
                   </div>
                   <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
-                    Descansa BETWEEN series. El timer corre automatically. 
+                    Descansa BETWEEN series. El timer corre automatically.
                     <span className="text-white font-medium block mt-2">Enfócate en LO QUE IMPORTA: entrenar DURO.</span>
                   </p>
                 </div>
@@ -471,10 +465,10 @@ export default function Home() {
             <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#18181b] to-[#0a0a0a]" />
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#eab308]/5 rounded-full blur-[120px]" />
           </div>
-          
+
           <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
           <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
-          
+
           <div className="max-w-6xl mx-auto px-4 relative z-10">
             <div className="text-center mb-16">
               <div className="inline-flex items-center gap-3 bg-[#eab308]/10 border border-[#eab308]/30 rounded-full px-6 py-2 mb-6">
@@ -483,7 +477,7 @@ export default function Home() {
                   NO ES SOLO OTRA WEB
                 </span>
               </div>
-              <h2 
+              <h2
                 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4"
                 style={{ fontFamily: "var(--font-oswald)" }}
               >
@@ -494,7 +488,7 @@ export default function Home() {
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eab308] to-[#ca9a04]">EN EL BOLSILLO</span>
               </h2>
               <p className="text-[#71717a] text-xl md:text-2xl max-w-2xl mx-auto mt-6">
-                Instálala en tu home screen y <span className="text-white font-bold">úsala como app native</span>. 
+                Instálala en tu home screen y <span className="text-white font-bold">úsala como app native</span>.
                 Sin stores, sin downloads, sin BS.
               </p>
             </div>
@@ -504,13 +498,13 @@ export default function Home() {
                 <div className="absolute -inset-0.5 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500" />
                 <div className="relative bg-[#18181b] border border-[#3f3f46] rounded-2xl p-8 hover:border-[#eab308] transition-all duration-300">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#eab308]/10 to-transparent rounded-bl-2xl" />
-                  
+
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
                       <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="5" y="2" width="14" height="20" rx="2" stroke="black"/>
-                        <line x1="12" y1="6" x2="12" y2="6.01" strokeWidth="2"/>
-                        <circle cx="12" cy="18" r="1"/>
+                        <rect x="5" y="2" width="14" height="20" rx="2" stroke="black" />
+                        <line x1="12" y1="6" x2="12" y2="6.01" strokeWidth="2" />
+                        <circle cx="12" cy="18" r="1" />
                       </svg>
                     </div>
                     <div>
@@ -546,12 +540,12 @@ export default function Home() {
                 <div className="absolute -inset-0.5 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500" />
                 <div className="relative bg-[#18181b] border border-[#3f3f46] rounded-2xl p-8 hover:border-[#eab308] transition-all duration-300">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#eab308]/10 to-transparent rounded-bl-2xl" />
-                  
+
                   <div className="flex items-center gap-4 mb-8">
                     <div className="w-16 h-16 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
                       <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M12 2C9.243 2 7 4.243 7 7v10c0 2.757 2.243 5 5 5s5-2.243 5-5V7c0-2.757-2.243-5-5-5z" fill="none" stroke="black"/>
-                        <circle cx="12" cy="18" r="2" fill="black"/>
+                        <path d="M12 2C9.243 2 7 4.243 7 7v10c0 2.757 2.243 5 5 5s5-2.243 5-5V7c0-2.757-2.243-5-5-5z" fill="none" stroke="black" />
+                        <circle cx="12" cy="18" r="2" fill="black" />
                       </svg>
                     </div>
                     <div>
@@ -617,6 +611,11 @@ export default function Home() {
         </section>
       </main>
 
+      {user && !loadingStats && stats && !stats.todayWorkout && (
+        <div className="mt-6">
+          <NotificationButton userId={user.id} />
+        </div>
+      )}
       <footer className="bg-[#0a0a0a] border-t border-[#3f3f46] py-12">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
