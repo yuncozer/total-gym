@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Flame, Dumbbell, TrendingUp, CalendarDays } from "lucide-react";
+import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Flame, Dumbbell, TrendingUp, CalendarDays, Bell, BellOff } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
+import { updateNotificationSettings } from "@/lib/push";
 
 interface ProfileData {
   email: string;
@@ -12,6 +13,7 @@ interface ProfileData {
   weight_kg: number | null;
   level: string;
   goal: string;
+  notify_enabled: boolean;
 }
 
 interface Stats {
@@ -25,6 +27,7 @@ export default function PerfilPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [notifyLoading, setNotifyLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
@@ -36,6 +39,7 @@ export default function PerfilPage() {
     weight_kg: null,
     level: "",
     goal: "",
+    notify_enabled: false,
   });
 
   const [stats, setStats] = useState<Stats>({
@@ -72,6 +76,7 @@ export default function PerfilPage() {
             weight_kg: profileData.weight_kg || null,
             level: profileData.level || "",
             goal: profileData.goal || "",
+            notify_enabled: profileData.notify_enabled || false,
           }));
         }
 
@@ -397,6 +402,60 @@ export default function PerfilPage() {
                 </>
               )}
             </button>
+
+            <div className="bg-[#18181b] border border-[#3f3f46] rounded-xl p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-[#eab308]/10 rounded-full flex items-center justify-center">
+                    {profile.notify_enabled ? (
+                      <Bell className="w-5 h-5 text-[#eab308]" />
+                    ) : (
+                      <BellOff className="w-5 h-5 text-[#71717a]" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-white font-medium" style={{ fontFamily: "var(--font-rajdhani)" }}>
+                      Recordatorio Diario
+                    </p>
+                    <p className="text-[#a1a1aa] text-sm">
+                      {profile.notify_enabled ? "Activado" : "Desactivado"}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={async () => {
+                    if (notifyLoading) return;
+                    const newValue = !profile.notify_enabled;
+                    setNotifyLoading(true);
+                    try {
+                      await updateNotificationSettings(newValue);
+                      setProfile(p => ({ ...p, notify_enabled: newValue }));
+                      setSuccess(true);
+                      setTimeout(() => setSuccess(false), 3000);
+                    } catch (err) {
+                      setError("Error al actualizar notificaciones");
+                    } finally {
+                      setNotifyLoading(false);
+                    }
+                  }}
+                  disabled={notifyLoading}
+                  className={`px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
+                    profile.notify_enabled
+                      ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
+                      : "bg-[#eab308] text-black hover:bg-[#ca9a04]"
+                  }`}
+                  style={{ fontFamily: "var(--font-oswald)" }}
+                >
+                  {notifyLoading ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : profile.notify_enabled ? (
+                    "DESACTIVAR"
+                  ) : (
+                    "ACTIVAR"
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       </main>
