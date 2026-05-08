@@ -408,48 +408,6 @@ export default function PerfilPage() {
               </div>
             </div>
 
-            {supported && (
-              <div className="bg-[#18181b] border border-[#3f3f46] rounded-xl p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-[#eab308]/10 rounded-full flex items-center justify-center">
-                      {profile.notify_enabled ? (
-                        <Bell className="w-5 h-5 text-[#eab308]" />
-                      ) : (
-                        <BellOff className="w-5 h-5 text-[#71717a]" />
-                      )}
-                    </div>
-                    <div>
-                      <p className="text-white font-medium" style={{ fontFamily: "var(--font-rajdhani)" }}>
-                        Recordatorio vespertino
-                      </p>
-                      <p className="text-[#a1a1aa] text-sm">
-                        {profile.notify_enabled ? "Activado" : "Desactivado"}
-                      </p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={handleNotifyToggle}
-                    disabled={notifyLoading || subLoading}
-                    className={`px-4 py-2 rounded-lg font-medium transition-colors disabled:opacity-50 cursor-pointer ${
-                      profile.notify_enabled
-                        ? "bg-[#27272a] text-white hover:bg-[#3f3f46]"
-                        : "bg-[#eab308] text-black hover:bg-[#ca9a04]"
-                    }`}
-                    style={{ fontFamily: "var(--font-oswald)" }}
-                  >
-                    {notifyLoading || subLoading ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : profile.notify_enabled ? (
-                      "DESACTIVAR"
-                    ) : (
-                      "ACTIVAR"
-                    )}
-                  </button>
-                </div>
-              </div>
-            )}
-
             <button
               onClick={handleSave}
               disabled={saving}
