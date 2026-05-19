@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Flame, Dumbbell, TrendingUp, CalendarDays, Bell, BellOff } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { usePushNotifications, updateNotificationSettings, saveSubscription } from "@/lib/push";
+import { useAuth } from "@/lib/useAuth";
 
 interface ProfileData {
   email: string;
@@ -25,6 +26,7 @@ interface Stats {
 
 export default function PerfilPage() {
   const router = useRouter();
+  const { loading: authLoading, authenticated } = useAuth(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [notifyLoading, setNotifyLoading] = useState(false);
@@ -52,6 +54,8 @@ export default function PerfilPage() {
   const { supported, subscribe, unsubscribe, loading: subLoading } = usePushNotifications();
 
   useEffect(() => {
+    if (authLoading) return;
+    
     async function initSupabase() {
       const { createBrowserClient } = await import("@supabase/ssr");
       const client = createBrowserClient(
@@ -150,8 +154,10 @@ export default function PerfilPage() {
       }
       setLoading(false);
     }
-    initSupabase();
-  }, []);
+    if (authenticated) {
+      initSupabase();
+    }
+  }, [authenticated, authLoading]);
 
   const handleSave = async () => {
     if (!supabase) return;
@@ -205,6 +211,14 @@ export default function PerfilPage() {
       setNotifyLoading(false);
     }
   };
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-[#eab308] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
 
   if (loading) {
     return (
