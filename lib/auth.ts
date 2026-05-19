@@ -37,17 +37,13 @@ export function subscribeToAuthChanges(callback: (session: Session | null) => vo
 export async function signInWithGoogle(redirectTo = "/entrenamiento"): Promise<{ error: string | null }> {
   const supabase = getSupabaseClient();
   
-  const getOrigin = () => {
-    if (typeof window !== "undefined") {
-      return window.location.origin;
-    }
-    return process.env.NEXT_PUBLIC_APP_URL || "";
-  };
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+  const redirectUrl = `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`;
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${getOrigin()}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+      redirectTo: redirectUrl,
       queryParams: {
         prompt: "select_account",
       },

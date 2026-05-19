@@ -1,6 +1,5 @@
-import { createClient, SupabaseClient } from "@supabase/supabase-js";
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
@@ -14,15 +13,8 @@ export async function GET(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
   
-  const { createClient } = await import("@supabase/supabase-js");
-  const supabase: SupabaseClient = createClient(supabaseUrl, supabaseKey, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  });
-
+  const supabase = createClient(supabaseUrl, supabaseKey);
+  
   const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   
   if (error || !data.user) {
@@ -51,26 +43,6 @@ export async function GET(request: NextRequest) {
       full_name: userMetadata.full_name || userMetadata.name || "",
       avatar_url: userMetadata.avatar_url || "",
       provider: data.user.app_metadata?.provider || "google",
-    });
-  }
-
-  const cookieStore = await cookies();
-  
-  if (data.session) {
-    cookieStore.set("sb-access-token", data.session.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
-    });
-    
-    cookieStore.set("sb-refresh-token", data.session.refresh_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-      path: "/",
     });
   }
 
