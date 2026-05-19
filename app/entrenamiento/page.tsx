@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment as ReactFragment } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
@@ -58,6 +58,7 @@ export default function EntrenamientoPage() {
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [registerModalKey, setRegisterModalKey] = useState(0);
+  const [recentExercises, setRecentExercises] = useState<Record<string, WgerExercise[]>>({});
 
   const openRegisterModal = () => {
     setShowRegisterModal(true);
@@ -101,8 +102,12 @@ export default function EntrenamientoPage() {
     };
   }, [supabase]);
 
-  const fetchExercises = async (muscleGroup: MuscleGroup) => {
-    if (exercises[muscleGroup.id]) return;
+const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises: WgerExercise[]) => void) => {
+    const cachedExercises = exercises[muscleGroup.id];
+    if (cachedExercises) {
+      if (onComplete) onComplete(cachedExercises);
+      return;
+    }
 
     setLoadingExercises(prev => ({ ...prev, [muscleGroup.id]: true }));
 
@@ -115,15 +120,89 @@ export default function EntrenamientoPage() {
       const data = await response.json();
 
       if (data.success) {
+        const fetchedData = data.data as WgerExercise[];
         setExercises(prev => ({
           ...prev,
-          [muscleGroup.id]: data.data
+          [muscleGroup.id]: fetchedData
         }));
+        if (onComplete) onComplete(fetchedData);
       }
     } catch (err) {
       console.error("Error fetching exercises:", err);
+      if (onComplete) onComplete([]);
     } finally {
       setLoadingExercises(prev => ({ ...prev, [muscleGroup.id]: false }));
+    }
+  };
+
+  const fetchRecentExercises = async (muscleGroupId: string, userId: string, muscleExercises: WgerExercise[]) => {
+    if (!supabase) return;
+
+    if (recentExercises[muscleGroupId]?.length > 0) return;
+
+    try {
+      const { data: workouts, error: workoutsError } = await supabase
+        .from("workouts")
+        .select("id")
+        .eq("user_id", userId);
+
+      if (workoutsError) throw workoutsError;
+
+      if (!workouts || workouts.length === 0) {
+        console.log("No workouts found for user");
+        return;
+      }
+
+      const workoutIds = workouts.map((w: { id: string }) => w.id);
+
+      const { data, error } = await supabase
+        .from("workout_sets")
+        .select("exercise_id, exercise_name, completed_at")
+        .in("workout_id", workoutIds)
+        .limit(500);
+
+      if (error) throw error;
+
+      console.log("Workout sets fetched:", data?.length);
+
+      if (!data || data.length === 0) {
+        console.log("No workout sets found");
+        return;
+      }
+
+      const exerciseCounts: Record<string, { count: number; lastUsed: string; name: string }> = {};
+      data?.forEach((set: { exercise_id: string; exercise_name: string; completed_at?: string }) => {
+        if (!exerciseCounts[set.exercise_id]) {
+          exerciseCounts[set.exercise_id] = { count: 0, lastUsed: "", name: set.exercise_name };
+        }
+        exerciseCounts[set.exercise_id].count += 1;
+        const currentLastUsed = exerciseCounts[set.exercise_id].lastUsed;
+        const completedAt = set.completed_at || "";
+        if (!currentLastUsed || (completedAt && completedAt > currentLastUsed)) {
+          exerciseCounts[set.exercise_id].lastUsed = completedAt;
+        }
+      });
+
+      const sorted = Object.entries(exerciseCounts)
+        .sort((a, b) => {
+          if (b[1].count !== a[1].count) return b[1].count - a[1].count;
+          return new Date(b[1].lastUsed).getTime() - new Date(a[1].lastUsed).getTime();
+        })
+        .slice(0, 5)
+        .map(([id, info]) => ({ id, name: info.name }));
+
+      console.log("Top exercises:", sorted);
+      console.log("Muscle exercises passed:", muscleExercises.length);
+
+      const recentMatches = sorted
+        .map(s => muscleExercises.find(e => e.id === s.id || e.uuid === s.id))
+        .filter(Boolean) as WgerExercise[];
+
+      console.log("Matched recent exercises:", recentMatches.length);
+
+      setRecentExercises(prev => ({ ...prev, [muscleGroupId]: recentMatches }));
+    } catch (err) {
+      console.error("Error fetching recent exercises:", err);
     }
   };
 
@@ -134,15 +213,21 @@ export default function EntrenamientoPage() {
 
     setSelectedMuscles(newSelected);
 
-    if (!selectedMuscles.includes(id) && !exercises[id]) {
-      const muscle = muscleGroups.find(m => m.id === id);
-      if (muscle) {
-        await fetchExercises(muscle);
-      }
-    }
-
     if (!selectedMuscles.includes(id)) {
       setSelectedEquipment(prev => ({ ...prev, [id]: "all" }));
+
+      const muscle = muscleGroups.find(m => m.id === id);
+      if (muscle) {
+        await fetchExercises(muscle, (fetchedExercises) => {
+          if (supabase && fetchedExercises) {
+            supabase.auth.getSession().then(({ data }: { data: { session: { user: { id: string } } | null } }) => {
+              if (data.session?.user) {
+                fetchRecentExercises(id, data.session.user.id, fetchedExercises);
+              }
+            });
+          }
+        });
+      }
     }
   };
 
@@ -160,6 +245,7 @@ export default function EntrenamientoPage() {
     const muscleExercises = exercises[muscleId] || [];
     const equipment = selectedEquipment[muscleId] || "all";
     const search = searchQueries[muscleId] || "";
+    const recent = recentExercises[muscleId] || [];
 
     let filtered = equipment === "all"
       ? muscleExercises
@@ -172,7 +258,18 @@ export default function EntrenamientoPage() {
       );
     }
 
-    return [...filtered].sort((a, b) => {
+    const recentIds = new Set(recent.map(r => r.id));
+    const filteredWithoutRecent = filtered.filter(ex => !recentIds.has(ex.id));
+
+    const sortedRecent = recent.filter(ex => {
+      return filtered.some(f => f.id === ex.id);
+    });
+
+    return [...sortedRecent, ...filteredWithoutRecent].sort((a, b) => {
+      const aIsRecent = recentIds.has(a.id);
+      const bIsRecent = recentIds.has(b.id);
+      if (aIsRecent && !bIsRecent) return -1;
+      if (!aIsRecent && bIsRecent) return 1;
       if (a.imageUrl && !b.imageUrl) return -1;
       if (!a.imageUrl && b.imageUrl) return 1;
       return 0;
@@ -298,7 +395,7 @@ export default function EntrenamientoPage() {
       setSaving(false);
     }
   };
-
+  console.log("Recent: ", recentExercises);
   if (step === "summary") {
     return (
       <div className="min-h-screen bg-[#0a0a0a] text-white">
@@ -512,6 +609,7 @@ export default function EntrenamientoPage() {
                   const selected = selectedExercises[muscleId] || [];
                   const isLoading = loadingExercises[muscleId];
                   const currentEquipment = selectedEquipment[muscleId] || "all";
+                  const recent = recentExercises[muscleId] || [];
 
                   return (
                     <div key={muscleId} className="bg-[#18181b] rounded-2xl p-6 border border-[#3f3f46] flex flex-col max-h-[calc(100vh-280px)]">
@@ -581,15 +679,53 @@ export default function EntrenamientoPage() {
                               <span className="ml-2 text-[#71717a]">Cargando ejercicios...</span>
                             </div>
                           ) : filteredExercises.length > 0 ? (
-                            filteredExercises.map((exercise) => (
-                              <ExerciseCard
-                                key={exercise.id}
-                                exercise={exercise}
-                                selected={isExerciseSelected(muscleId, exercise.id)}
-                                onSelect={() => toggleExercise(muscleId, exercise.id)}
-                                onImageClick={handleImageClick}
-                              />
-                            ))
+                            recent.length > 0 && !searchQueries[muscleId] ? (
+                              <>
+                                <div className="sticky -top-2 z-10 pt-2">
+                                  <div className="text-xs text-[#eab308] font-bold mb-2 uppercase tracking-wider bg-[#18181b] py-2">
+                                    Recientes
+                                  </div>
+                                </div>
+                                {filteredExercises.slice(0, recent.length).map((exercise) => (
+                                  <ExerciseCard
+                                    key={`recent-${exercise.id}`}
+                                    exercise={exercise}
+                                    selected={isExerciseSelected(muscleId, exercise.id)}
+                                    onSelect={() => toggleExercise(muscleId, exercise.id)}
+                                    onImageClick={handleImageClick}
+                                  />
+                                ))}
+                                <div className="sticky top-0 z-10 pt-2">
+                                  <div className="text-xs text-[#71717a] font-medium mb-2 uppercase tracking-wider bg-[#18181b] py-2">
+                                    Todos los ejercicios
+                                  </div>
+                                </div>
+                                {filteredExercises.slice(recent.length).map((exercise) => (
+                                  <ExerciseCard
+                                    key={`normal-${exercise.id}`}
+                                    exercise={exercise}
+                                    selected={isExerciseSelected(muscleId, exercise.id)}
+                                    onSelect={() => toggleExercise(muscleId, exercise.id)}
+                                    onImageClick={handleImageClick}
+                                  />
+                                ))}
+                              </>
+                            ) : (
+                              <>
+                                <div className="text-xs text-[#71717a] font-medium mb-2 uppercase tracking-wider">
+                                  {searchQueries[muscleId] ? "Resultados" : "Ejercicios"}
+                                </div>
+                                {filteredExercises.map((exercise) => (
+                                  <ExerciseCard
+                                    key={exercise.id}
+                                    exercise={exercise}
+                                    selected={isExerciseSelected(muscleId, exercise.id)}
+                                    onSelect={() => toggleExercise(muscleId, exercise.id)}
+                                    onImageClick={handleImageClick}
+                                  />
+                                ))}
+                              </>
+                            )
                           ) : (
                             <div className="text-center py-8 text-[#71717a]">
                               {searchQueries[muscleId]

@@ -671,13 +671,13 @@ export function cleanDescription(text: string): string {
 
 export function getMainImage(exerciseInfo: WgerExerciseInfo): string | null {
   const mainImage = exerciseInfo.images.find(img => img.is_main);
-  if (mainImage) {
-    return `https://wger.de${mainImage.image}`;
-  }
-  if (exerciseInfo.images.length > 0) {
-    return `https://wger.de${exerciseInfo.images[0].image}`;
-  }
-  return null;
+  const imageUrl = mainImage?.image || exerciseInfo.images[0]?.image;
+  
+  if (!imageUrl) return null;
+  
+  if (imageUrl.startsWith("http")) return imageUrl;
+  
+  return `https://wger.de${imageUrl}`;
 }
 
 export function transformWgerExerciseInfo(exerciseInfo: WgerExerciseInfo): Exercise {
@@ -702,7 +702,10 @@ export function transformWgerExerciseInfo(exerciseInfo: WgerExerciseInfo): Exerc
     equipmentIds: exerciseInfo.equipment.map(e => e.id),
     equipmentCategory: classifyEquipmentCategory(exerciseInfo.equipment.map(e => e.id)),
     imageUrl: mainImage,
-    images: exerciseInfo.images.map(img => `https://wger.de${img.image}`),
+    images: exerciseInfo.images.map(img => {
+      if (img.image.startsWith("http")) return img.image;
+      return `https://wger.de${img.image}`;
+    }),
     variationGroup: exerciseInfo.variation_group,
   };
 }
