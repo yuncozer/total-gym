@@ -1,25 +1,12 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-
-function getCookieValue(cookieString: string, name: string): string | null {
-  const cookies = cookieString.split(';');
-  for (const cookie of cookies) {
-    const [key, value] = cookie.trim().split('=');
-    if (key === name) {
-      return value;
-    }
-  }
-  return null;
-}
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("redirect") || "/entrenamiento";
-  const cookieHeader = request.headers.get("cookie") || "";
-  const codeVerifier = getCookieValue(cookieHeader, "code_verifier");
-  
-  console.log("Callback received - code:", !!code, "codeVerifier:", !!codeVerifier);
   
   if (!code) {
     return NextResponse.redirect(new URL("/login?error=no_code", requestUrl.origin));
@@ -28,22 +15,26 @@ export async function GET(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
   
-  const supabase = createClient(supabaseUrl, supabaseKey);
+  const cookieStore = await cookies();
   
-  let data;
-  let error;
-  
-  if (codeVerifier) {
-    console.log("Exchanging code with PKCE verifier");
-    const result = await supabase.auth.exchangeCodeForSession(code);
-    data = result.data;
-    error = result.error;
-  } else {
-    console.log("No code verifier found, trying without it");
-    const result = await supabase.auth.exchangeCodeForSession(code);
-    data = result.data;
-    error = result.error;
-  }
+  const supabase = createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll(cookiesToSet: { name: string; value: string; options: CookieOptions }[]) {
+        try {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            cookieStore.set(name, value, options);
+          });
+        } catch (error) {
+          console.error("Error setting cookies:", error);
+        }
+      },
+    },
+  });
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(code);
   
   if (error || !data.user) {
     console.error("Auth callback error:", error);
@@ -75,9 +66,5 @@ export async function GET(request: NextRequest) {
   }
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin;
-  
-  const response = NextResponse.redirect(new URL(next, baseUrl));
-  response.cookies.delete("code_verifier");
-  
-  return response;
+  return NextResponse.redirect(new URL(next, baseUrl));
 }

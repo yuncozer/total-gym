@@ -34,43 +34,29 @@ export function subscribeToAuthChanges(callback: (session: Session | null) => vo
   return () => subscription.unsubscribe();
 }
 
-function generateCodeVerifier(): string {
-  const array = new Uint8Array(32);
-  crypto.getRandomValues(array);
-  return btoa(String.fromCharCode.apply(null, Array.from(array)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-}
-
-async function generateCodeChallenge(verifier: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return btoa(String.fromCharCode.apply(null, Array.from(new Uint8Array(digest))))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=/g, '');
-}
-
 export async function signInWithGoogle(redirectTo = "/entrenamiento"): Promise<{ error: string | null }> {
   const supabase = getSupabaseClient();
   
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-  const codeVerifier = generateCodeVerifier();
-  const codeChallenge = await generateCodeChallenge(codeVerifier);
+  const isLocalhost = typeof window !== "undefined" && 
+                      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
   
-  document.cookie = `code_verifier=${codeVerifier}; path=/auth/callback; max-age=600; SameSite=Lax`;
+  console.log("=== signInWithGoogle DEBUG ===");
+  console.log("hostname:", typeof window !== "undefined" ? window.location.hostname : "no window");
+  console.log("isLocalhost:", isLocalhost);
+  console.log("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
+  
+  const baseUrl = isLocalhost 
+    ? window.location.origin 
+    : (process.env.NEXT_PUBLIC_APP_URL || window.location.origin);
+    
+  console.log("baseUrl:", baseUrl);
+  console.log("redirectTo:", `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`);
+  console.log("================================");
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
-      queryParams: {
-        prompt: "select_account",
-        code_challenge: codeChallenge,
-        code_challenge_method: "S256",
-      },
     },
   });
   
