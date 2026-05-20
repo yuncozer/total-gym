@@ -4,6 +4,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import type { ExerciseInWorkout, WorkoutSet, TimerState } from "./types";
 import * as progressFn from "./progress";
 import * as service from "./service";
+import { createClient as createSupabaseClient } from "@/lib/supabase/client";
+import { getSession } from "@/lib/auth";
 
 interface WorkoutContextValue {
   loading: boolean;
@@ -33,6 +35,8 @@ interface WorkoutContextValue {
   getSetsCompletados: (exercise: ExerciseInWorkout) => number;
   getTotalSets: (exercise: ExerciseInWorkout) => number;
   isExerciseCompleted: (exercise: ExerciseInWorkout) => boolean;
+  
+  getLastWeight: (exerciseId: string) => number;
   
   playNotificationSound: () => void;
 }
@@ -70,6 +74,8 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     timestampInicio: undefined
   });
 
+  const [lastWeightByExercise, setLastWeightByExercise] = useState<Record<string, number>>({});
+
   const TIMER_STORAGE_KEY = `totalgym_timer_${workoutId}`;
   const TIMER_MAX_HOURS = 3;
 
@@ -93,6 +99,46 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(TIMER_STORAGE_KEY);
   };
+
+  const fetchLastWeight = useCallback(async (exerciseId: string, userId: string): Promise<number> => {
+    try {
+      const supabase = createSupabaseClient();
+      
+      const { data: workouts } = await supabase
+        .from("workouts")
+        .select("id")
+        .eq("user_id", userId);
+
+      if (!workouts || workouts.length === 0) return 0;
+
+      const workoutIds = workouts.map((w: { id: string }) => w.id);
+
+      const { data } = await supabase
+        .from("workout_sets")
+        .select("weight_kg, completed_at")
+        .in("workout_id", workoutIds)
+        .eq("exercise_id", exerciseId)
+        .eq("is_completed", true)
+        .gt("weight_kg", 0)
+        .order("completed_at", { ascending: false })
+        .limit(10);
+
+      if (!data || data.length === 0) return 0;
+
+      const highestWeight = data.reduce((max: number, set: { weight_kg: number }) => {
+        return Math.max(max, set.weight_kg || 0);
+      }, 0);
+
+      return highestWeight;
+    } catch (err) {
+      console.error("Error fetching last weight:", err);
+      return 0;
+    }
+  }, []);
+
+  const getLastWeight = useCallback((exerciseId: string): number => {
+    return lastWeightByExercise[exerciseId] || 0;
+  }, [lastWeightByExercise]);
 
   const restoreTimerFromStorage = useCallback(() => {
     const stored = getTimerFromStorage();
@@ -198,7 +244,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     }
   }, [workoutId, exercises]);
 
-  const selectExercise = useCallback((exercise: ExerciseInWorkout) => {
+  const selectExercise = useCallback(async (exercise: ExerciseInWorkout) => {
     setIsExerciseComplete(false);
     setTimer({ segundos: 0, activo: false, descansando: false });
     clearTimerStorage();
@@ -209,7 +255,22 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     
     const set = exercise.sets[idx];
     setShowExtraSetButton(set && set.reps > 0 && set.weight_kg > 0 && !set.is_completed);
-  }, []);
+    
+    try {
+      const session = await getSession();
+      if (session?.user) {
+        const lastWeight = await fetchLastWeight(exercise.exerciseId, session.user.id);
+        if (lastWeight > 0) {
+          setLastWeightByExercise(prev => ({
+            ...prev,
+            [exercise.exerciseId]: lastWeight
+          }));
+        }
+      }
+    } catch (err) {
+      console.error("Error loading last weight:", err);
+    }
+  }, [fetchLastWeight]);
 
   const deselectExercise = useCallback(() => {
     const prog = progressFn.getProgress(exercises);
@@ -288,8 +349,17 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
       const now = Date.now();
       setTimer({ segundos: 0, activo: true, descansando: true, timestampInicio: now });
       saveTimerToStorage(now, true, selectedExercise?.exerciseId || '');
+      
+      const completedWeight = selectedExercise.sets[currentSetIndex]?.weight_kg || 0;
+      const currentLastWeight = lastWeightByExercise[selectedExercise.exerciseId] || 0;
+      if (completedWeight > currentLastWeight) {
+        setLastWeightByExercise(prev => ({
+          ...prev,
+          [selectedExercise.exerciseId]: completedWeight
+        }));
+      }
     }
-  }, [selectedExercise, currentSetIndex, isLastSet, exercises, saveSets, workoutId]);
+  }, [selectedExercise, currentSetIndex, isLastSet, exercises, saveSets, workoutId, lastWeightByExercise]);
 
   const addExtraSet = useCallback(async () => {
     if (!selectedExercise) return;
@@ -383,6 +453,8 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     getSetsCompletados: progressFn.getSetsCompletados,
     getTotalSets: progressFn.getTotalSets,
     isExerciseCompleted: progressFn.isExerciseComplete,
+    
+    getLastWeight,
     
     playNotificationSound
   };

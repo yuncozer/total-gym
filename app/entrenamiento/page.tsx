@@ -58,7 +58,7 @@ export default function EntrenamientoPage() {
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [registerModalKey, setRegisterModalKey] = useState(0);
-  const [recentExercises, setRecentExercises] = useState<Record<string, WgerExercise[]>>({});
+  const [recentExercises, setRecentExercises] = useState<Record<string, (WgerExercise & { lastWeight: number })[]>>({});
 
   const openRegisterModal = () => {
     setShowRegisterModal(true);
@@ -157,8 +157,9 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
 
       const { data, error } = await supabase
         .from("workout_sets")
-        .select("exercise_id, exercise_name, completed_at")
+        .select("exercise_id, exercise_name, completed_at, weight_kg")
         .in("workout_id", workoutIds)
+        .order("completed_at", { ascending: false })
         .limit(500);
 
       if (error) throw error;
@@ -170,16 +171,17 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
         return;
       }
 
-      const exerciseCounts: Record<string, { count: number; lastUsed: string; name: string }> = {};
-      data?.forEach((set: { exercise_id: string; exercise_name: string; completed_at?: string }) => {
+      const exerciseCounts: Record<string, { count: number; lastUsed: string; name: string; lastWeight: number }> = {};
+      data?.forEach((set: { exercise_id: string; exercise_name: string; completed_at?: string; weight_kg?: number }) => {
         if (!exerciseCounts[set.exercise_id]) {
-          exerciseCounts[set.exercise_id] = { count: 0, lastUsed: "", name: set.exercise_name };
+          exerciseCounts[set.exercise_id] = { count: 0, lastUsed: "", name: set.exercise_name, lastWeight: 0 };
         }
         exerciseCounts[set.exercise_id].count += 1;
         const currentLastUsed = exerciseCounts[set.exercise_id].lastUsed;
         const completedAt = set.completed_at || "";
         if (!currentLastUsed || (completedAt && completedAt > currentLastUsed)) {
           exerciseCounts[set.exercise_id].lastUsed = completedAt;
+          exerciseCounts[set.exercise_id].lastWeight = set.weight_kg || 0;
         }
       });
 
@@ -189,14 +191,20 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
           return new Date(b[1].lastUsed).getTime() - new Date(a[1].lastUsed).getTime();
         })
         .slice(0, 5)
-        .map(([id, info]) => ({ id, name: info.name }));
+        .map(([id, info]) => ({ id, name: info.name, lastWeight: info.lastWeight }));
 
       console.log("Top exercises:", sorted);
       console.log("Muscle exercises passed:", muscleExercises.length);
 
       const recentMatches = sorted
-        .map(s => muscleExercises.find(e => e.id === s.id || e.uuid === s.id))
-        .filter(Boolean) as WgerExercise[];
+        .map(s => {
+          const exercise = muscleExercises.find(e => e.id === s.id || e.uuid === s.id);
+          if (exercise) {
+            return { ...exercise, lastWeight: s.lastWeight };
+          }
+          return null;
+        })
+        .filter(Boolean) as (WgerExercise & { lastWeight: number })[];
 
       console.log("Matched recent exercises:", recentMatches.length);
 
@@ -686,15 +694,19 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
                                     Recientes
                                   </div>
                                 </div>
-                                {filteredExercises.slice(0, recent.length).map((exercise) => (
-                                  <ExerciseCard
-                                    key={`recent-${exercise.id}`}
-                                    exercise={exercise}
-                                    selected={isExerciseSelected(muscleId, exercise.id)}
-                                    onSelect={() => toggleExercise(muscleId, exercise.id)}
-                                    onImageClick={handleImageClick}
-                                  />
-                                ))}
+                                {filteredExercises.slice(0, recent.length).map((exercise) => {
+                                  const recentExercise = recent.find(r => r.id === exercise.id);
+                                  return (
+                                    <ExerciseCard
+                                      key={`recent-${exercise.id}`}
+                                      exercise={exercise}
+                                      selected={isExerciseSelected(muscleId, exercise.id)}
+                                      onSelect={() => toggleExercise(muscleId, exercise.id)}
+                                      onImageClick={handleImageClick}
+                                      lastWeight={recentExercise?.lastWeight}
+                                    />
+                                  );
+                                })}
                                 <div className="sticky top-0 z-10 pt-2">
                                   <div className="text-xs text-[#71717a] font-medium mb-2 uppercase tracking-wider bg-[#18181b] py-2">
                                     Todos los ejercicios

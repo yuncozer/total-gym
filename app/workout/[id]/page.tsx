@@ -77,7 +77,8 @@ function WorkoutContent() {
     setAsLastSet,
     getSetsCompletados,
     getTotalSets,
-    isExerciseCompleted
+    isExerciseCompleted,
+    getLastWeight
   } = workout;
 
   const [phraseSeed, setPhraseSeed] = useState(0);
@@ -283,7 +284,11 @@ const handleCompleteSet = () => {
                     value={set.weight_kg || ""}
                     onChange={(e) => updateSet('weight_kg', parseFloat(e.target.value) || 0)}
                     disabled={set.is_completed}
-                    className="w-full px-4 py-4 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white text-center text-2xl"
+                    placeholder={(() => {
+                      const lastW = getLastWeight(selectedExercise.exerciseId);
+                      return lastW > 0 ? `Último: ${lastW} kg` : undefined;
+                    })()}
+                    className="w-full px-4 py-4 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white text-center text-2xl placeholder:text-[#52525b]"
                   />
                 </div>
               </div>

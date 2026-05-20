@@ -27,6 +27,7 @@ export interface ExerciseCardProps {
   selected: boolean;
   onSelect: () => void;
   onImageClick: (imageUrl: string) => void;
+  lastWeight?: number;
 }
 
 function translateEquipment(equipment: string): string {
@@ -56,7 +57,7 @@ function translateEquipment(equipment: string): string {
   return result;
 }
 
-export function ExerciseCard({ exercise, selected, onSelect, onImageClick }: ExerciseCardProps) {
+export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastWeight }: ExerciseCardProps) {
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (exercise.imageUrl) {
@@ -92,9 +93,16 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick }: Exe
           </div>
           
           <div className="flex-1 min-w-0">
-            <h4 className="font-bold text-base leading-tight">
-              {exercise.name}
-            </h4>
+            <div className="flex items-center gap-2">
+              <h4 className="font-bold text-base leading-tight">
+                {exercise.name}
+              </h4>
+              {lastWeight && lastWeight > 0 && (
+                <span className="text-xs text-[#22c55e] bg-[#22c55e]/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                  Último: {lastWeight} kg
+                </span>
+              )}
+            </div>
             
             {exercise.muscles.length > 0 && (
               <p className="text-sm text-[#eab308]/80 mt-1 truncate">
