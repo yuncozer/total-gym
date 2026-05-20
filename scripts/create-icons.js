@@ -70,6 +70,35 @@ async function main() {
   await createIcon(192, 'icon-192.png');
   await createIcon(512, 'icon-512.png');
   await createOGImage();
+  
+  // Create apple-touch-icon (180x180)
+  const appleSvg = `
+    <svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
+      <rect width="180" height="180" rx="40" fill="#0a0a0a"/>
+      <rect x="18" y="72" width="22" height="36" rx="5" fill="#eab308"/>
+      <rect x="140" y="72" width="22" height="36" rx="5" fill="#eab308"/>
+      <rect x="40" y="81" width="100" height="18" rx="5" fill="#eab308"/>
+      <rect x="54" y="63" width="72" height="18" rx="5" fill="#eab308"/>
+      <rect x="54" y="99" width="72" height="18" rx="5" fill="#eab308"/>
+    </svg>
+  `;
+  await sharp(Buffer.from(appleSvg)).resize(180, 180).png().toFile(path.join(publicDir, 'apple-touch-icon.png'));
+  console.log('Created apple-touch-icon.png');
+  
+  // Create favicon-32x32
+  const faviconSvg = `
+    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+      <rect width="32" height="32" rx="5" fill="#0a0a0a"/>
+      <rect x="4" y="13" width="4" height="6" rx="1" fill="#eab308"/>
+      <rect x="24" y="13" width="4" height="6" rx="1" fill="#eab308"/>
+      <rect x="8" y="14.5" width="16" height="3" rx="1" fill="#eab308"/>
+      <rect x="10" y="11.5" width="12" height="3" rx="1" fill="#eab308"/>
+      <rect x="10" y="17.5" width="12" height="3" rx="1" fill="#eab308"/>
+    </svg>
+  `;
+  await sharp(Buffer.from(faviconSvg)).resize(32, 32).png().toFile(path.join(publicDir, 'favicon-32.png'));
+  console.log('Created favicon-32.png');
+  
   console.log('All PWA and OG images created successfully!');
 }
 

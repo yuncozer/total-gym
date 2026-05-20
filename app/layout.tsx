@@ -15,12 +15,37 @@ const rajdhani = Rajdhani({
 });
 
 export const metadata: Metadata = {
-  title: "TOTAL GYM - Entrena como un campeón",
-  description: "Tu centro de entrenamiento diario. Crea rutinas, registra series y sigue tu progreso.",
+  title: {
+    default: "TOTAL GYM - Entrena como un campeón",
+    template: "%s | TOTAL GYM",
+  },
+  description: "Tu centro de entrenamiento diario. Crea rutinas de gym, registra series y pesos, sigue tu progreso y supera tus récords.",
+  keywords: ["gimnasio", "entrenamiento", "fitness", "rutina gym", "ejercicios", "series", "pesas", "entrenar", "fuerza", "músculos", "health", "workout"],
+  authors: [{ name: "TOTAL GYM", url: "https://totalgym.life" }],
+  creator: "TOTAL GYM",
+  publisher: "TOTAL GYM",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
   manifest: "/manifest.json",
   icons: {
-    icon: "/icon-192.png",
-    apple: "/icon-192.png",
+    icon: [
+      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
+    shortcut: "/favicon-32.png",
   },
   appleWebApp: {
     capable: true,
@@ -28,10 +53,12 @@ export const metadata: Metadata = {
     title: "TotalGym",
   },
   openGraph: {
-    title: "TOTAL GYM - Entrena como un campeón",
-    description: "Tu centro de entrenamiento diario. Crea rutinas, registra series y sigue tu progreso.",
+    type: "website",
+    locale: "es_ES",
     url: "https://totalgym.life",
     siteName: "TOTAL GYM",
+    title: "TOTAL GYM - Entrena como un campeón",
+    description: "Tu centro de entrenamiento diario. Crea rutinas de gym, registra series y pesos, sigue tu progreso y supera tus récords.",
     images: [
       {
         url: "https://totalgym.life/og-image.png",
@@ -40,13 +67,11 @@ export const metadata: Metadata = {
         alt: "TOTAL GYM - Tu app de entrenamiento",
       },
     ],
-    type: "website",
-    locale: "es_ES",
   },
   twitter: {
     card: "summary_large_image",
     title: "TOTAL GYM",
-    description: "Tu centro de entrenamiento diario. Crea rutinas, registra series y sigue tu progreso.",
+    description: "Tu centro de entrenamiento diario. Crea rutinas de gym, registra series y pesos, sigue tu progreso.",
     images: ["https://totalgym.life/og-image.png"],
   },
 };
