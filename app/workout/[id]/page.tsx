@@ -15,6 +15,7 @@ import {
   History
 } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
+import { MotivationalModal } from "@/app/components/MotivationalModal";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
 import { getDailyQuote } from "@/lib/data/quote";
 
@@ -82,6 +83,10 @@ function WorkoutContent() {
   const [phraseSeed, setPhraseSeed] = useState(0);
   const lastCompletedRef = useRef<string>("");
   const extraSetIndexRef = useRef<number | null>(null);
+  const [showMotivationalModal, setShowMotivationalModal] = useState(false);
+  const [modalPhrase, setModalPhrase] = useState("");
+  const [modalSubPhrase, setModalSubPhrase] = useState("");
+  const [pendingAction, setPendingAction] = useState<"completeSet" | "addExtraSet" | null>(null);
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -93,6 +98,37 @@ function WorkoutContent() {
     }
   }, [selectedExercise, currentSetIndex]);
 
+const handleCompleteSet = () => {
+    if (!selectedExercise || !canCompleteSet) return;
+    
+    setPendingAction("completeSet");
+    setModalPhrase(getRandomPhrase(COMPLETED_PHRASES));
+    setModalSubPhrase(getRandomPhrase(MOTIVATIONAL_PHRASES));
+    setShowMotivationalModal(true);
+  };
+
+  const handleAddExtraSet = () => {
+    if (!selectedExercise) return;
+    setPendingAction("addExtraSet");
+    setModalPhrase(getRandomPhrase(COMPLETED_PHRASES));
+    setModalSubPhrase(getRandomPhrase(MOTIVATIONAL_PHRASES));
+    setShowMotivationalModal(true);
+  };
+
+  const handleMotivationalComplete = () => {
+    setShowMotivationalModal(false);
+    
+    if (pendingAction === "addExtraSet" && selectedExercise) {
+      const originalSetsCount = selectedExercise.sets.length;
+      addExtraSet();
+      extraSetIndexRef.current = originalSetsCount;
+    } else if (pendingAction === "completeSet") {
+      completeSet();
+    }
+    
+    setPendingAction(null);
+  };
+
   const handleNextSet = () => {
     setTimer({ segundos: 0, activo: false, descansando: false });
     if (extraSetIndexRef.current !== null) {
@@ -101,13 +137,6 @@ function WorkoutContent() {
     } else {
       setCurrentSetIndex(prev => prev + 1);
     }
-  };
-
-  const handleAddExtraSet = async () => {
-    if (!selectedExercise) return;
-    const originalSetsCount = selectedExercise.sets.length;
-    await addExtraSet();
-    extraSetIndexRef.current = originalSetsCount;
   };
 
   const getEquipmentLabel = (equipment: string) => {
@@ -199,10 +228,10 @@ function WorkoutContent() {
                     onClick={() => goToSet(idx)}
                     disabled={idx > currentSetIndex && !selectedExercise.sets[idx].is_completed}
                     className={`w-10 h-10 rounded-full text-sm font-bold cursor-pointer ${idx === currentSetIndex
-                        ? "bg-[#eab308] text-black"
-                        : selectedExercise.sets[idx].is_completed
-                          ? "bg-[#22c55e] text-black"
-                          : "bg-[#27272a] text-[#71717a]"
+                      ? "bg-[#eab308] text-black"
+                      : selectedExercise.sets[idx].is_completed
+                        ? "bg-[#22c55e] text-black"
+                        : "bg-[#27272a] text-[#71717a]"
                       }`}
                   >
                     {idx + 1}
@@ -288,7 +317,7 @@ function WorkoutContent() {
 
               {!set.is_completed && (
                 <button
-                  onClick={completeSet}
+                  onClick={handleCompleteSet}
                   disabled={saving || !canCompleteSet}
                   className="flex items-center justify-center gap-3 w-full py-5 bg-[#22c55e] hover:bg-[#16a34a] disabled:bg-[#3f3f46] disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl mt-4"
                 >
@@ -349,6 +378,13 @@ function WorkoutContent() {
             </div>
           </div>
         </main>
+        <MotivationalModal
+          show={showMotivationalModal}
+          phrase={modalPhrase}
+          subPhrase={modalSubPhrase}
+          onComplete={handleMotivationalComplete}
+          duration={2500}
+        />
       </div>
     );
   }
@@ -388,8 +424,8 @@ function WorkoutContent() {
                   type="button"
                   onClick={() => selectExercise(exercise)}
                   className={`w-full p-5 rounded-xl border-2 text-left cursor-pointer ${isComplete
-                      ? "bg-[#22c55e]/10 border-[#22c55e]/30"
-                      : "bg-[#18181b] border-[#3f3f46] hover:border-[#eab308]"
+                    ? "bg-[#22c55e]/10 border-[#22c55e]/30"
+                    : "bg-[#18181b] border-[#3f3f46] hover:border-[#eab308]"
                     }`}
                 >
                   <div className="flex items-center justify-between">
