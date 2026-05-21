@@ -111,13 +111,16 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
         });
       });
 
-      const TOP_BAR_HEIGHT = Math.round(height * 0.1);
-      ctx.fillStyle = "rgba(0, 0, 0, 0.6)";
+      const TOP_BAR_HEIGHT = Math.round(height * 0.3);
+      const headerGradient = ctx.createLinearGradient(0, 0, 0, TOP_BAR_HEIGHT);
+      headerGradient.addColorStop(0, "rgba(0, 0, 0, 0.85)");
+      headerGradient.addColorStop(1, "rgba(0, 0, 0, 0)");
+      ctx.fillStyle = headerGradient;
       ctx.fillRect(0, 0, width, TOP_BAR_HEIGHT);
 
       const brandSize = Math.max(Math.round(width * 0.04), 18);
       const brandX = Math.round(width * 0.05);
-      const topY = Math.round(TOP_BAR_HEIGHT * 0.22);
+      const topY = Math.round(TOP_BAR_HEIGHT * 0.12);
       ctx.font = `700 ${brandSize}px Oswald, system-ui, sans-serif`;
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
@@ -131,8 +134,8 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       ctx.fillStyle = "#ffffff";
       const lifeSize = Math.round(brandSize * 0.55);
       ctx.font = `700 ${lifeSize}px Oswald, system-ui, sans-serif`;
-      ctx.textBaseline = "bottom";
-      ctx.fillText(".life", gymX + gymWidth + Math.round(brandSize * 0.12), topY + Math.round(brandSize * 1.0));
+      ctx.textBaseline = "top";
+      ctx.fillText(".life", gymX + gymWidth + Math.round(brandSize * 0.12), topY + Math.round(brandSize * 0.35));
 
       if (workoutName) {
         const nameSize = Math.max(Math.round(width * 0.025), 11);
