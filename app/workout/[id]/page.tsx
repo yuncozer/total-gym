@@ -94,6 +94,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [deleteConfirmExercise, setDeleteConfirmExercise] = useState<ExerciseInWorkout | null>(null);
   const [isDeletingWorkout, setIsDeletingWorkout] = useState(false);
   const [showPhotoOverlay, setShowPhotoOverlay] = useState(false);
+  const [workoutName, setWorkoutName] = useState("");
   const [showMotivationalModal, setShowMotivationalModal] = useState(false);
   const [modalPhrase, setModalPhrase] = useState("");
   const [modalSubPhrase, setModalSubPhrase] = useState("");
@@ -194,7 +195,17 @@ const handleCompleteSet = () => {
             <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
               ENTRENAMIENTO <span className="text-[#22c55e]">COMPLETADO</span>
             </h1>
-            <p className="text-[#a1a1aa] mb-8">¡Felicitaciones! Has terminado tu rutina de hoy.</p>
+            <p className="text-[#a1a1aa] mb-6">¡Felicitaciones! Has terminado tu rutina de hoy.</p>
+            <div className="mb-6">
+              <input
+                value={workoutName}
+                onChange={(e) => setWorkoutName(e.target.value.slice(0, 40))}
+                placeholder="Ponle nombre a tu entrenamiento"
+                maxLength={40}
+                className="w-full px-4 py-3 bg-[#18181b] border border-[#3f3f46] rounded-xl text-white text-center text-lg placeholder:text-[#52525b] focus:outline-none focus:border-[#eab308] transition-colors"
+              />
+              <p className="text-xs text-[#52525b] mt-1 text-right">{workoutName.length}/40</p>
+            </div>
             <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-2xl p-6 mb-8">
               <Flame className="w-8 h-8 text-[#eab308] mx-auto mb-4" />
               <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-rajdhani)" }}>&ldquo;{quote}&rdquo;</p>
@@ -203,13 +214,13 @@ const handleCompleteSet = () => {
               <span className="text-sm text-[#71717a]">Series: </span>
               <span className="text-sm font-bold text-[#22c55e]">{progress.completed}/{progress.total}</span>
             </div>
-            <button onClick={() => setShowPhotoOverlay(true)} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-[#eab308]/10 border-2 border-[#eab308] hover:bg-[#eab308]/20 cursor-pointer font-bold rounded-xl text-[#eab308] transition-all duration-300 animate-pulse">
+            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowPhotoOverlay(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-[#eab308]/10 border-2 border-[#eab308] hover:bg-[#eab308]/20 cursor-pointer font-bold rounded-xl text-[#eab308] transition-all duration-300 animate-pulse">
               <Share2 className="w-5 h-5" /> COMPARTIR
             </button>
-            <button onClick={() => router.push("/historial")} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer font-bold rounded-xl">
+            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/historial"); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer font-bold rounded-xl">
               <History className="w-5 h-5" /> VER HISTORIAL
             </button>
-            <button onClick={() => router.push("/")} className="flex items-center justify-center gap-2 w-full py-4 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl">
+            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/"); }} className="flex items-center justify-center gap-2 w-full py-4 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl">
               <Play className="w-5 h-5" /> IR AL INICIO
             </button>
           </div>
@@ -217,6 +228,7 @@ const handleCompleteSet = () => {
         {showPhotoOverlay && (
           <WorkoutPhotoOverlay
             exercises={exercises}
+            workoutName={workoutName.trim()}
             onClose={() => setShowPhotoOverlay(false)}
           />
         )}

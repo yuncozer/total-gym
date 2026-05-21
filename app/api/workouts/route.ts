@@ -88,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     const { data: workouts, error } = await supabase
       .from("workouts")
-      .select("id, date, started_at, status, completed_at")
+      .select("id, date, name, started_at, status, completed_at")
       .eq("user_id", session.user.id)
       .order("started_at", { ascending: false });
 

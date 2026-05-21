@@ -454,7 +454,10 @@ export default function HistorialPage() {
                           <div key={workout.id} className="w-full rounded-xl bg-[#18181b] border border-[#3f3f46] overflow-hidden hover:border-[#eab308]/50 transition-all duration-200">
                             <button onClick={() => toggleWorkout(workout.id)} className="w-full p-4 text-left cursor-pointer">
                               <div className="flex items-center justify-between mb-2">
-                                <span className="font-bold">{formatDate(workout.date)}</span>
+                                <div>
+                                  <span className="font-bold">{workout.name || formatDate(workout.date)}</span>
+                                  {workout.name && <p className="text-xs text-[#71717a] mt-0.5">{formatDate(workout.date)}</p>}
+                                </div>
                                 {completed ? (
                                   <span className="flex items-center gap-1 text-sm text-[#22c55e]">
                                     <CheckCircle2 className="w-4 h-4" />

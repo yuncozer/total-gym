@@ -26,6 +26,7 @@ export interface WorkoutProgress {
 export interface WorkoutSummary {
   id: string;
   date: string;
+  name?: string | null;
   status: "pendiente" | "completed" | "cancelled";
   started_at: string | null;
   completed_at: string | null;
