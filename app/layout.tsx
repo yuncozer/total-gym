@@ -43,7 +43,7 @@ export const metadata: Metadata = {
       { url: "/favicon-16.png", sizes: "16x16", type: "image/png" },
       { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
       { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/favicon.svg", type: "image/svg+xml" },
+      { url: "/favicon-96.png", sizes: "96x96", type: "image/png" },
     ],
     apple: [
       { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
@@ -100,9 +100,22 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "TOTAL GYM",
+    url: "https://totalgym.life",
+    logo: "https://totalgym.life/icon-512.png",
+    description: "Tu centro de entrenamiento diario. Crea rutinas de gym, registra series y pesos, sigue tu progreso y supera tus récords.",
+  };
+
   return (
     <html lang="es" className="dark">
       <body className={`${oswald.variable} ${rajdhani.variable} min-h-screen antialiased`}>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
         {children}
         <OfflineBanner />
       </body>
