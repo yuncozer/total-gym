@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Oswald, Rajdhani } from "next/font/google";
 import "./globals.css";
+import { OfflineBanner } from "@/app/components/OfflineBanner";
 
 const oswald = Oswald({
   variable: "--font-oswald",
@@ -53,6 +54,16 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: "black-translucent",
     title: "TotalGym",
+    startupImage: [
+      { url: "/splash-2048x2732.png", media: "(device-width: 1024px) and (device-height: 1366px) and (orientation: portrait)" },
+      { url: "/splash-1668x2224.png", media: "(device-width: 834px) and (device-height: 1112px) and (orientation: portrait)" },
+      { url: "/splash-1536x2048.png", media: "(device-width: 768px) and (device-height: 1024px) and (orientation: portrait)" },
+      { url: "/splash-1242x2208.png", media: "(device-width: 414px) and (device-height: 736px) and (orientation: portrait)" },
+      { url: "/splash-750x1334.png", media: "(device-width: 375px) and (device-height: 667px) and (orientation: portrait)" },
+      { url: "/splash-1125x2436.png", media: "(device-width: 375px) and (device-height: 812px) and (orientation: portrait)" },
+      { url: "/splash-1242x2688.png", media: "(device-width: 414px) and (device-height: 896px) and (orientation: portrait)" },
+      "/splash-2048x2732.png",
+    ],
   },
   openGraph: {
     type: "website",
@@ -93,6 +104,7 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className={`${oswald.variable} ${rajdhani.variable} min-h-screen antialiased`}>
         {children}
+        <OfflineBanner />
       </body>
     </html>
   );
