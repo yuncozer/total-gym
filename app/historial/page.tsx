@@ -7,6 +7,7 @@ import { UserHeader } from "@/app/components/UserHeader";
 import { loadWorkoutHistory, type WorkoutSummary, type WorkoutSet, type ExerciseInWorkout } from "@/lib/workout";
 import { useAuth } from "@/lib/useAuth";
 import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
+import { LoadingScreen } from "@/app/components/LoadingScreen";
 
 type DateFilter = "all" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year" | "specific_day";
 
@@ -329,6 +330,10 @@ export default function HistorialPage() {
         <div className="animate-spin w-8 h-8 border-2 border-[#eab308] border-t-transparent rounded-full" />
       </div>
     );
+  }
+
+  if (loading) {
+    return <LoadingScreen />;
   }
 
   const filteredWorkouts = filterWorkoutsByDate(workouts);
