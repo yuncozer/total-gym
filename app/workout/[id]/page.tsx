@@ -22,6 +22,7 @@ import * as service from "@/lib/workout/service";
 import type { ExerciseInWorkout } from "@/lib/workout/types";
 import { ConfirmModal } from "@/app/components/ConfirmModal";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
+import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 import { getDailyQuote } from "@/lib/data/quote";
 
 function WorkoutContent({ workoutId }: { workoutId: string }) {
@@ -92,6 +93,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const extraSetIndexRef = useRef<number | null>(null);
   const [deleteConfirmExercise, setDeleteConfirmExercise] = useState<ExerciseInWorkout | null>(null);
   const [isDeletingWorkout, setIsDeletingWorkout] = useState(false);
+  const [showPhotoOverlay, setShowPhotoOverlay] = useState(false);
   const [showMotivationalModal, setShowMotivationalModal] = useState(false);
   const [modalPhrase, setModalPhrase] = useState("");
   const [modalSubPhrase, setModalSubPhrase] = useState("");
@@ -201,7 +203,7 @@ const handleCompleteSet = () => {
               <span className="text-sm text-[#71717a]">Series: </span>
               <span className="text-sm font-bold text-[#22c55e]">{progress.completed}/{progress.total}</span>
             </div>
-            <button onClick={() => { }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer font-bold rounded-xl">
+            <button onClick={() => setShowPhotoOverlay(true)} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-[#eab308]/10 border-2 border-[#eab308] hover:bg-[#eab308]/20 cursor-pointer font-bold rounded-xl text-[#eab308] transition-all duration-300 animate-pulse">
               <Share2 className="w-5 h-5" /> COMPARTIR
             </button>
             <button onClick={() => router.push("/historial")} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer font-bold rounded-xl">
@@ -212,6 +214,12 @@ const handleCompleteSet = () => {
             </button>
           </div>
         </main>
+        {showPhotoOverlay && (
+          <WorkoutPhotoOverlay
+            exercises={exercises}
+            onClose={() => setShowPhotoOverlay(false)}
+          />
+        )}
       </div>
     );
   }
