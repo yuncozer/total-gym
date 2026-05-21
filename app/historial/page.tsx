@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Target, Loader2, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X, Flame, Calendar } from "lucide-react";
+import { CheckCircle2, Clock, Target, Loader2, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X, Flame, Calendar, Share2 } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { loadWorkoutHistory, type WorkoutSummary, type WorkoutSet, type ExerciseInWorkout } from "@/lib/workout";
 import { useAuth } from "@/lib/useAuth";
+import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 
 type DateFilter = "all" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year" | "specific_day";
 
@@ -168,6 +169,7 @@ export default function HistorialPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
+  const [sharingWorkout, setSharingWorkout] = useState<WorkoutSummary | null>(null);
 
   const DATE_FILTERS: { id: DateFilter; label: string }[] = [
     { id: "all", label: "Todos" },
@@ -355,7 +357,7 @@ export default function HistorialPage() {
             <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
               MI <span className="text-[#eab308]">HISTORIAL</span>
             </h1>
-            <p className="text-[#a1a1aa]">Tus workouts anteriores</p>
+            <p className="text-[#a1a1aa]">Tus entrenamientos registrados</p>
           </div>
 
           {!loading && workouts.length > 0 && weeklyCount > 0 && (
@@ -459,10 +461,22 @@ export default function HistorialPage() {
                                   {workout.name && <p className="text-xs text-[#71717a] mt-0.5">{formatDate(workout.date)}</p>}
                                 </div>
                                 {completed ? (
-                                  <span className="flex items-center gap-1 text-sm text-[#22c55e]">
-                                    <CheckCircle2 className="w-4 h-4" />
-                                    Completado
-                                  </span>
+                                  <div className="flex items-center gap-2">
+                                    <div
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSharingWorkout(workout);
+                                      }}
+                                      className="p-1.5 text-[#71717a] hover:text-[#eab308] transition-colors cursor-pointer"
+                                      title="Compartir entrenamiento"
+                                    >
+                                      <Share2 className="w-4 h-4" />
+                                    </div>
+                                    <span className="flex items-center gap-1 text-sm text-[#22c55e]">
+                                      <CheckCircle2 className="w-4 h-4" />
+                                      Completado
+                                    </span>
+                                  </div>
                                 ) : (
                                   <span className="flex items-center gap-1 text-sm text-[#eab308]">
                                     <Clock className="w-4 h-4" />
@@ -572,6 +586,15 @@ export default function HistorialPage() {
           )}
         </div>
       </main>
+
+      {sharingWorkout && (
+        <WorkoutPhotoOverlay
+          exercises={sharingWorkout.exercises}
+          workoutName={sharingWorkout.name || undefined}
+          completedAt={sharingWorkout.completed_at}
+          onClose={() => setSharingWorkout(null)}
+        />
+      )}
     </div>
   );
 }

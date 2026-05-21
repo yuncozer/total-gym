@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useMemo } from "react";
 import { Camera, Share2, Download, X, RotateCcw, Loader2, BarChart3, MessageSquareQuote } from "lucide-react";
 import type { ExerciseInWorkout } from "@/lib/workout/types";
 import { getDailyQuote } from "@/lib/data/quote";
@@ -8,10 +8,11 @@ import { getDailyQuote } from "@/lib/data/quote";
 interface WorkoutPhotoOverlayProps {
   exercises: ExerciseInWorkout[];
   workoutName?: string;
+  completedAt?: string | null;
   onClose: () => void;
 }
 
-export function WorkoutPhotoOverlay({ exercises, workoutName, onClose }: WorkoutPhotoOverlayProps) {
+export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClose }: WorkoutPhotoOverlayProps) {
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
@@ -19,14 +20,25 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, onClose }: Workout
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  const dateStr = new Date().toLocaleString("es-ES", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    hour12: true,
-  });
+  const dateStr = useMemo(() => {
+    const date = completedAt ? new Date(completedAt) : new Date();
+    if (isNaN(date.getTime())) return new Date().toLocaleString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return date.toLocaleString("es-ES", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  }, [completedAt]);
 
   const handleTakePhoto = () => {
     fileInputRef.current?.click();
@@ -123,7 +135,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, onClose }: Workout
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
         const displayName = workoutName.length > 28 ? workoutName.slice(0, 26) + "..." : workoutName;
-        ctx.fillText(displayName, brandX, topY + Math.round(brandSize * 0.55));
+        ctx.fillText(displayName, brandX, topY + Math.round(brandSize * 0.95));
       }
 
       const logoSize = Math.max(Math.round(width * 0.045), 20);
@@ -287,7 +299,6 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, onClose }: Workout
         ref={fileInputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={handleFileChange}
         className="hidden"
       />

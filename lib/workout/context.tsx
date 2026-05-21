@@ -420,6 +420,15 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
       setIsWorkoutComplete(true);
       await service.completeWorkout(workoutId);
       clearTimerStorage();
+    } else {
+      const allComplete = updated.every(e =>
+        e.sets.length > 0 && e.sets.every(s => s.is_completed)
+      );
+      if (allComplete) {
+        setIsWorkoutComplete(true);
+        await service.completeWorkout(workoutId);
+        clearTimerStorage();
+      }
     }
   }, [exercises, selectedExercise, saveSets, workoutId]);
 
