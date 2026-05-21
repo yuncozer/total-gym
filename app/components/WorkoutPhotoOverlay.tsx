@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo } from "react";
-import { Camera, Share2, Download, X, RotateCcw, Loader2, BarChart3, MessageSquareQuote } from "lucide-react";
+import { Camera, Share2, Download, X, RotateCcw, Loader2, BarChart3, MessageSquareQuote, Trophy, Check } from "lucide-react";
 import type { ExerciseInWorkout } from "@/lib/workout/types";
 import { getDailyQuote } from "@/lib/data/quote";
 
@@ -16,9 +16,15 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [layout, setLayout] = useState<"metrics" | "quote">("metrics");
+  const [layout, setLayout] = useState<"metrics" | "quote" | "record">("metrics");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const cropContainerRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef({ startY: 0, startOffset: 0 });
+
+  const [showCrop, setShowCrop] = useState(false);
+  const [cropOffsetY, setCropOffsetY] = useState(0);
+  const [cropMeta, setCropMeta] = useState({ naturalWidth: 0, naturalHeight: 0 });
 
   const dateStr = useMemo(() => {
     const date = completedAt ? new Date(completedAt) : new Date();
@@ -116,8 +122,8 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       ctx.textAlign = "left";
       ctx.textBaseline = "top";
       ctx.fillStyle = "#ffffff";
-      const totalWidth = ctx.measureText("TOTAL ").width;
-      ctx.fillText("TOTAL ", brandX, topY);
+      const totalWidth = ctx.measureText("TOTAL").width;
+      ctx.fillText("TOTAL", brandX, topY);
       ctx.fillStyle = "#eab308";
       const gymWidth = ctx.measureText("GYM").width;
       const gymX = brandX + totalWidth;
@@ -126,7 +132,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       const lifeSize = Math.round(brandSize * 0.55);
       ctx.font = `700 ${lifeSize}px Oswald, system-ui, sans-serif`;
       ctx.textBaseline = "bottom";
-      ctx.fillText(".life", gymX + gymWidth + Math.round(brandSize * 0.12), topY + Math.round(brandSize * 0.85));
+      ctx.fillText(".life", gymX + gymWidth + Math.round(brandSize * 0.12), topY + Math.round(brandSize * 1.0));
 
       if (workoutName) {
         const nameSize = Math.max(Math.round(width * 0.025), 11);
@@ -150,7 +156,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       ctx.fillStyle = "#e4e4e7";
       ctx.fillText(dateStr, logoX - Math.round(width * 0.025), topY);
 
-      const BOTTOM_BAR_HEIGHT = Math.round(height * 0.28);
+      const BOTTOM_BAR_HEIGHT = Math.round(height * (layout === "record" ? 0.12 : 0.28));
       const bottomY = height - BOTTOM_BAR_HEIGHT;
       const gradient = ctx.createLinearGradient(0, bottomY, 0, height);
       gradient.addColorStop(0, "rgba(0, 0, 0, 0)");
@@ -180,6 +186,8 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
         const displayQuote = quote.length > 60 ? `\u201C${quote.slice(0, 58)}...\u201D` : `\u201C${quote}\u201D`;
         ctx.fillText(displayQuote, quoteX, quoteY);
 
+        separatorY = totalY - Math.round(BOTTOM_BAR_HEIGHT * 0.22);
+      } else if (layout === "record") {
         separatorY = totalY - Math.round(BOTTOM_BAR_HEIGHT * 0.22);
       } else {
         const lineHeight = Math.min(
@@ -249,7 +257,40 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
 
     const url = URL.createObjectURL(file);
     setPhotoUrl(url);
-    await generateOverlay(url);
+
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = url;
+    });
+
+    const TARGET_RATIO = 9 / 16;
+    const aspectRatio = img.naturalWidth / img.naturalHeight;
+
+    if (Math.abs(aspectRatio - TARGET_RATIO) <= 0.02) {
+      await generateOverlay(url);
+    } else if (aspectRatio > TARGET_RATIO) {
+      const cropH = img.naturalHeight;
+      const cropW = Math.round(cropH * TARGET_RATIO);
+      const srcX = Math.round((img.naturalWidth - cropW) / 2);
+
+      const c = document.createElement("canvas");
+      const maxDim = Math.min(1080, cropH);
+      c.width = Math.round(maxDim * TARGET_RATIO);
+      c.height = maxDim;
+      const ctx = c.getContext("2d")!;
+      ctx.drawImage(img, srcX, 0, cropW, cropH, 0, 0, c.width, c.height);
+
+      const croppedUrl = c.toDataURL("image/jpeg", 0.92);
+      URL.revokeObjectURL(url);
+      setPhotoUrl(croppedUrl);
+      await generateOverlay(croppedUrl);
+    } else {
+      setCropMeta({ naturalWidth: img.naturalWidth, naturalHeight: img.naturalHeight });
+      setCropOffsetY(0);
+      setShowCrop(true);
+    }
   }, [generateOverlay]);
 
   const handleShare = async () => {
@@ -290,8 +331,73 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
     }
     setPhotoUrl(null);
     setGeneratedImageUrl(null);
+    setShowCrop(false);
+    setCropOffsetY(0);
     handleTakePhoto();
   };
+
+  const cancelCrop = () => {
+    if (photoUrl) {
+      URL.revokeObjectURL(photoUrl);
+    }
+    setPhotoUrl(null);
+    setShowCrop(false);
+    setCropOffsetY(0);
+  };
+
+  const handleCropPointerDown = useCallback((e: React.PointerEvent) => {
+    dragRef.current = { startY: e.clientY, startOffset: cropOffsetY };
+    (e.target as HTMLElement).setPointerCapture(e.pointerId);
+  }, [cropOffsetY]);
+
+  const handleCropPointerMove = useCallback((e: React.PointerEvent) => {
+    const container = cropContainerRef.current;
+    if (!container || cropMeta.naturalWidth === 0) return;
+    const containerWidth = container.clientWidth;
+    const displayImgHeight = containerWidth * cropMeta.naturalHeight / cropMeta.naturalWidth;
+    const displayCropHeight = containerWidth * 16 / 9;
+    const maxOffset = Math.max(0, (displayImgHeight - displayCropHeight) / 2);
+
+    const deltaY = e.clientY - dragRef.current.startY;
+    const newOffset = dragRef.current.startOffset + deltaY;
+    setCropOffsetY(Math.max(-maxOffset, Math.min(maxOffset, newOffset)));
+  }, [cropMeta]);
+
+  const handleCropPointerUp = useCallback(() => {
+  }, []);
+
+  const confirmCrop = useCallback(async () => {
+    const container = cropContainerRef.current;
+    if (!container || !photoUrl || cropMeta.naturalWidth === 0) return;
+
+    const containerWidth = container.clientWidth;
+    const scale = containerWidth / cropMeta.naturalWidth;
+    const cropHeight = cropMeta.naturalWidth * 16 / 9;
+    const centeredSrcY = (cropMeta.naturalHeight - cropHeight) / 2;
+    const srcY = Math.max(0, Math.min(cropMeta.naturalHeight - cropHeight, centeredSrcY - cropOffsetY / scale));
+
+    const cropCanvas = document.createElement("canvas");
+    const maxDim = Math.min(1080, cropMeta.naturalWidth * 16 / 9, cropMeta.naturalHeight);
+    cropCanvas.width = Math.round(maxDim * 9 / 16);
+    cropCanvas.height = maxDim;
+
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.crossOrigin = "anonymous";
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = photoUrl;
+    });
+
+    const cropCtx = cropCanvas.getContext("2d")!;
+    cropCtx.drawImage(img, 0, srcY, cropMeta.naturalWidth, cropHeight, 0, 0, cropCanvas.width, cropCanvas.height);
+
+    const croppedUrl = cropCanvas.toDataURL("image/jpeg", 0.92);
+    URL.revokeObjectURL(photoUrl);
+    setPhotoUrl(croppedUrl);
+    setShowCrop(false);
+    await generateOverlay(croppedUrl);
+  }, [photoUrl, cropMeta, cropOffsetY, generateOverlay]);
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col">
@@ -345,6 +451,16 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
               >
                 <MessageSquareQuote className="w-4 h-4" /> CITA
               </button>
+              <button
+                onClick={() => setLayout("record")}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${
+                  layout === "record"
+                    ? "bg-[#eab308] text-black"
+                    : "text-[#71717a] hover:text-white"
+                }`}
+              >
+                <Trophy className="w-4 h-4" /> RÉCORD
+              </button>
             </div>
             <button
               onClick={handleTakePhoto}
@@ -352,6 +468,50 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
             >
               <Camera className="w-5 h-5" /> TOMAR FOTO
             </button>
+          </div>
+        ) : showCrop ? (
+          <div className="w-full max-w-lg">
+            <p className="text-[#a1a1aa] text-sm text-center mb-4">
+              Ajusta la foto al marco 9:16
+            </p>
+            <div
+              ref={cropContainerRef}
+              className="relative w-full overflow-hidden rounded-xl border-2 border-[#eab308] cursor-grab active:cursor-grabbing select-none"
+              style={{ aspectRatio: "9/16", touchAction: "none" }}
+              onPointerDown={handleCropPointerDown}
+              onPointerMove={handleCropPointerMove}
+              onPointerUp={handleCropPointerUp}
+              onPointerLeave={handleCropPointerUp}
+            >
+              <div style={{ transform: `translateY(calc(-50% + ${cropOffsetY}px))` }}>
+                <img
+                  src={photoUrl}
+                  alt="Ajustar foto"
+                  className="w-full h-auto pointer-events-none select-none"
+                  draggable={false}
+                />
+              </div>
+              <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
+              <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#eab308] pointer-events-none" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#eab308] pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[#eab308] pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#eab308] pointer-events-none" />
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={cancelCrop}
+                className="flex-1 py-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer text-[#a1a1aa] hover:text-white font-bold rounded-xl"
+              >
+                <X className="w-5 h-5 inline mr-2" /> CANCELAR
+              </button>
+              <button
+                onClick={confirmCrop}
+                className="flex-1 py-4 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl"
+              >
+                <Check className="w-5 h-5 inline mr-2" /> CONFIRMAR
+              </button>
+            </div>
           </div>
         ) : (
           <div className="flex flex-col items-center w-full max-w-lg">
