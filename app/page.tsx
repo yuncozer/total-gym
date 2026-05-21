@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target } from "lucide-react";
+import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
@@ -220,14 +221,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white">
-      {authLoading && (
-        <div className="fixed inset-0 bg-[#0a0a0a] flex items-center justify-center z-50">
-          <div className="flex flex-col items-center gap-4">
-            <Dumbbell className="w-12 h-12 text-[#eab308] animate-pulse" />
-            <Loader2 className="w-8 h-8 text-[#eab308] animate-spin" />
-          </div>
-        </div>
-      )}
+      {authLoading && <LoadingScreen />}
 
       <UserHeader />
 

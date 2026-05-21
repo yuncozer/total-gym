@@ -48,6 +48,12 @@ export async function completeWorkout(workoutId: string): Promise<void> {
   });
 }
 
+export async function deleteWorkout(workoutId: string): Promise<void> {
+  await fetchAPI(`/api/workouts/${workoutId}`, {
+    method: "DELETE",
+  });
+}
+
 export async function loadWorkoutHistory(): Promise<WorkoutSummary[]> {
   return fetchAPI("/api/workouts");
 }

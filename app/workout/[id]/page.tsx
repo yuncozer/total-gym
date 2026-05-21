@@ -12,14 +12,19 @@ import {
   Target,
   Flame,
   Share2,
-  History
+  History,
+  Trash2
 } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
+import * as service from "@/lib/workout/service";
+import type { ExerciseInWorkout } from "@/lib/workout/types";
+import { ConfirmModal } from "@/app/components/ConfirmModal";
+import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { getDailyQuote } from "@/lib/data/quote";
 
-function WorkoutContent() {
+function WorkoutContent({ workoutId }: { workoutId: string }) {
   const router = useRouter();
   const workout = useWorkout();
 
@@ -78,12 +83,15 @@ function WorkoutContent() {
     getSetsCompletados,
     getTotalSets,
     isExerciseCompleted,
-    getLastWeight
+    getLastWeight,
+    removeExercise
   } = workout;
 
   const [phraseSeed, setPhraseSeed] = useState(0);
   const lastCompletedRef = useRef<string>("");
   const extraSetIndexRef = useRef<number | null>(null);
+  const [deleteConfirmExercise, setDeleteConfirmExercise] = useState<ExerciseInWorkout | null>(null);
+  const [isDeletingWorkout, setIsDeletingWorkout] = useState(false);
   const [showMotivationalModal, setShowMotivationalModal] = useState(false);
   const [modalPhrase, setModalPhrase] = useState("");
   const [modalSubPhrase, setModalSubPhrase] = useState("");
@@ -164,6 +172,10 @@ const handleCompleteSet = () => {
         </main>
       </div>
     );
+  }
+
+  if (isDeletingWorkout) {
+    return <LoadingScreen />;
   }
 
   if (isWorkoutComplete) {
@@ -424,36 +436,49 @@ const handleCompleteSet = () => {
               const isComplete = completados === total;
 
               return (
-                <button
-                  key={exercise.exerciseId}
-                  type="button"
-                  onClick={() => selectExercise(exercise)}
-                  className={`w-full p-5 rounded-xl border-2 text-left cursor-pointer ${isComplete
-                    ? "bg-[#22c55e]/10 border-[#22c55e]/30"
-                    : "bg-[#18181b] border-[#3f3f46] hover:border-[#eab308]"
-                    }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      {isComplete ? (
-                        <div className="w-10 h-10 bg-[#22c55e] rounded-full flex justify-center items-center">
-                          <Check className="w-5 h-5 text-black" />
+                <div key={exercise.exerciseId} className="relative">
+                  <button
+                    type="button"
+                    onClick={() => selectExercise(exercise)}
+                    className={`w-full p-5 pr-14 rounded-xl border-2 text-left cursor-pointer ${isComplete
+                      ? "bg-[#22c55e]/10 border-[#22c55e]/30"
+                      : "bg-[#18181b] border-[#3f3f46] hover:border-[#eab308]"
+                      }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        {isComplete ? (
+                          <div className="w-10 h-10 bg-[#22c55e] rounded-full flex justify-center items-center">
+                            <Check className="w-5 h-5 text-black" />
+                          </div>
+                        ) : (
+                          <div className="w-10 h-10 bg-[#27272a] rounded-full flex justify-center items-center">
+                            <Target className="w-5 h-5 text-[#71717a]" />
+                          </div>
+                        )}
+                        <div>
+                          <h3 className="font-bold text-lg">{exercise.name}</h3>
+                          <p className="text-sm text-[#71717a]">{total} series</p>
                         </div>
-                      ) : (
-                        <div className="w-10 h-10 bg-[#27272a] rounded-full flex justify-center items-center">
-                          <Target className="w-5 h-5 text-[#71717a]" />
-                        </div>
-                      )}
-                      <div>
-                        <h3 className="font-bold text-lg">{exercise.name}</h3>
-                        <p className="text-sm text-[#71717a]">{total} series</p>
                       </div>
+                      <span className={`text-lg font-bold ${isComplete ? "text-[#22c55e]" : "text-[#eab308]"}`}>
+                        {completados}/{total}
+                      </span>
                     </div>
-                    <span className={`text-lg font-bold ${isComplete ? "text-[#22c55e]" : "text-[#eab308]"}`}>
-                      {completados}/{total}
-                    </span>
-                  </div>
-                </button>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setDeleteConfirmExercise(exercise);
+                    }}
+                    disabled={saving}
+                    className="absolute top-1 right-1 p-2 text-[#71717a] hover:text-[#ef4444] hover:bg-[#ef4444]/10 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
+                    title="Eliminar ejercicio"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               );
             })}
           </div>
@@ -463,6 +488,28 @@ const handleCompleteSet = () => {
             <span>{progress.total - progress.completed} restantes</span>
           </div>
         </div>
+
+        <ConfirmModal
+          isOpen={!!deleteConfirmExercise}
+          title={exercises.length === 1 ? "¿CANCELAR ENTRENAMIENTO?" : "¿ELIMINAR EJERCICIO?"}
+          message={exercises.length === 1
+            ? "Es el único ejercicio del entrenamiento. Si lo eliminas, el entrenamiento se cancelará y se borrará por completo."
+            : `¿Estás seguro de eliminar "${deleteConfirmExercise?.name}" del entrenamiento? Esta acción no se puede deshacer.`}
+          confirmText={exercises.length === 1 ? "CANCELAR Y BORRAR" : "ELIMINAR"}
+          onConfirm={async () => {
+            if (!deleteConfirmExercise) return;
+            if (exercises.length === 1) {
+              setDeleteConfirmExercise(null);
+              setIsDeletingWorkout(true);
+              await service.deleteWorkout(workoutId);
+              router.push("/");
+            } else {
+              removeExercise(deleteConfirmExercise.exerciseId);
+              setDeleteConfirmExercise(null);
+            }
+          }}
+          onCancel={() => setDeleteConfirmExercise(null)}
+        />
       </main>
     </div>
   );
@@ -473,7 +520,7 @@ export default function WorkoutPage({ params }: { params: Promise<{ id: string }
 
   return (
     <WorkoutProvider workoutId={resolvedParams.id}>
-      <WorkoutContent />
+      <WorkoutContent workoutId={resolvedParams.id} />
     </WorkoutProvider>
   );
 }

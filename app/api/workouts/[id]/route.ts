@@ -74,3 +74,32 @@ export async function GET(
     return NextResponse.json({ error: "Failed to load workout" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const { id: workoutId } = await params;
+    const supabase = createSupabaseClient(request);
+
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const { error } = await supabase
+      .from("workouts")
+      .delete()
+      .eq("id", workoutId)
+      .eq("user_id", session.user.id);
+
+    if (error) throw error;
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting workout:", error);
+    return NextResponse.json({ error: "Failed to delete workout" }, { status: 500 });
+  }
+}

@@ -26,6 +26,7 @@ interface WorkoutContextValue {
   
   selectExercise: (exercise: ExerciseInWorkout) => void;
   deselectExercise: () => void;
+  removeExercise: (exerciseId: string) => Promise<void>;
   goToSet: (index: number) => void;
   updateSet: (field: "reps" | "weight_kg", value: number) => void;
   completeSet: () => Promise<void>;
@@ -403,6 +404,25 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     setIsLastSet(value);
   }, []);
 
+  const removeExercise = useCallback(async (exerciseId: string) => {
+    const updated = exercises.filter(e => e.exerciseId !== exerciseId);
+    setExercises(updated);
+
+    if (selectedExercise?.exerciseId === exerciseId) {
+      setSelectedExercise(null);
+      setTimer({ segundos: 0, activo: false, descansando: false });
+      clearTimerStorage();
+    }
+
+    await saveSets(updated);
+
+    if (updated.length === 0) {
+      setIsWorkoutComplete(true);
+      await service.completeWorkout(workoutId);
+      clearTimerStorage();
+    }
+  }, [exercises, selectedExercise, saveSets, workoutId]);
+
   const playNotificationSound = useCallback(() => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -444,6 +464,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     
     selectExercise,
     deselectExercise,
+    removeExercise,
     goToSet,
     updateSet,
     completeSet,
