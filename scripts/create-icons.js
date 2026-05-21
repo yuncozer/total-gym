@@ -2,24 +2,14 @@ const sharp = require('sharp');
 const path = require('path');
 
 const publicDir = path.join(__dirname, '..', 'public');
+const logoPath = path.join(publicDir, 'logo.png');
 
-async function createIcon(size, filename) {
-  const svg = `
-    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" xmlns="http://www.w3.org/2000/svg">
-      <rect width="${size}" height="${size}" fill="#0a0a0a"/>
-      <g transform="translate(${size * 0.15}, ${size * 0.15})">
-        <rect x="${size * 0.1}" y="${size * 0.55}" width="${size * 0.5}" height="${size * 0.15}" rx="${size * 0.05}" fill="#eab308"/>
-        <rect x="${size * 0.1}" y="${size * 0.55}" width="${size * 0.5}" height="${size * 0.15}" rx="${size * 0.05}" fill="#eab308"/>
-        <circle cx="${size * 0.4}" cy="${size * 0.15}" r="${size * 0.18}" fill="#eab308"/>
-        <circle cx="${size * 0.4}" cy="${size * 0.62}" r="${size * 0.18}" fill="#eab308"/>
-        <rect x="${size * 0.2}" y="${size * 0.2}" width="${size * 0.4}" height="${size * 0.35}" rx="${size * 0.03}" fill="#27272a"/>
-        <text x="${size * 0.4}" y="${size * 0.45}" font-family="Arial Black, sans-serif" font-size="${size * 0.2}" font-weight="bold" fill="#eab308" text-anchor="middle">GYM</text>
-      </g>
-    </svg>
-  `;
-  
-  await sharp(Buffer.from(svg))
-    .resize(size, size)
+async function createPwaIcon(size, filename) {
+  await sharp(logoPath)
+    .resize(size, size, {
+      fit: 'contain',
+      background: { r: 10, g: 10, b: 10, alpha: 1 }
+    })
     .png()
     .toFile(path.join(publicDir, filename));
   
@@ -29,37 +19,12 @@ async function createIcon(size, filename) {
 async function createOGImage() {
   const width = 1200;
   const height = 630;
-  const size = 400;
   
-  // OG Image design - larger dumbbell centered
-  const svg = `
-    <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" style="stop-color:#0a0a0a"/>
-          <stop offset="100%" style="stop-color:#18181b"/>
-        </linearGradient>
-      </defs>
-      <rect width="${width}" height="${height}" fill="url(#bg)"/>
-      
-      <!-- Dumbbell icon -->
-      <g transform="translate(${width/2 - 160}, ${height/2 - 150})">
-        <!-- Left weight -->
-        <rect x="0" y="140" width="60" height="100" rx="10" fill="#eab308"/>
-        <!-- Bar -->
-        <rect x="60" y="165" width="200" height="30" rx="5" fill="#eab308"/>
-        <!-- Right weight -->
-        <rect x="260" y="140" width="60" height="100" rx="10" fill="#eab308"/>
-        <rect x="270" y="155" width="40" height="70" rx="5" fill="#ca9a04"/>
-        
-        <!-- TG text -->
-        <text x="130" y="320" font-family="Arial Black, sans-serif" font-size="140" font-weight="bold" fill="#eab308" text-anchor="middle">TOTAL GYM</text>
-      </g>
-    </svg>
-  `;
-  
-  await sharp(Buffer.from(svg))
-    .resize(width, height)
+  await sharp(logoPath)
+    .resize(width, height, {
+      fit: 'contain',
+      background: { r: 10, g: 10, b: 10, alpha: 1 }
+    })
     .png()
     .toFile(path.join(publicDir, 'og-image.png'));
   
@@ -67,39 +32,17 @@ async function createOGImage() {
 }
 
 async function main() {
-  await createIcon(192, 'icon-192.png');
-  await createIcon(512, 'icon-512.png');
+  // Create PWA icons with logo image (192x192 and 512x512)
+  await createPwaIcon(192, 'icon-192.png');
+  await createPwaIcon(512, 'icon-512.png');
+  
+  // Create apple-touch-icon with logo (180x180)
+  await createPwaIcon(180, 'apple-touch-icon.png');
+  
+  // Create OG Image
   await createOGImage();
   
-  // Create apple-touch-icon (180x180)
-  const appleSvg = `
-    <svg width="180" height="180" viewBox="0 0 180 180" xmlns="http://www.w3.org/2000/svg">
-      <rect width="180" height="180" rx="40" fill="#0a0a0a"/>
-      <rect x="18" y="72" width="22" height="36" rx="5" fill="#eab308"/>
-      <rect x="140" y="72" width="22" height="36" rx="5" fill="#eab308"/>
-      <rect x="40" y="81" width="100" height="18" rx="5" fill="#eab308"/>
-      <rect x="54" y="63" width="72" height="18" rx="5" fill="#eab308"/>
-      <rect x="54" y="99" width="72" height="18" rx="5" fill="#eab308"/>
-    </svg>
-  `;
-  await sharp(Buffer.from(appleSvg)).resize(180, 180).png().toFile(path.join(publicDir, 'apple-touch-icon.png'));
-  console.log('Created apple-touch-icon.png');
-  
-  // Create favicon-32x32
-  const faviconSvg = `
-    <svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-      <rect width="32" height="32" rx="5" fill="#0a0a0a"/>
-      <rect x="4" y="13" width="4" height="6" rx="1" fill="#eab308"/>
-      <rect x="24" y="13" width="4" height="6" rx="1" fill="#eab308"/>
-      <rect x="8" y="14.5" width="16" height="3" rx="1" fill="#eab308"/>
-      <rect x="10" y="11.5" width="12" height="3" rx="1" fill="#eab308"/>
-      <rect x="10" y="17.5" width="12" height="3" rx="1" fill="#eab308"/>
-    </svg>
-  `;
-  await sharp(Buffer.from(faviconSvg)).resize(32, 32).png().toFile(path.join(publicDir, 'favicon-32.png'));
-  console.log('Created favicon-32.png');
-  
-  console.log('All PWA and OG images created successfully!');
+  console.log('All PWA and OG images created from logo.png!');
 }
 
 main().catch(console.error);
