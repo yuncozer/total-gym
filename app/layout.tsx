@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Oswald, Rajdhani } from "next/font/google";
 import "./globals.css";
 import { OfflineBanner } from "@/app/components/OfflineBanner";
+import { Analytics } from "@vercel/analytics/next";
 
 const oswald = Oswald({
   variable: "--font-oswald",
@@ -118,6 +119,7 @@ export default function RootLayout({
         />
         {children}
         <OfflineBanner />
+        <Analytics />
       </body>
     </html>
   );
