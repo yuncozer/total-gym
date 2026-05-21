@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useMemo } from "react";
-import { Camera, Share2, Download, X, RotateCcw, Loader2, BarChart3, MessageSquareQuote, Trophy, Check } from "lucide-react";
+import { Camera, Share2, Download, X, RotateCcw, Loader2, BarChart3, MessageSquareQuote, Trophy, Check, Image as ImageIcon } from "lucide-react";
 import type { ExerciseInWorkout } from "@/lib/workout/types";
 import { getDailyQuote } from "@/lib/data/quote";
 
@@ -13,11 +13,15 @@ interface WorkoutPhotoOverlayProps {
 }
 
 export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClose }: WorkoutPhotoOverlayProps) {
+  const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [layout, setLayout] = useState<"metrics" | "quote" | "record">("metrics");
+  const [captureMode, setCaptureMode] = useState<"camera" | "gallery">("camera");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const cropContainerRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef({ startY: 0, startOffset: 0 });
@@ -47,7 +51,17 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
   }, [completedAt]);
 
   const handleTakePhoto = () => {
-    fileInputRef.current?.click();
+    if (isAndroid) {
+      setCaptureMode("camera");
+      cameraInputRef.current?.click();
+    } else {
+      fileInputRef.current?.click();
+    }
+  };
+
+  const handlePickFromGallery = () => {
+    setCaptureMode("gallery");
+    galleryInputRef.current?.click();
   };
 
   const generateOverlay = useCallback(async (imageUrl: string) => {
@@ -401,13 +415,33 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col">
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept="image/*"
-        onChange={handleFileChange}
-        className="hidden"
-      />
+      {!isAndroid ? (
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileChange}
+          className="hidden"
+        />
+      ) : (
+        <>
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+          />
+        </>
+      )}
 
       <div className="flex items-center justify-between p-4 border-b border-[#3f3f46]">
         <h2 className="text-lg font-bold" style={{ fontFamily: "var(--font-oswald)" }}>
@@ -465,6 +499,14 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
             >
               <Camera className="w-5 h-5" /> TOMAR FOTO
             </button>
+            {isAndroid && (
+              <button
+                onClick={handlePickFromGallery}
+                className="flex items-center justify-center gap-2 w-full py-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer text-[#a1a1aa] hover:text-white font-bold rounded-xl mt-3"
+              >
+                <ImageIcon className="w-5 h-5" /> ELEGIR DE GALERÍA
+              </button>
+            )}
           </div>
         ) : showCrop ? (
           <div className="w-full max-w-lg">
