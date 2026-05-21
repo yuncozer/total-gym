@@ -54,7 +54,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
     setGenerating(true);
 
     try {
-      const [img, logoSrc] = await Promise.all([
+      const [img, logoSrc, brandImg] = await Promise.all([
         new Promise<HTMLImageElement>((resolve, reject) => {
           const i = new Image();
           i.crossOrigin = "anonymous";
@@ -68,6 +68,13 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
           i.onload = () => resolve(i);
           i.onerror = () => reject(new Error("Failed to load logo"));
           i.src = "/icon-512.png";
+        }),
+        new Promise<HTMLImageElement>((resolve, reject) => {
+          const i = new Image();
+          i.crossOrigin = "anonymous";
+          i.onload = () => resolve(i);
+          i.onerror = () => reject(new Error("Failed to load brand image"));
+          i.src = "/images/share-workout/url-domain.png";
         }),
       ]);
 
@@ -121,21 +128,9 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       const brandSize = Math.max(Math.round(width * 0.04), 18);
       const brandX = Math.round(width * 0.05);
       const topY = Math.round(TOP_BAR_HEIGHT * 0.12);
-      ctx.font = `700 ${brandSize}px Oswald, system-ui, sans-serif`;
-      ctx.textAlign = "left";
-      ctx.textBaseline = "top";
-      ctx.fillStyle = "#ffffff";
-      const totalWidth = ctx.measureText("TOTAL").width;
-      ctx.fillText("TOTAL", brandX, topY);
-      ctx.fillStyle = "#eab308";
-      const gymWidth = ctx.measureText("GYM").width;
-      const gymX = brandX + totalWidth;
-      ctx.fillText("GYM", gymX, topY);
-      ctx.fillStyle = "#ffffff";
-      const lifeSize = Math.round(brandSize * 0.55);
-      ctx.font = `700 ${lifeSize}px Oswald, system-ui, sans-serif`;
-      ctx.textBaseline = "top";
-      ctx.fillText(".life", gymX + gymWidth + Math.round(brandSize * 0.12), topY + Math.round(brandSize * 0.35));
+      const brandHeight = Math.round(brandSize * 1.1);
+      const brandWidth = Math.round(brandHeight * 2030 / 528);
+      ctx.drawImage(brandImg, brandX, topY, brandWidth, brandHeight);
 
       if (workoutName) {
         const nameSize = Math.max(Math.round(width * 0.025), 11);
@@ -144,20 +139,22 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
         ctx.textAlign = "left";
         ctx.textBaseline = "top";
         const displayName = workoutName.length > 28 ? workoutName.slice(0, 26) + "..." : workoutName;
-        ctx.fillText(displayName, brandX, topY + Math.round(brandSize * 0.95));
+        ctx.fillText(displayName, brandX, topY + Math.round(brandHeight * 1.0) + Math.round(brandSize * 0.08));
       }
 
-      const logoSize = Math.max(Math.round(width * 0.045), 20);
-      const logoMargin = Math.round(width * 0.05);
-      const logoX = width - logoMargin - logoSize;
-      ctx.drawImage(logoSrc, logoX, topY, logoSize, logoSize);
-
       const dateSize = Math.max(Math.round(width * 0.021), 10);
+      const logoMargin = Math.round(width * 0.05);
       ctx.font = `400 ${dateSize}px system-ui, sans-serif`;
       ctx.textAlign = "right";
       ctx.textBaseline = "top";
       ctx.fillStyle = "#e4e4e7";
-      ctx.fillText(dateStr, logoX - Math.round(width * 0.025), topY);
+      ctx.fillText(dateStr, width - logoMargin, topY);
+
+      const logoSize = Math.max(Math.round(width * 0.1), 24);
+      const logoX = width - logoMargin - logoSize;
+      ctx.globalAlpha = 0.6;
+      ctx.drawImage(logoSrc, logoX, topY + Math.round(dateSize * 1.5), logoSize, logoSize);
+      ctx.globalAlpha = 1.0;
 
       const BOTTOM_BAR_HEIGHT = Math.round(height * (layout === "record" ? 0.12 : 0.28));
       const bottomY = height - BOTTOM_BAR_HEIGHT;
@@ -307,7 +304,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       if (navigator.share && navigator.canShare?.({ files: [file] })) {
         await navigator.share({
           title: "Mi entrenamiento - TOTAL GYM",
-          text: "¡Mira mi entrenamiento de hoy!",
+          text: "¡Mira mi entrenamiento de hoy! 💪 Prueba TOTAL GYM aquí 👉 https://totalgym.life",
           files: [file],
         });
       } else {
@@ -436,31 +433,28 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
             <div className="flex gap-2 mb-6 bg-[#18181b] rounded-xl p-1 border border-[#3f3f46]">
               <button
                 onClick={() => setLayout("metrics")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${
-                  layout === "metrics"
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${layout === "metrics"
                     ? "bg-[#eab308] text-black"
                     : "text-[#71717a] hover:text-white"
-                }`}
+                  }`}
               >
                 <BarChart3 className="w-4 h-4" /> MÉTRICAS
               </button>
               <button
                 onClick={() => setLayout("quote")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${
-                  layout === "quote"
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${layout === "quote"
                     ? "bg-[#eab308] text-black"
                     : "text-[#71717a] hover:text-white"
-                }`}
+                  }`}
               >
                 <MessageSquareQuote className="w-4 h-4" /> CITA
               </button>
               <button
                 onClick={() => setLayout("record")}
-                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${
-                  layout === "record"
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${layout === "record"
                     ? "bg-[#eab308] text-black"
                     : "text-[#71717a] hover:text-white"
-                }`}
+                  }`}
               >
                 <Trophy className="w-4 h-4" /> RÉCORD
               </button>
@@ -524,11 +518,11 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
               </div>
             ) : generatedImageUrl ? (
               <>
-                <div className="w-full rounded-xl overflow-hidden border border-[#3f3f46] mb-6 shadow-lg">
+                <div className="w-full rounded-xl overflow-hidden border border-[#3f3f46] mb-6 shadow-lg bg-[#0a0a0a] flex items-center justify-center">
                   <img
                     src={generatedImageUrl}
                     alt="Entrenamiento TOTAL GYM"
-                    className="w-full h-auto"
+                    className="max-w-full max-h-[55vh] w-auto h-auto"
                   />
                 </div>
 
