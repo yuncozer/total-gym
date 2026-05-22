@@ -9,10 +9,11 @@ interface WorkoutPhotoOverlayProps {
   exercises: ExerciseInWorkout[];
   workoutName?: string;
   completedAt?: string | null;
+  workoutDate?: string | null;
   onClose: () => void;
 }
 
-export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClose }: WorkoutPhotoOverlayProps) {
+export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, workoutDate, onClose }: WorkoutPhotoOverlayProps) {
   const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
@@ -31,7 +32,11 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
   const [cropMeta, setCropMeta] = useState({ naturalWidth: 0, naturalHeight: 0 });
 
   const dateStr = useMemo(() => {
-    const date = completedAt ? new Date(completedAt) : new Date();
+    const date = completedAt
+      ? new Date(completedAt)
+      : workoutDate
+        ? new Date(workoutDate + "T12:00:00")
+        : new Date();
     if (isNaN(date.getTime())) return new Date().toLocaleString("es-ES", {
       day: "2-digit",
       month: "2-digit",
@@ -48,7 +53,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       minute: "2-digit",
       hour12: true,
     });
-  }, [completedAt]);
+  }, [completedAt, workoutDate]);
 
   const handleTakePhoto = () => {
     if (isAndroid) {
@@ -139,21 +144,39 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       ctx.fillStyle = headerGradient;
       ctx.fillRect(0, 0, width, TOP_BAR_HEIGHT);
 
-      const brandSize = Math.max(Math.round(width * 0.04), 18);
       const brandX = Math.round(width * 0.05);
       const topY = Math.round(TOP_BAR_HEIGHT * 0.12);
-      const brandHeight = Math.round(brandSize * 1.1);
-      const brandWidth = Math.round(brandHeight * 2030 / 528);
-      ctx.drawImage(brandImg, brandX, topY, brandWidth, brandHeight);
 
-      if (workoutName) {
-        const nameSize = Math.max(Math.round(width * 0.025), 11);
-        ctx.font = `500 ${nameSize}px system-ui, sans-serif`;
-        ctx.fillStyle = "#e4e4e7";
-        ctx.textAlign = "left";
-        ctx.textBaseline = "top";
-        const displayName = workoutName.length > 28 ? workoutName.slice(0, 26) + "..." : workoutName;
-        ctx.fillText(displayName, brandX, topY + Math.round(brandHeight * 1.0) + Math.round(brandSize * 0.08));
+      if (layout === "quote") {
+        const headerLogoSize = Math.max(Math.round(width * 0.13), 24);
+        // ctx.globalAlpha = 0.6;
+        ctx.drawImage(logoSrc, brandX, topY, headerLogoSize, headerLogoSize);
+        // ctx.globalAlpha = 1.0;
+
+        if (workoutName) {
+          const nameSize = Math.max(Math.round(width * 0.025), 11);
+          ctx.font = `500 ${nameSize}px system-ui, sans-serif`;
+          ctx.fillStyle = "#e4e4e7";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "top";
+          const displayName = workoutName.length > 28 ? workoutName.slice(0, 26) + "..." : workoutName;
+          ctx.fillText(displayName, brandX, topY + headerLogoSize + Math.round(Math.max(Math.round(width * 0.04), 18) * 0.08));
+        }
+      } else {
+        const brandSize = Math.max(Math.round(width * 0.04), 18);
+        const brandHeight = Math.round(brandSize * 1.1);
+        const brandWidth = Math.round(brandHeight * 2030 / 528);
+        ctx.drawImage(brandImg, brandX, topY, brandWidth, brandHeight);
+
+        if (workoutName) {
+          const nameSize = Math.max(Math.round(width * 0.025), 11);
+          ctx.font = `500 ${nameSize}px system-ui, sans-serif`;
+          ctx.fillStyle = "#e4e4e7";
+          ctx.textAlign = "left";
+          ctx.textBaseline = "top";
+          const displayName = workoutName.length > 28 ? workoutName.slice(0, 26) + "..." : workoutName;
+          ctx.fillText(displayName, brandX, topY + Math.round(brandHeight * 1.0) + Math.round(brandSize * 0.08));
+        }
       }
 
       const dateSize = Math.max(Math.round(width * 0.021), 10);
@@ -164,11 +187,13 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       ctx.fillStyle = "#e4e4e7";
       ctx.fillText(dateStr, width - logoMargin, topY);
 
-      const logoSize = Math.max(Math.round(width * 0.1), 24);
-      const logoX = width - logoMargin - logoSize;
-      ctx.globalAlpha = 0.6;
-      ctx.drawImage(logoSrc, logoX, topY + Math.round(dateSize * 1.5), logoSize, logoSize);
-      ctx.globalAlpha = 1.0;
+      if (layout !== "quote") {
+        const logoSize = Math.max(Math.round(width * 0.1), 24);
+        const logoX = width - logoMargin - logoSize;
+        ctx.globalAlpha = 0.6;
+        ctx.drawImage(logoSrc, logoX, topY + Math.round(dateSize * 1.5), logoSize, logoSize);
+        ctx.globalAlpha = 1.0;
+      }
 
       const BOTTOM_BAR_HEIGHT = Math.round(height * (layout === "record" ? 0.12 : 0.28));
       const bottomY = height - BOTTOM_BAR_HEIGHT;
@@ -182,7 +207,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
       const maxExercises = exercises.length;
       const startY = bottomY + Math.round(BOTTOM_BAR_HEIGHT * 0.08);
 
-      const totalY = height - Math.round(BOTTOM_BAR_HEIGHT * 0.12);
+      const totalY = height - Math.round(BOTTOM_BAR_HEIGHT * (layout === "record" ? 0.28 : 0.12));
 
       let separatorY: number;
 
@@ -193,12 +218,17 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, onClo
         const availableForContent = totalY - Math.round(BOTTOM_BAR_HEIGHT * 0.06) - startY;
         const quoteY = startY + Math.round(availableForContent * 0.35);
 
-        ctx.font = `300 italic ${quoteSize}px Oswald, system-ui, sans-serif`;
+        ctx.font = `800 italic ${quoteSize}px "Barlow Condensed", system-ui, sans-serif`;
         ctx.textAlign = "right";
         ctx.textBaseline = "middle";
         ctx.fillStyle = "#d4d4d8";
         const displayQuote = quote.length > 60 ? `\u201C${quote.slice(0, 58)}...\u201D` : `\u201C${quote}\u201D`;
         ctx.fillText(displayQuote, quoteX, quoteY);
+
+        const brandSize = Math.max(Math.round(width * 0.04), 18);
+        const brandH = Math.round(brandSize * 1.1);
+        const brandW = Math.round(brandH * 2030 / 528);
+        ctx.drawImage(brandImg, quoteX - brandW, quoteY + Math.round(quoteSize * 0.9), brandW, brandH);
 
         separatorY = totalY - Math.round(BOTTOM_BAR_HEIGHT * 0.22);
       } else if (layout === "record") {

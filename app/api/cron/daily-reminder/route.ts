@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       .eq("user_id", user.id)
       .gte("started_at", todayStart)
       .lte("started_at", todayEnd)
-      .not("completed_at", "is", null)
+      .eq("status", "completed")
       .limit(1);
 
     if (workoutsToday && workoutsToday.length > 0) {
