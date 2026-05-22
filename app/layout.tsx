@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Oswald, Rajdhani } from "next/font/google";
+import { Oswald, Rajdhani, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { OfflineBanner } from "@/app/components/OfflineBanner";
 import { Analytics } from "@vercel/analytics/next";
@@ -14,6 +14,13 @@ const rajdhani = Rajdhani({
   variable: "--font-rajdhani",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
+});
+
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow",
+  subsets: ["latin"],
+  weight: ["800"],
+  style: ["italic"],
 });
 
 export const metadata: Metadata = {
@@ -112,7 +119,7 @@ export default function RootLayout({
 
   return (
     <html lang="es" className="dark">
-      <body className={`${oswald.variable} ${rajdhani.variable} min-h-screen antialiased`}>
+      <body className={`${oswald.variable} ${rajdhani.variable} ${barlowCondensed.variable} min-h-screen antialiased`}>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -110,7 +110,7 @@ export default function PerfilPage() {
           .from("workouts")
           .select("id, started_at")
           .eq("user_id", session.user.id)
-          .not("completed_at", "is", null)
+          .eq("status", "completed")
           .order("started_at", { ascending: false });
 
         let streak = 0;

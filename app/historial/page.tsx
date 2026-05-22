@@ -597,6 +597,7 @@ export default function HistorialPage() {
           exercises={sharingWorkout.exercises}
           workoutName={sharingWorkout.name || undefined}
           completedAt={sharingWorkout.completed_at}
+          workoutDate={sharingWorkout.date}
           onClose={() => setSharingWorkout(null)}
         />
       )}

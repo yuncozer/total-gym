@@ -45,6 +45,7 @@ export async function saveSets(workoutId: string, exercises: ExerciseInWorkout[]
 export async function completeWorkout(workoutId: string): Promise<void> {
   await fetchAPI(`/api/workouts/${workoutId}/complete`, {
     method: "POST",
+    body: JSON.stringify({ completed_at: new Date().toISOString() }),
   });
 }
 

@@ -34,9 +34,12 @@ export async function POST(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const body = await request.json().catch(() => ({}));
+    const { completed_at } = body;
+
     const { error } = await supabase
       .from("workouts")
-      .update({ status: "completed" })
+      .update({ status: "completed", ...(completed_at ? { completed_at } : {}) })
       .eq("id", workoutId)
       .eq("user_id", session.user.id);
 
