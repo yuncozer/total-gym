@@ -50,12 +50,12 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
 
   return (
     <div className="relative mb-10">
-      <div className="absolute -inset-0.5 bg-linear-to-r from-[#eab308]/20 via-[#eab308]/10 to-[#eab308]/20 rounded-3xl blur-xl opacity-50" />
+      <div className="absolute -inset-0.5 bg-linear-to-r from-accent/20 via-accent/10 to-accent/20 rounded-3xl blur-xl opacity-50" />
 
-      <div className="relative overflow-hidden rounded-2xl bg-[#0c0c0c]/70 border border-[#3f3f46]">
+        <div className="relative overflow-hidden rounded-2xl bg-black/70 border border">
         <div className="absolute inset-0">
-          <div className="absolute top-0 right-0 w-96 h-96 bg-[#eab308]/5 rounded-full blur-[100px] transform translate-x-1/2 -translate-y-1/2" />
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-[#eab308]/5 rounded-full blur-[80px] transform -translate-x-1/2 translate-y-1/2" />
+          <div className="absolute top-0 right-0 w-96 h-96 bg-accent/5 rounded-full blur-[100px] transform translate-x-1/2 -translate-y-1/2" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-accent/5 rounded-full blur-[80px] transform -translate-x-1/2 translate-y-1/2" />
         </div>
 
         <div className="relative p-6 md:p-8 lg:p-10">
@@ -66,7 +66,7 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
                   <button
                     key={idx}
                     onClick={() => setCurrentSlide(idx)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentSlide ? "w-8 bg-[#eab308]" : "w-3 bg-[#3f3f46] hover:bg-[#52525b]"
+                    className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentSlide ? "w-8 bg-accent" : "w-3 bg-zinc-700 hover:bg-zinc-600"
                       }`}
                   />
                 ))}
@@ -76,13 +76,13 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
                 <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 leading-tight" style={{ fontFamily: "var(--font-oswald)" }}>
                   {current.title}
                 </h3>
-                <p className="text-[#a1a1aa] text-sm sm:text-base md:text-lg leading-relaxed max-w-lg mx-auto lg:mx-0">
+                <p className="text-muted-foreground text-sm sm:text-base md:text-lg leading-relaxed max-w-lg mx-auto lg:mx-0">
                   {current.description}
                 </p>
               </div>
 
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-[#eab308]/10 border border-[#eab308]/30 rounded-lg mb-4 sm:mb-6">
-                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#eab308]" />
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-accent/10 border border-accent/30 rounded-lg mb-4 sm:mb-6">
+                <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-accent" />
                 <span className="text-xs sm:text-sm font-bold uppercase tracking-wider" style={{ fontFamily: "var(--font-oswald)" }}>
                   {current.highlight}
                 </span>
@@ -91,7 +91,7 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start w-full">
                 <button
                   onClick={() => document.getElementById('daily-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#27272a] hover:bg-[#3f3f46] text-white text-base sm:text-lg font-bold px-6 sm:px-8 py-4 sm:py-5 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
+                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-muted hover:bg-zinc-700 text-white text-base sm:text-lg font-bold px-6 sm:px-8 py-4 sm:py-5 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Play className="w-5 h-5" />
@@ -100,7 +100,7 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
                 </button>
                 <button
                   onClick={() => router.push('/register')}
-                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black text-base sm:text-lg font-bold px-6 sm:px-8 py-4 sm:py-5 rounded-xl transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(234,179,8,0.5)] cursor-pointer w-full sm:w-auto"
+                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-accent hover:bg-accent-hover text-black text-base sm:text-lg font-bold px-6 sm:px-8 py-4 sm:py-5 rounded-xl transition-all hover:scale-105 hover:shadow-[0_0_40px_rgba(234,179,8,0.5)] cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Zap className="w-5 h-5" />
@@ -111,34 +111,34 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
             </div>
 
             <div className="order-1 lg:order-2 flex-shrink-0">
-              <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-2xl overflow-hidden border-2 border-[#eab308]/30 shadow-[0_0_40px_rgba(234,179,8,0.3)] mx-auto lg:mx-0">
+              <div className="relative w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56 rounded-2xl overflow-hidden border-2 border-accent/30 shadow-[0_0_40px_rgba(234,179,8,0.3)] mx-auto lg:mx-0">
                 <img
                   src={current.image}
                   alt={current.title}
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-[#0c0c0c]/60 to-transparent" />
-                <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-6 sm:h-6 bg-[#eab308] rounded-full animate-pulse" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                <div className="absolute -top-1.5 -right-1.5 sm:-top-2 sm:-right-2 w-4 h-4 sm:w-6 sm:h-6 bg-accent rounded-full animate-pulse" />
               </div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-center gap-4 py-4 border-t border-[#27272a]">
+        <div className="flex items-center justify-center gap-4 py-4 border-t border-muted">
           <button
             onClick={() => setCurrentSlide((prev) => (prev - 1 + carouselSlides.length) % carouselSlides.length)}
-            className="p-2 rounded-lg bg-[#18181b] border border-[#3f3f46] hover:border-[#eab308] hover:bg-[#eab308]/10 transition-all"
+            className="p-2 rounded-lg bg-card border border hover:border-accent hover:bg-accent/10 transition-all"
           >
-            <ChevronDown className="w-5 h-5 text-[#71717a]" />
+            <ChevronDown className="w-5 h-5 text-icon" />
           </button>
-          <span className="text-[#52525b] text-sm font-mono">
+          <span className="text-zinc-600 text-sm font-mono">
             {currentSlide + 1} / {carouselSlides.length}
           </span>
           <button
             onClick={() => setCurrentSlide((prev) => (prev + 1) % carouselSlides.length)}
-            className="p-2 rounded-lg bg-[#18181b] border border-[#3f3f46] hover:border-[#eab308] hover:bg-[#eab308]/10 transition-all"
+            className="p-2 rounded-lg bg-card border border hover:border-accent hover:bg-accent/10 transition-all"
           >
-            <ChevronDown className="w-5 h-5 text-[#71717a] rotate-180" />
+            <ChevronDown className="w-5 h-5 text-icon rotate-180" />
           </button>
         </div>
       </div>

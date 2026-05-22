@@ -73,8 +73,8 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
       className={`
         w-full p-3 rounded-xl border-2 transition-all text-left cursor-pointer
         ${selected
-          ? "border-[#eab308] bg-[#eab308]/10"
-          : "border-[#3f3f46] hover:border-[#eab308]/50 bg-[#0a0a0a]"
+          ? "border-accent bg-accent/10"
+          : "border hover:border-accent/50 bg-background"
         }
       `}
     >
@@ -83,8 +83,8 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
           <div className={`
             w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
             ${selected 
-              ? "border-[#eab308] bg-[#eab308]" 
-              : "border-[#3f3f46]"
+              ? "border-accent bg-accent" 
+              : "border"
             }
           `}>
             {selected && (
@@ -98,30 +98,30 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
                 {exercise.name}
               </h4>
               {lastWeight && lastWeight > 0 && (
-                <span className="text-xs text-[#22c55e] bg-[#22c55e]/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                <span className="text-xs text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
                   Último: {lastWeight} kg
                 </span>
               )}
             </div>
             
             {exercise.muscles.length > 0 && (
-              <p className="text-sm text-[#eab308]/80 mt-1 truncate">
+              <p className="text-sm text-accent/80 mt-1 truncate">
                 {exercise.muscles.slice(0, 3).join(", ")}
               </p>
             )}
             
             {exercise.description && (
-              <p className="text-xs text-[#71717a] mt-1 line-clamp-2">
+              <p className="text-xs text-icon mt-1 line-clamp-2">
                 {exercise.description}
               </p>
             )}
             
             <div className="flex items-center gap-1 mt-2">
-              <Dumbbell className="w-3 h-3 text-[#06b6d4]" />
-              <span className="text-xs text-[#06b6d4] font-medium">
+              <Dumbbell className="w-3 h-3 text-cyan-500" />
+              <span className="text-xs text-cyan-500 font-medium">
                 Equipamiento:
               </span>
-              <span className="text-xs text-[#0891b2]">
+              <span className="text-xs text-cyan-600">
                 {translatedEquipment}
               </span>
             </div>
@@ -130,7 +130,7 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
 
         {exercise.imageUrl && (
           <div 
-            className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-[#18181b] group cursor-pointer"
+            className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-card group cursor-pointer"
             onClick={handleImageClick}
           >
             <Image
@@ -171,7 +171,7 @@ export function ImageModal({ imageUrl, onClose }: ImageModalProps) {
       </button>
       
       <div 
-        className="relative w-full max-w-3xl aspect-[4/3] bg-[#18181b] rounded-2xl overflow-hidden"
+        className="relative w-full max-w-3xl aspect-[4/3] bg-card rounded-2xl overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         <Image

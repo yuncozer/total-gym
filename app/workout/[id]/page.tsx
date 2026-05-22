@@ -168,10 +168,10 @@ const handleCompleteSet = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="min-h-screen bg-background text-white">
         <UserHeader showBack backHref="/" />
         <main className="pt-24 pb-12 px-4 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-[#eab308]" />
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
         </main>
       </div>
     );
@@ -184,43 +184,43 @@ const handleCompleteSet = () => {
   if (isWorkoutComplete) {
     const quote = getDailyQuote();
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white">
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#18181b] opacity-90" />
+      <div className="min-h-screen bg-background text-white">
+        <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-card opacity-90" />
         <UserHeader showBack backHref="/" />
         <main className="relative z-10 pt-24 pb-12 px-4">
           <div className="max-w-md mx-auto text-center">
-            <div className="w-24 h-24 bg-[#22c55e]/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-              <CheckCircle2 className="w-12 h-12 text-[#22c55e]" />
+            <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+              <CheckCircle2 className="w-12 h-12 text-green-500" />
             </div>
             <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
-              ENTRENAMIENTO <span className="text-[#22c55e]">COMPLETADO</span>
+              ENTRENAMIENTO <span className="text-green-500">COMPLETADO</span>
             </h1>
-            <p className="text-[#a1a1aa] mb-6">¡Felicitaciones! Has terminado tu rutina de hoy.</p>
+            <p className="text-muted-foreground mb-6">¡Felicitaciones! Has terminado tu rutina de hoy.</p>
             <div className="mb-6">
               <input
                 value={workoutName}
                 onChange={(e) => setWorkoutName(e.target.value.slice(0, 40))}
                 placeholder="Ponle nombre a tu entrenamiento"
                 maxLength={40}
-                className="w-full px-4 py-3 bg-[#18181b] border border-[#3f3f46] rounded-xl text-white text-center text-lg placeholder:text-[#52525b] focus:outline-none focus:border-[#eab308] transition-colors"
+                className="w-full px-4 py-3 bg-card border border rounded-xl text-white text-center text-lg placeholder:text-zinc-600 focus:outline-none focus:border-accent transition-colors"
               />
-              <p className="text-xs text-[#52525b] mt-1 text-right">{workoutName.length}/40</p>
+              <p className="text-xs text-zinc-600 mt-1 text-right">{workoutName.length}/40</p>
             </div>
-            <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-2xl p-6 mb-8">
-              <Flame className="w-8 h-8 text-[#eab308] mx-auto mb-4" />
+            <div className="bg-card/80 border border rounded-2xl p-6 mb-8">
+              <Flame className="w-8 h-8 text-accent mx-auto mb-4" />
               <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-rajdhani)" }}>&ldquo;{quote}&rdquo;</p>
             </div>
-            <div className="bg-[#18181b] rounded-xl p-4 mb-8">
-              <span className="text-sm text-[#71717a]">Series: </span>
-              <span className="text-sm font-bold text-[#22c55e]">{progress.completed}/{progress.total}</span>
+            <div className="bg-card rounded-xl p-4 mb-8">
+              <span className="text-sm text-icon">Series: </span>
+              <span className="text-sm font-bold text-green-500">{progress.completed}/{progress.total}</span>
             </div>
-            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowPhotoOverlay(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-[#eab308]/10 border-2 border-[#eab308] hover:bg-[#eab308]/20 cursor-pointer font-bold rounded-xl text-[#eab308] transition-all duration-300 animate-pulse">
+            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowPhotoOverlay(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-accent/10 border-2 border-accent hover:bg-accent/20 cursor-pointer font-bold rounded-xl text-accent transition-all duration-300 animate-pulse">
               <Share2 className="w-5 h-5" /> COMPARTIR
             </button>
-            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/historial"); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer font-bold rounded-xl">
+            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/historial"); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border hover:border-accent cursor-pointer font-bold rounded-xl">
               <History className="w-5 h-5" /> VER HISTORIAL
             </button>
-            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/"); }} className="flex items-center justify-center gap-2 w-full py-4 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl">
+            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/"); }} className="flex items-center justify-center gap-2 w-full py-4 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl">
               <Play className="w-5 h-5" /> IR AL INICIO
             </button>
           </div>
@@ -241,17 +241,17 @@ const handleCompleteSet = () => {
     const lastSet = currentSetIndex === selectedExercise.sets.length - 1;
 
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="min-h-screen bg-background text-white">
         <UserHeader showBack backHref="/" />
         <main className="pt-24 pb-12 px-4">
           <div className="max-w-md mx-auto">
-            <button onClick={handleBack} className="flex items-center gap-2 text-[#a1a1aa] hover:text-white cursor-pointer mb-6">
+            <button onClick={handleBack} className="flex items-center gap-2 text-muted-foreground hover:text-white cursor-pointer mb-6">
               <ArrowLeft className="w-4 h-4" /> Volver
             </button>
-            <div className="bg-[#18181b] rounded-xl p-6 border border-[#3f3f46]">
+            <div className="bg-card rounded-xl p-6 border border">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-bold text-2xl">{selectedExercise.name}</h2>
-                <span className="text-sm text-[#71717a]">{selectedExercise.sets.length} series</span>
+                <span className="text-sm text-icon">{selectedExercise.sets.length} series</span>
               </div>
               <div className="flex items-center justify-center gap-2 mb-6">
                 {selectedExercise.sets.map((_, idx) => (
@@ -261,10 +261,10 @@ const handleCompleteSet = () => {
                     onClick={() => goToSet(idx)}
                     disabled={idx > currentSetIndex && !selectedExercise.sets[idx].is_completed}
                     className={`w-10 h-10 rounded-full text-sm font-bold cursor-pointer ${idx === currentSetIndex
-                      ? "bg-[#eab308] text-black"
+                      ? "bg-accent text-black"
                       : selectedExercise.sets[idx].is_completed
-                        ? "bg-[#22c55e] text-black"
-                        : "bg-[#27272a] text-[#71717a]"
+                        ? "bg-green-500 text-black"
+                        : "bg-muted text-icon"
                       }`}
                   >
                     {idx + 1}
@@ -272,20 +272,20 @@ const handleCompleteSet = () => {
                 ))}
               </div>
               <div className="text-center mb-6">
-                <span className="text-sm text-[#71717a]">SERIE </span>
-                <span className="text-4xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                <span className="text-sm text-icon">SERIE </span>
+                <span className="text-4xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
                   {currentSetIndex + 1}
                 </span>
               </div>
               <div className="space-y-4 mb-4">
                 <div>
-                  <label className="block text-sm text-[#71717a] mb-2">REPETICIONES</label>
+                  <label className="block text-sm text-icon mb-2">REPETICIONES</label>
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
                       onClick={() => !set.is_completed && set.reps > 0 && updateSet('reps', set.reps - 1)}
                       disabled={set.is_completed || set.reps <= 0}
-                      className="w-12 h-12 bg-[#18181b] border border-[#3f3f46] rounded-xl text-white font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                      className="w-12 h-12 bg-card border border rounded-xl text-white font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
                     >
                       -
                     </button>
@@ -295,20 +295,20 @@ const handleCompleteSet = () => {
                       onChange={(e) => updateSet('reps', parseInt(e.target.value) || 0)}
                       disabled={set.is_completed}
                       inputMode="numeric"
-                      className="flex-1 w-full px-4 py-4 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white text-center text-2xl"
+                      className="flex-1 w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl"
                     />
                     <button
                       type="button"
                       onClick={() => !set.is_completed && updateSet('reps', set.reps + 1)}
                       disabled={set.is_completed}
-                      className="w-12 h-12 bg-[#18181b] border border-[#3f3f46] rounded-xl text-white font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                      className="w-12 h-12 bg-card border border rounded-xl text-white font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
                     >
                       +
                     </button>
                   </div>
                 </div>
                 <div>
-                  <label className="block text-sm text-[#71717a] mb-2">
+                  <label className="block text-sm text-icon mb-2">
                     {getEquipmentLabel(selectedExercise.equipment)}
                   </label>
                   <input
@@ -320,7 +320,7 @@ const handleCompleteSet = () => {
                       const lastW = getLastWeight(selectedExercise.exerciseId);
                       return lastW > 0 ? `Último: ${lastW} kg` : undefined;
                     })()}
-                    className="w-full px-4 py-4 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white text-center text-2xl placeholder:text-[#52525b]"
+                    className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
                   />
                 </div>
               </div>
@@ -329,7 +329,7 @@ const handleCompleteSet = () => {
                 <button
                   type="button"
                   onClick={handleAddExtraSet}
-                  className="flex items-center justify-center gap-2 w-full py-3 mb-4 border border-[#eab308] text-[#eab308] hover:bg-[#eab308]/10 cursor-pointer rounded-xl"
+                  className="flex items-center justify-center gap-2 w-full py-3 mb-4 border border-accent text-accent hover:bg-accent/10 cursor-pointer rounded-xl"
                 >
                   <Plus className="w-4 h-4" />Agregar serie extra
                 </button>
@@ -339,14 +339,14 @@ const handleCompleteSet = () => {
                 <button
                   type="button"
                   onClick={() => setAsLastSet(!isLastSet)}
-                  className={`flex items-center gap-3 w-full p-4 mb-4 rounded-xl border-2 transition-all cursor-pointer ${isLastSet ? "bg-[#eab308]/20 border-[#eab308]" : "bg-[#18181b] border-[#3f3f46] hover:border-[#eab308]"
+                  className={`flex items-center gap-3 w-full p-4 mb-4 rounded-xl border-2 transition-all cursor-pointer ${isLastSet ? "bg-accent/20 border-accent" : "bg-card border hover:border-accent"
                     }`}
                 >
-                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center ${isLastSet ? "bg-[#eab308] border-[#eab308]" : "border-[#71717a]"
+                  <div className={`w-6 h-6 rounded-md border-2 flex items-center justify-center ${isLastSet ? "bg-accent border-accent" : "border-icon"
                     }`}>
                     {isLastSet && <Check className="w-4 h-4 text-black" />}
                   </div>
-                  <span className={`font-medium ${isLastSet ? "text-[#eab308]" : "text-[#a1a1aa]"}`}>
+                  <span className={`font-medium ${isLastSet ? "text-accent" : "text-muted-foreground"}`}>
                     Marcar como última serie
                   </span>
                 </button>
@@ -356,31 +356,31 @@ const handleCompleteSet = () => {
                 <button
                   onClick={handleCompleteSet}
                   disabled={saving || !canCompleteSet}
-                  className="flex items-center justify-center gap-3 w-full py-5 bg-[#22c55e] hover:bg-[#16a34a] disabled:bg-[#3f3f46] disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl mt-4"
+                  className="flex items-center justify-center gap-3 w-full py-5 bg-green-500 hover:bg-green-600 disabled:bg-zinc-700 disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl mt-4"
                 >
                   {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Check className="w-5 h-5" /> SERIE COMPLETADA</>}
                 </button>
               )}
 
               {timer.descansando && (
-                <div className="mt-4 p-4 bg-[#18181b] rounded-xl border border-[#3f3f46]">
+                <div className="mt-4 p-4 bg-card rounded-xl border border">
                   {set.is_completed && (
-                    <div className="text-center mb-3 pb-3 border-b border-[#3f3f46]">
-                      <span className="text-[#22c55e] font-bold text-lg">
+                    <div className="text-center mb-3 pb-3 border-b border">
+                      <span className="text-green-500 font-bold text-lg">
                         {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
                       </span>
-                      <div className="text-sm text-[#22c55e]/70 mt-1">Serie completada</div>
+                      <div className="text-sm text-green-500/70 mt-1">Serie completada</div>
                     </div>
                   )}
                   <div className="text-center mb-3">
-                    <span className="text-sm text-[#71717a]">Descanso entre series</span>
-                    <div className="text-6xl font-bold text-[#eab308] mt-2" style={{ fontFamily: "var(--font-oswald)", textShadow: "0 0 20px rgba(234, 179, 8, 0.4)" }}>
+                    <span className="text-sm text-icon">Descanso entre series</span>
+                    <div className="text-6xl font-bold text-accent mt-2" style={{ fontFamily: "var(--font-oswald)", textShadow: "0 0 20px rgba(234, 179, 8, 0.4)" }}>
                       {Math.floor(timer.segundos / 60).toString().padStart(2, '0')}:{(timer.segundos % 60).toString().padStart(2, '0')}
                     </div>
                   </div>
                   <button
                     onClick={handleNextSet}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl"
+                    className="flex items-center justify-center gap-2 w-full py-3 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl"
                   >
                     <Play className="w-4 h-4" /> COMENZAR SIGUIENTE SERIE
                   </button>
@@ -388,17 +388,17 @@ const handleCompleteSet = () => {
               )}
 
               {!timer.descansando && set.is_completed && !isExerciseComplete && (
-                <div className="text-center py-4 text-[#22c55e]">
+                <div className="text-center py-4 text-green-500">
                   <span className="font-bold text-lg">
                     {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
                   </span>
-                  <div className="text-sm text-[#22c55e]/70 mt-1">Serie completada</div>
+                  <div className="text-sm text-green-500/70 mt-1">Serie completada</div>
                 </div>
               )}
 
               {isExerciseComplete && (
                 <div className="text-center py-4">
-                  <div className="flex items-center justify-center gap-2 text-[#22c55e] mb-4">
+                  <div className="flex items-center justify-center gap-2 text-green-500 mb-4">
                     <span className="text-2xl">🏆</span>
                     <span className="font-bold">¡Ejercicio completado!</span>
                   </div>
@@ -406,7 +406,7 @@ const handleCompleteSet = () => {
                     onClick={() => {
                       deselectExercise();
                     }}
-                    className="text-[#eab308] font-bold cursor-pointer"
+                    className="text-accent font-bold cursor-pointer"
                   >
                     Elegir otro
                   </button>
@@ -427,23 +427,23 @@ const handleCompleteSet = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-background text-white">
       <UserHeader showBack backHref="/" />
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-md mx-auto">
           <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
-            TU <span className="text-[#eab308]">ENTRENAMIENTO</span>
+            TU <span className="text-accent">ENTRENAMIENTO</span>
           </h1>
-          <p className="text-[#a1a1aa] mb-8">Elige un ejercicio</p>
+          <p className="text-muted-foreground mb-8">Elige un ejercicio</p>
 
-          <div className="bg-[#18181b] rounded-xl p-4 mb-6">
+          <div className="bg-card rounded-xl p-4 mb-6">
             <div className="flex justify-between mb-2">
-              <span className="text-sm text-[#71717a]">Progreso</span>
-              <span className="text-sm font-bold text-[#eab308]">{progress.completed}/{progress.total}</span>
+              <span className="text-sm text-icon">Progreso</span>
+              <span className="text-sm font-bold text-accent">{progress.completed}/{progress.total}</span>
             </div>
-            <div className="h-2 bg-[#27272a] rounded-full">
+            <div className="h-2 bg-muted rounded-full">
               <div
-                className="h-full bg-[#eab308] transition-all"
+                className="h-full bg-accent transition-all"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
@@ -461,27 +461,27 @@ const handleCompleteSet = () => {
                     type="button"
                     onClick={() => selectExercise(exercise)}
                     className={`w-full p-5 pr-14 rounded-xl border-2 text-left cursor-pointer ${isComplete
-                      ? "bg-[#22c55e]/10 border-[#22c55e]/30"
-                      : "bg-[#18181b] border-[#3f3f46] hover:border-[#eab308]"
+                      ? "bg-green-500/10 border-green-500/30"
+                      : "bg-card border hover:border-accent"
                       }`}
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         {isComplete ? (
-                          <div className="w-10 h-10 bg-[#22c55e] rounded-full flex justify-center items-center">
+                          <div className="w-10 h-10 bg-green-500 rounded-full flex justify-center items-center">
                             <Check className="w-5 h-5 text-black" />
                           </div>
                         ) : (
-                          <div className="w-10 h-10 bg-[#27272a] rounded-full flex justify-center items-center">
-                            <Target className="w-5 h-5 text-[#71717a]" />
+                          <div className="w-10 h-10 bg-muted rounded-full flex justify-center items-center">
+                            <Target className="w-5 h-5 text-icon" />
                           </div>
                         )}
                         <div>
                           <h3 className="font-bold text-lg">{exercise.name}</h3>
-                          <p className="text-sm text-[#71717a]">{total} series</p>
+                          <p className="text-sm text-icon">{total} series</p>
                         </div>
                       </div>
-                      <span className={`text-lg font-bold ${isComplete ? "text-[#22c55e]" : "text-[#eab308]"}`}>
+                      <span className={`text-lg font-bold ${isComplete ? "text-green-500" : "text-accent"}`}>
                         {completados}/{total}
                       </span>
                     </div>
@@ -493,7 +493,7 @@ const handleCompleteSet = () => {
                       setDeleteConfirmExercise(exercise);
                     }}
                     disabled={saving}
-                    className="absolute top-1 right-1 p-2 text-[#71717a] hover:text-[#ef4444] hover:bg-[#ef4444]/10 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
+                    className="absolute top-1 right-1 p-2 text-icon hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
                     title="Eliminar ejercicio"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -503,7 +503,7 @@ const handleCompleteSet = () => {
             })}
           </div>
 
-          <div className="mt-8 flex justify-between text-sm text-[#71717a]">
+          <div className="mt-8 flex justify-between text-sm text-icon">
             <span>{progress.completed} completadas</span>
             <span>{progress.total - progress.completed} restantes</span>
           </div>

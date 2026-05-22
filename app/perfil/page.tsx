@@ -214,25 +214,25 @@ export default function PerfilPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-[#eab308] border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-background text-white flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full" />
       </div>
     );
   }
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white">
+      <div className="min-h-screen bg-background text-white">
         <UserHeader showBack />
         <main className="pt-24 pb-12 px-4 flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-[#eab308]" />
+          <Loader2 className="w-8 h-8 animate-spin text-accent" />
         </main>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-background text-white">
       <UserHeader showBack />
       
       <main className="pt-24 pb-12 px-4">
@@ -242,70 +242,70 @@ export default function PerfilPage() {
               className="text-3xl font-bold mb-2"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              MI <span className="text-[#eab308]">PERFIL</span>
+              MI <span className="text-accent">PERFIL</span>
             </h1>
-            <p className="text-[#a1a1aa]">
+            <p className="text-muted-foreground">
               Actualiza tus datos personales
             </p>
           </div>
 
           {error && (
-            <div className="flex items-center gap-2 p-3 mb-4 bg-[#ef4444]/10 border border-[#ef4444]/30 rounded-xl text-[#ef4444]">
+            <div className="flex items-center gap-2 p-3 mb-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-500">
               <AlertCircle className="w-5 h-5 flex-shrink-0" />
               <span className="text-sm">{error}</span>
             </div>
           )}
 
           {success && (
-            <div className="flex items-center gap-2 p-3 mb-4 bg-[#22c55e]/10 border border-[#22c55e]/30 rounded-xl text-[#22c55e]">
+            <div className="flex items-center gap-2 p-3 mb-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-500">
               <span className="text-sm">Datos guardados correctamente</span>
             </div>
           )}
 
-          <div className="bg-[#18181b] rounded-xl p-4 mb-6 border border-[#3f3f46]">
-            <h2 className="text-sm font-bold text-[#71717a] uppercase mb-4">ESTADÍSTICAS</h2>
+          <div className="bg-card rounded-xl p-4 mb-6 border border">
+            <h2 className="text-sm font-bold text-icon uppercase mb-4">ESTADÍSTICAS</h2>
             <div className="grid grid-cols-2 gap-4">
               <div className="text-center">
-                <Flame className="w-6 h-6 text-[#eab308] mx-auto mb-1" />
+                <Flame className="w-6 h-6 text-accent mx-auto mb-1" />
                 <span className="text-2xl font-bold">{stats.weekWorkouts}</span>
-                <p className="text-xs text-[#71717a]">Esta semana</p>
+                <p className="text-xs text-icon">Esta semana</p>
               </div>
               <div className="text-center">
-                <CalendarDays className="w-6 h-6 text-[#eab308] mx-auto mb-1" />
+                <CalendarDays className="w-6 h-6 text-accent mx-auto mb-1" />
                 <span className="text-2xl font-bold">{stats.monthWorkouts}</span>
-                <p className="text-xs text-[#71717a]">Este mes</p>
+                <p className="text-xs text-icon">Este mes</p>
               </div>
               <div className="text-center">
-                <TrendingUp className="w-6 h-6 text-[#22c55e] mx-auto mb-1" />
-                <span className="text-2xl font-bold text-[#22c55e]">{stats.streak}</span>
-                <p className="text-xs text-[#71717a]">Días racha</p>
+                <TrendingUp className="w-6 h-6 text-green-500 mx-auto mb-1" />
+                <span className="text-2xl font-bold text-green-500">{stats.streak}</span>
+                <p className="text-xs text-icon">Días racha</p>
               </div>
               <div className="text-center">
-                <Dumbbell className="w-6 h-6 text-[#eab308] mx-auto mb-1" />
+                <Dumbbell className="w-6 h-6 text-accent mx-auto mb-1" />
                 <span className="text-2xl font-bold">{stats.totalVolume.toLocaleString()}</span>
-                <p className="text-xs text-[#71717a]">Volumen (kg)</p>
+                <p className="text-xs text-icon">Volumen (kg)</p>
               </div>
             </div>
           </div>
 
           <div className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-[#a1a1aa] mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Email
               </label>
               <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#71717a]" />
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
                 <input
                   type="email"
                   value={profile.email}
                   readOnly
-                  className="w-full pl-12 pr-4 py-3 bg-[#27272a] border border-[#3f3f46] rounded-xl text-[#71717a] cursor-not-allowed"
+                  className="w-full pl-12 pr-4 py-3 bg-muted border border rounded-xl text-icon cursor-not-allowed"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#a1a1aa] mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Sexo
               </label>
               <div className="flex gap-3">
@@ -314,8 +314,8 @@ export default function PerfilPage() {
                   onClick={() => setProfile(p => ({ ...p, gender: "M" }))}
                   className={`flex-1 py-3 rounded-xl font-bold transition-colors cursor-pointer ${
                     profile.gender === "M" 
-                      ? "bg-[#eab308] text-black" 
-                      : "bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:border-[#eab308]"
+                      ? "bg-accent text-black" 
+                      : "bg-card border border text-muted-foreground hover:border-accent"
                   }`}
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
@@ -326,8 +326,8 @@ export default function PerfilPage() {
                   onClick={() => setProfile(p => ({ ...p, gender: "F" }))}
                   className={`flex-1 py-3 rounded-xl font-bold transition-colors cursor-pointer ${
                     profile.gender === "F" 
-                      ? "bg-[#eab308] text-black" 
-                      : "bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:border-[#eab308]"
+                      ? "bg-accent text-black" 
+                      : "bg-card border border text-muted-foreground hover:border-accent"
                   }`}
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
@@ -338,40 +338,40 @@ export default function PerfilPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-[#a1a1aa] mb-2">
-                  Altura (cm)
-                </label>
-                <div className="relative">
-                  <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#71717a]" />
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
+                Altura (cm)
+              </label>
+              <div className="relative">
+                <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
                   <input
-                    type="number"
-                    value={profile.height_cm || ""}
-                    onChange={(e) => setProfile(p => ({ ...p, height_cm: e.target.value ? parseInt(e.target.value) : null }))}
-                    placeholder="170"
-                    className="w-full pl-12 pr-4 py-3 bg-[#18181b] border border-[#3f3f46] rounded-xl text-white placeholder-[#71717a] focus:outline-none focus:border-[#eab308] transition-colors"
+                  type="number"
+                  value={profile.height_cm || ""}
+                  onChange={(e) => setProfile(p => ({ ...p, height_cm: e.target.value ? parseInt(e.target.value) : null }))}
+                  placeholder="170"
+                  className="w-full pl-12 pr-4 py-3 bg-card border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
                   />
                 </div>
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-[#a1a1aa] mb-2">
-                  Peso (kg)
-                </label>
-                <div className="relative">
-                  <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[#71717a]" />
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
+                Peso (kg)
+              </label>
+              <div className="relative">
+                <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
                   <input
-                    type="number"
-                    value={profile.weight_kg || ""}
-                    onChange={(e) => setProfile(p => ({ ...p, weight_kg: e.target.value ? parseFloat(e.target.value) : null }))}
-                    placeholder="70"
-                    className="w-full pl-12 pr-4 py-3 bg-[#18181b] border border-[#3f3f46] rounded-xl text-white placeholder-[#71717a] focus:outline-none focus:border-[#eab308] transition-colors"
+                  type="number"
+                  value={profile.weight_kg || ""}
+                  onChange={(e) => setProfile(p => ({ ...p, weight_kg: e.target.value ? parseFloat(e.target.value) : null }))}
+                  placeholder="70"
+                  className="w-full pl-12 pr-4 py-3 bg-card border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
                   />
                 </div>
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#a1a1aa] mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Nivel de experiencia
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -386,8 +386,8 @@ export default function PerfilPage() {
                     onClick={() => setProfile(p => ({ ...p, level: nivel.value }))}
                     className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                       profile.level === nivel.value
-                        ? "bg-[#eab308] text-black"
-                        : "bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:border-[#eab308]"
+                        ? "bg-accent text-black"
+                        : "bg-card border border text-muted-foreground hover:border-accent"
                     }`}
                   >
                     {nivel.label}
@@ -397,7 +397,7 @@ export default function PerfilPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-[#a1a1aa] mb-2">
+              <label className="block text-sm font-medium text-muted-foreground mb-2">
                 Objetivo
               </label>
               <div className="grid grid-cols-3 gap-2">
@@ -412,8 +412,8 @@ export default function PerfilPage() {
                     onClick={() => setProfile(p => ({ ...p, goal: obj.value }))}
                     className={`py-2 px-3 rounded-lg text-sm font-medium transition-colors cursor-pointer ${
                       profile.goal === obj.value
-                        ? "bg-[#eab308] text-black"
-                        : "bg-[#18181b] border border-[#3f3f46] text-[#a1a1aa] hover:border-[#eab308]"
+                        ? "bg-accent text-black"
+                        : "bg-card border border text-muted-foreground hover:border-accent"
                     }`}
                   >
                     {obj.label}
@@ -425,7 +425,7 @@ export default function PerfilPage() {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center justify-center gap-2 w-full py-4 bg-[#eab308] hover:bg-[#ca9a04] disabled:bg-[#3f3f46] disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl transition-colors"
+              className="flex items-center justify-center gap-2 w-full py-4 bg-accent hover:bg-accent-hover disabled:bg-zinc-700 disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl transition-colors"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
               {saving ? (
@@ -441,21 +441,21 @@ export default function PerfilPage() {
               )}
             </button>
 
-            <div className="bg-[#18181b] border border-[#3f3f46] rounded-xl p-4">
+            <div className="bg-card border border rounded-xl p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-[#eab308]/10 rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center">
                     {profile.notify_enabled ? (
-                      <Bell className="w-5 h-5 text-[#eab308]" />
+                      <Bell className="w-5 h-5 text-accent" />
                     ) : (
-                      <BellOff className="w-5 h-5 text-[#71717a]" />
+                      <BellOff className="w-5 h-5 text-icon" />
                     )}
                   </div>
                   <div>
                     <p className="text-white font-medium" style={{ fontFamily: "var(--font-rajdhani)" }}>
                       Recordatorio Diario
                     </p>
-                    <p className="text-[#a1a1aa] text-sm">
+                    <p className="text-muted-foreground text-sm">
                       {profile.notify_enabled ? "Activado" : "Desactivado"}
                     </p>
                   </div>
@@ -480,7 +480,7 @@ export default function PerfilPage() {
                   className={`px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                     profile.notify_enabled
                       ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                      : "bg-[#eab308] text-black hover:bg-[#ca9a04]"
+                      : "bg-accent text-black hover:bg-accent-hover"
                   }`}
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >

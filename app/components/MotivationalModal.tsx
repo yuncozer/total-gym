@@ -96,16 +96,16 @@ export function MotivationalModal({
         }`}
       >
         <div className="relative">
-          <div className="absolute -inset-1 bg-gradient-to-r from-[#eab308] via-[#fbbf24] to-[#eab308] rounded-2xl blur-lg opacity-50 animate-pulse" />
+          <div className="absolute -inset-1 bg-gradient-to-r from-accent via-amber-400 to-accent rounded-2xl blur-lg opacity-50 animate-pulse" />
           
-          <div className="relative bg-[#18181b] rounded-2xl p-8 md:p-12 border border-[#eab308]/50 shadow-2xl overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#eab308]/10 via-transparent to-transparent" />
+          <div className="relative bg-card rounded-2xl p-8 md:p-12 border border-accent/50 shadow-2xl overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-transparent to-transparent" />
             
             <div className="absolute inset-0 overflow-hidden">
               {PARTICLE_POSITIONS.map((particle, i) => (
                 <div
                   key={i}
-                  className="absolute w-2 h-2 bg-[#eab308] rounded-full animate-particle"
+                  className="absolute w-2 h-2 bg-accent rounded-full animate-particle"
                   style={{
                     left: `${50 + (Math.sin(particle.angle * Math.PI / 180) * 40)}%`,
                     top: `${50 + (Math.cos(particle.angle * Math.PI / 180) * 40)}%`,
@@ -121,17 +121,17 @@ export function MotivationalModal({
               <div className={`mb-6 transition-transform duration-500 ${
                 animating ? "animate-bounce-in" : ""
               }`}>
-                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-full shadow-lg animate-icon-pulse">
+                <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-accent to-accent-hover rounded-full shadow-lg animate-icon-pulse">
                   <IconComponent className="w-12 h-12 text-black" strokeWidth={2.5} />
                 </div>
               </div>
 
-              <h2 className="text-4xl md:text-5xl font-bold text-[#eab308] mb-3 animate-text-glow"
+              <h2 className="text-4xl md:text-5xl font-bold text-accent mb-3 animate-text-glow"
                 style={{ fontFamily: "var(--font-oswald, sans-serif)" }}>
                 {phrase}
               </h2>
               
-              <p className="text-xl md:text-2xl text-[#a1a1aa] animate-fade-in-delayed">
+              <p className="text-xl md:text-2xl text-muted-foreground animate-fade-in-delayed">
                 {subPhrase}
               </p>
 
@@ -139,7 +139,7 @@ export function MotivationalModal({
                 {[0, 1, 2].map((i) => (
                   <div
                     key={i}
-                    className="w-3 h-3 bg-[#eab308] rounded-full animate-ping"
+                    className="w-3 h-3 bg-accent rounded-full animate-ping"
                     style={{ animationDelay: `${i * 0.2}s` }}
                   />
                 ))}
