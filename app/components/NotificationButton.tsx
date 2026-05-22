@@ -93,7 +93,7 @@ export function NotificationButton({ userId }: NotificationButtonProps) {
     <>
       <button
         onClick={() => setExpanded(true)}
-        className="fixed bottom-6 right-6 z-[9999] bg-[#eab308] hover:bg-[#ca9a04] w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all cursor-pointer"
+        className="fixed bottom-6 right-6 z-[9999] bg-accent hover:bg-accent-hover w-14 h-14 rounded-full flex items-center justify-center shadow-lg hover:scale-110 transition-all cursor-pointer"
         title="Activar recordatorio"
       >
         <Bell className="w-6 h-6 text-black" />
@@ -102,17 +102,17 @@ export function NotificationButton({ userId }: NotificationButtonProps) {
       {expanded && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => setExpanded(false)} />
-          <div className="relative bg-[#18181b] border border-[#eab308]/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
+          <div className="relative bg-card border border-accent/30 rounded-2xl p-6 w-full max-w-sm shadow-2xl">
             <button
               onClick={() => setExpanded(false)}
-              className="absolute top-4 right-4 text-[#71717a] hover:text-white"
+              className="absolute top-4 right-4 text-icon hover:text-white"
             >
               <X className="w-5 h-5" />
             </button>
 
             <div className="text-center mb-6">
-              <div className="w-16 h-16 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Bell className="w-8 h-8 text-[#eab308]" />
+              <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Bell className="w-8 h-8 text-accent" />
               </div>
               <h2 
                 className="text-2xl font-bold text-white"
@@ -120,7 +120,7 @@ export function NotificationButton({ userId }: NotificationButtonProps) {
               >
                 RECORDATORIO DIARIO
               </h2>
-              <p className="text-[#a1a1aa] mt-2">
+              <p className="text-muted-foreground mt-2">
                 Te avisaremos a las 7PM si no has entrenado hoy
               </p>
               {error && (
@@ -134,7 +134,7 @@ export function NotificationButton({ userId }: NotificationButtonProps) {
             <button
               onClick={handleActivate}
               disabled={loading || subLoading}
-              className="w-full flex items-center justify-center gap-2 bg-[#eab308] hover:bg-[#ca9a04] disabled:bg-[#3f3f46] disabled:cursor-not-allowed cursor-pointer text-black font-bold py-4 rounded-xl transition-all"
+              className="w-full flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover disabled:bg-zinc-700 disabled:cursor-not-allowed cursor-pointer text-black font-bold py-4 rounded-xl transition-all"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
               {loading || subLoading ? (

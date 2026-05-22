@@ -63,23 +63,23 @@ export function NotificationBanner({ userId, onEnabled }: NotificationBannerProp
 
   return (
     <div className="fixed bottom-6 left-4 right-4 z-40 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md">
-      <div className="bg-[#18181b] border border-[#eab308]/30 rounded-xl p-4 shadow-xl backdrop-blur-lg">
+      <div className="bg-card border border-accent/30 rounded-xl p-4 shadow-xl backdrop-blur-lg">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#eab308]/10 rounded-full flex items-center justify-center flex-shrink-0">
-            <Bell className="w-5 h-5 text-[#eab308]" />
+          <div className="w-10 h-10 bg-accent/10 rounded-full flex items-center justify-center flex-shrink-0">
+            <Bell className="w-5 h-5 text-accent" />
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-white text-sm font-medium" style={{ fontFamily: "var(--font-rajdhani)" }}>
               Recordatorio vespertino
             </p>
-            <p className="text-[#a1a1aa] text-xs truncate">
+            <p className="text-muted-foreground text-xs truncate">
               Te avisamos si no has entrenado
             </p>
           </div>
           <button
             onClick={handleToggle}
             disabled={loading || subLoading}
-            className="flex items-center gap-2 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-4 py-2 rounded-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+            className="flex items-center gap-2 bg-accent hover:bg-accent-hover text-black font-bold px-4 py-2 rounded-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
             style={{ fontFamily: "var(--font-oswald)" }}
           >
             {loading || subLoading ? (

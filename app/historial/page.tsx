@@ -65,12 +65,12 @@ const hasWorkoutsThisWeek = (workouts: WorkoutSummary[]): boolean => {
 };
 
 const getHeatmapColor = (count: number, max: number) => {
-  if (count === 0) return "bg-[#18181b]";
+  if (count === 0) return "bg-card";
   const intensity = max > 0 ? (count / max) : 0;
-  if (intensity <= 0.25) return "bg-[#eab308]/30";
-  if (intensity <= 0.5) return "bg-[#eab308]/50";
-  if (intensity <= 0.75) return "bg-[#eab308]/70";
-  return "bg-[#eab308]";
+  if (intensity <= 0.25) return "bg-accent/30";
+  if (intensity <= 0.5) return "bg-accent/50";
+  if (intensity <= 0.75) return "bg-accent/70";
+  return "bg-accent";
 };
 
 const formatDateShort = (date: Date) => {
@@ -101,20 +101,20 @@ const WeekActivityChart = ({
   };
 
   return (
-    <div className="mb-6 p-4 bg-[#18181b] rounded-xl border border-[#3f3f46]">
+    <div className="mb-6 p-4 bg-card rounded-xl border border">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-[#a1a1aa]">Actividad semanal</span>
+        <span className="text-sm font-medium text-muted-foreground">Actividad semanal</span>
         <div className="flex items-center gap-3">
           {selectedDay !== null && (
             <button
               onClick={() => onDayClick(null)}
-              className="flex items-center gap-1 text-xs text-[#a1a1aa] hover:text-white transition-colors cursor-pointer"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-3 h-3" />
               Limpiar
             </button>
           )}
-          <span className="flex items-center gap-1 text-sm text-[#eab308]">
+          <span className="flex items-center gap-1 text-sm text-accent">
             <Flame className="w-4 h-4" />
             {activity.reduce((a, b) => a + b, 0)} workouts
           </span>
@@ -133,7 +133,7 @@ const WeekActivityChart = ({
             <div key={i} className="flex-1 flex flex-col items-center gap-1">
               <button
                 onClick={() => onDayClick(hasWorkouts ? i : null)}
-                className={`w-full aspect-square rounded-md ${getHeatmapColor(count, maxActivity)} ${isToday ? "ring-2 ring-[#eab308] ring-offset-2 ring-offset-[#18181b]" : ""} ${isSelected ? "ring-2 ring-white ring-offset-1 ring-offset-[#18181b]" : ""} transition-all duration-300 hover:scale-105 cursor-pointer`}
+                className={`w-full aspect-square rounded-md ${getHeatmapColor(count, maxActivity)} ${isToday ? "ring-2 ring-accent ring-offset-2 ring-offset-card" : ""} ${isSelected ? "ring-2 ring-white ring-offset-1 ring-offset-card" : ""} transition-all duration-300 hover:scale-105 cursor-pointer`}
               >
                 {count > 0 ? (
                   <div className="w-full h-full flex items-center justify-center">
@@ -141,14 +141,14 @@ const WeekActivityChart = ({
                   </div>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
-                    <span className="text-[#3f3f46] text-[10px]">-</span>
+                    <span className="text-zinc-700 text-[10px]">-</span>
                   </div>
                 )}
               </button>
-              <span className={`text-xs ${isToday ? "text-[#eab308] font-bold" : "text-[#71717a]"}`}>
+              <span className={`text-xs ${isToday ? "text-accent font-bold" : "text-icon"}`}>
                 {DAY_LABELS[i]}
               </span>
-              <span className="text-[10px] text-[#52525b]">
+              <span className="text-[10px] text-zinc-600">
                 {formatDateShort(date).replace(".", "")}
               </span>
             </div>
@@ -326,8 +326,8 @@ export default function HistorialPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] text-white flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-[#eab308] border-t-transparent rounded-full" />
+      <div className="min-h-screen bg-background text-white flex items-center justify-center">
+        <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -353,16 +353,16 @@ export default function HistorialPage() {
   const weeklyCount = activity.reduce((a, b) => a + b, 0);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-background text-white">
       <UserHeader showBack backHref="/" />
 
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
-              MI <span className="text-[#eab308]">HISTORIAL</span>
+              MI <span className="text-accent">HISTORIAL</span>
             </h1>
-            <p className="text-[#a1a1aa]">Tus entrenamientos registrados</p>
+            <p className="text-muted-foreground">Tus entrenamientos registrados</p>
           </div>
 
           {!loading && workouts.length > 0 && weeklyCount > 0 && (
@@ -381,7 +381,7 @@ export default function HistorialPage() {
             <div className="mb-6">
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="flex items-center justify-center gap-2 w-full py-3 bg-[#18181b] border border-[#3f3f46] rounded-xl text-[#a1a1aa] hover:text-white hover:border-[#eab308]/50 transition-all cursor-pointer"
+                className="flex items-center justify-center gap-2 w-full py-3 bg-card border border rounded-xl text-muted-foreground hover:text-white hover:border-accent/50 transition-all cursor-pointer"
               >
                 <Filter className="w-4 h-4" />
                 <span className="text-sm font-medium">Filtrar por fecha</span>
@@ -389,7 +389,7 @@ export default function HistorialPage() {
               </button>
 
               {showFilters && (
-                <div className="mt-3 p-4 bg-[#18181b] border border-[#3f3f46] rounded-xl">
+                <div className="mt-3 p-4 bg-card border border rounded-xl">
                   <div className="flex flex-wrap gap-2">
                     {DATE_FILTERS.map((filter) => (
                       <button
@@ -399,9 +399,9 @@ export default function HistorialPage() {
                           if (filter.id !== "all") setShowHistory(true);
                         }}
                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all cursor-pointer ${
-                          activeFilter === filter.id
-                            ? "bg-[#eab308] text-black"
-                            : "bg-[#27272a] text-[#a1a1aa] hover:bg-[#3f3f46]"
+                           activeFilter === filter.id
+                            ? "bg-accent text-black"
+                            : "bg-muted text-muted-foreground hover:bg-zinc-700"
                         }`}
                       >
                         {filter.label}
@@ -409,7 +409,7 @@ export default function HistorialPage() {
                     ))}
                   </div>
                   {hasActiveFilters && (
-                    <button onClick={clearFilters} className="mt-3 flex items-center gap-1 text-sm text-[#ef4444] hover:text-white cursor-pointer">
+                    <button onClick={clearFilters} className="mt-3 flex items-center gap-1 text-sm text-red-500 hover:text-white cursor-pointer">
                       <X className="w-4 h-4" />
                       Limpiar filtro
                     </button>
@@ -422,15 +422,15 @@ export default function HistorialPage() {
           {!loading && workouts.length === 0 && (
             <div className="text-center py-12">
               <div className="mb-4">
-                <div className="w-20 h-20 bg-[#18181b] rounded-full flex items-center justify-center mx-auto border-2 border-dashed border-[#eab308]/30">
-                  <Dumbbell className="w-10 h-10 text-[#eab308]/50" />
+                <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mx-auto border-2 border-dashed border-accent/30">
+                  <Dumbbell className="w-10 h-10 text-accent/50" />
                 </div>
               </div>
               <h3 className="text-lg font-semibold text-white mb-2">Sin entrenamientos aún</h3>
-              <p className="text-[#71717a] mb-6">Comienza tu primer workout para ver tu progreso</p>
+              <p className="text-icon mb-6">Comienza tu primer workout para ver tu progreso</p>
               <button
                 onClick={() => router.push("/entrenamiento")}
-                className="px-6 py-3 bg-[#eab308] text-black font-bold rounded-xl hover:bg-[#ca9a04] transition-colors cursor-pointer"
+                className="px-6 py-3 bg-accent text-black font-bold rounded-xl hover:bg-accent-hover transition-colors cursor-pointer"
               >
                 Ir a entrenar
               </button>
@@ -441,7 +441,7 @@ export default function HistorialPage() {
             <div>
               <button
                 onClick={() => setShowHistory(false)}
-                className="flex items-center gap-2 text-[#a1a1aa] hover:text-white text-sm mb-4 cursor-pointer"
+                className="flex items-center gap-2 text-muted-foreground hover:text-white text-sm mb-4 cursor-pointer"
               >
                 <ChevronUp className="w-4 h-4 rotate-90" />
                 Volver al resumen
@@ -449,7 +449,7 @@ export default function HistorialPage() {
               <div className="space-y-8">
                 {Object.entries(groupedWorkouts).map(([month, monthWorkouts]) => (
                   <div key={month}>
-                    <h2 className="text-sm font-bold text-[#71717a] uppercase mb-3">{month}</h2>
+                      <h2 className="text-sm font-bold text-icon uppercase mb-3">{month}</h2>
                     <div className="space-y-3">
                       {monthWorkouts.map((workout) => {
                         const stats = getWorkoutStats(workout);
@@ -458,12 +458,12 @@ export default function HistorialPage() {
                         const groupedSets = getGroupedSets(workout.exercises || []);
 
                         return (
-                          <div key={workout.id} className="w-full rounded-xl bg-[#18181b] border border-[#3f3f46] overflow-hidden hover:border-[#eab308]/50 transition-all duration-200">
+                          <div key={workout.id} className="w-full rounded-xl bg-card border border overflow-hidden hover:border-accent/50 transition-all duration-200">
                             <button onClick={() => toggleWorkout(workout.id)} className="w-full p-4 text-left cursor-pointer">
                               <div className="flex items-center justify-between mb-2">
                                 <div>
                                   <span className="font-bold">{workout.name || formatDate(workout.date)}</span>
-                                  {workout.name && <p className="text-xs text-[#71717a] mt-0.5">{formatDate(workout.date)}</p>}
+                                  {workout.name && <p className="text-xs text-icon mt-0.5">{formatDate(workout.date)}</p>}
                                 </div>
                                 {completed ? (
                                   <div className="flex items-center gap-2">
@@ -472,29 +472,29 @@ export default function HistorialPage() {
                                         e.stopPropagation();
                                         setSharingWorkout(workout);
                                       }}
-                                      className="p-1.5 text-[#71717a] hover:text-[#eab308] transition-colors cursor-pointer"
+                                      className="p-1.5 text-icon hover:text-accent transition-colors cursor-pointer"
                                       title="Compartir entrenamiento"
                                     >
                                       <Share2 className="w-4 h-4" />
                                     </div>
-                                    <span className="flex items-center gap-1 text-sm text-[#22c55e]">
+                                    <span className="flex items-center gap-1 text-sm text-green-500">
                                       <CheckCircle2 className="w-4 h-4" />
                                       Completado
                                     </span>
                                   </div>
                                 ) : (
-                                  <span className="flex items-center gap-1 text-sm text-[#eab308]">
+                                  <span className="flex items-center gap-1 text-sm text-accent">
                                     <Clock className="w-4 h-4" />
                                     Pendiente
                                   </span>
                                 )}
                               </div>
                               {stats.total > 0 && (
-                                <div className="w-full h-1 bg-[#0a0a0a] rounded-full mb-2 overflow-hidden">
-                                  <div className="h-full bg-[#eab308] rounded-full transition-all duration-500" style={{ width: `${(stats.completed / stats.total) * 100}%` }} />
+                                <div className="w-full h-1 bg-background rounded-full mb-2 overflow-hidden">
+                                  <div className="h-full bg-accent rounded-full transition-all duration-500" style={{ width: `${(stats.completed / stats.total) * 100}%` }} />
                                 </div>
                               )}
-                              <div className="flex items-center gap-4 text-sm text-[#a1a1aa]">
+                              <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Target className="w-4 h-4" />
                                   {stats.completed}/{stats.total} series
@@ -504,42 +504,42 @@ export default function HistorialPage() {
                                   {stats.uniqueExercises} ejercicios
                                 </span>
                                 <span className="ml-auto">
-                                  {isExpanded ? <ChevronUp className="w-5 h-5 text-[#71717a]" /> : <ChevronDown className="w-5 h-5 text-[#71717a]" />}
+                                  {isExpanded ? <ChevronUp className="w-5 h-5 text-icon" /> : <ChevronDown className="w-5 h-5 text-icon" />}
                                 </span>
                               </div>
                             </button>
                             
                             {isExpanded && (
-                              <div className="border-t border-[#3f3f46] p-4 space-y-3">
+                              <div className="border-t border p-4 space-y-3">
                                 {Object.entries(groupedSets).map(([exerciseName, sets]) => {
                                   const exerciseKey = `${workout.id}-${exerciseName}`;
                                   const exerciseExpanded = expandedExercises.has(exerciseKey);
                                   const exerciseCompleted = sets.filter(s => s.is_completed).length;
 
                                   return (
-                                    <div key={exerciseName} className="bg-[#0a0a0a] rounded-lg overflow-hidden">
-                                      <button onClick={() => toggleExercise(exerciseKey)} className="w-full p-3 flex items-center justify-between text-left hover:bg-[#27272a] transition-colors duration-200 cursor-pointer">
+                                    <div key={exerciseName} className="bg-background rounded-lg overflow-hidden">
+                                      <button onClick={() => toggleExercise(exerciseKey)} className="w-full p-3 flex items-center justify-between text-left hover:bg-muted transition-colors duration-200 cursor-pointer">
                                         <div className="flex items-center gap-2">
-                                          <Dumbbell className="w-4 h-4 text-[#eab308]" />
+                                          <Dumbbell className="w-4 h-4 text-accent" />
                                           <span className="font-medium">{exerciseName}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                          <span className="text-sm text-[#71717a]">{exerciseCompleted}/{sets.length} series</span>
-                                          {exerciseExpanded ? <ChevronUp className="w-4 h-4 text-[#71717a]" /> : <ChevronDown className="w-4 h-4 text-[#71717a]" />}
+                                          <span className="text-sm text-icon">{exerciseCompleted}/{sets.length} series</span>
+                                          {exerciseExpanded ? <ChevronUp className="w-4 h-4 text-icon" /> : <ChevronDown className="w-4 h-4 text-icon" />}
                                         </div>
                                       </button>
                                       
                                       {exerciseExpanded && (
-                                        <div className="border-t border-[#3f3f46] p-3 space-y-2">
+                                        <div className="border-t border p-3 space-y-2">
                                           {sets.map((set) => (
-                                            <div key={set.id} className={`flex items-center justify-between p-2 rounded ${set.is_completed ? "bg-[#22c55e]/10" : "bg-[#18181b]"}`}>
+                                            <div key={set.id} className={`flex items-center justify-between p-2 rounded ${set.is_completed ? "bg-green-500/10" : "bg-card"}`}>
                                               <div className="flex items-center gap-2">
-                                                {set.is_completed ? <CheckCircle2 className="w-4 h-4 text-[#22c55e]" /> : <Clock className="w-4 h-4 text-[#71717a]" />}
-                                                <span className="text-sm text-[#a1a1aa]">Serie {set.set_number}</span>
+                                                {set.is_completed ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Clock className="w-4 h-4 text-icon" />}
+                                                <span className="text-sm text-muted-foreground">Serie {set.set_number}</span>
                                               </div>
                                               <div className="flex items-center gap-4">
                                                 <span className="text-sm font-medium">{set.reps} reps</span>
-                                                <span className="flex items-center gap-1 text-sm text-[#eab308]">
+          <span className="flex items-center gap-1 text-sm text-accent">
                                                   <Scale className="w-3 h-3" />
                                                   {set.weight_kg} kg
                                                 </span>
@@ -551,7 +551,7 @@ export default function HistorialPage() {
                                     </div>
                                   );
                                 })}
-                                {workout.exercises?.length === 0 && <p className="text-center text-[#71717a] py-4">Sin ejercicios registrados</p>}
+                                {workout.exercises?.length === 0 && <p className="text-center text-icon py-4">Sin ejercicios registrados</p>}
                               </div>
                             )}
                           </div>
@@ -567,23 +567,23 @@ export default function HistorialPage() {
           {!loading && weeklyCount === 0 && workouts.length > 0 && !showHistory && (
             <div className="text-center">
               <div className="mb-8">
-                <div className="w-20 h-20 bg-[#18181b] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-[#eab308]/30">
-                  <Target className="w-10 h-10 text-[#eab308]/50" />
+                <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-accent/30">
+                  <Target className="w-10 h-10 text-accent/50" />
                 </div>
                 <h3 className="text-lg font-semibold text-white mb-2">¡Esta semana aún no has entrenado!</h3>
-                <p className="text-[#71717a] mb-6 max-w-[280px] mx-auto">
+                <p className="text-icon mb-6 max-w-[280px] mx-auto">
                   Completa al menos un workout para ver tu progreso aquí
                 </p>
                 <button
                   onClick={() => router.push("/entrenamiento")}
-                  className="px-6 py-3 bg-[#eab308] text-black font-bold rounded-xl hover:bg-[#ca9a04] transition-colors cursor-pointer"
+                className="px-6 py-3 bg-accent text-black font-bold rounded-xl hover:bg-accent-hover transition-colors cursor-pointer"
                 >
                   Ir a entrenar
                 </button>
               </div>
               <button
                 onClick={() => setShowHistory(true)}
-                className="text-[#a1a1aa] hover:text-white text-sm underline cursor-pointer"
+                className="text-muted-foreground hover:text-white text-sm underline cursor-pointer"
               >
                 Ver historial de entrenamientos anteriores
               </button>

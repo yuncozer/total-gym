@@ -25,10 +25,10 @@ export function getFormattedDate(): string {
 function ScrollIndicator() {
   return (
     <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
-      <span className="text-[#71717a] text-sm uppercase tracking-widest" style={{ fontFamily: "var(--font-oswald)" }}>
+      <span className="text-icon text-sm uppercase tracking-widest" style={{ fontFamily: "var(--font-oswald)" }}>
         Descubre más
       </span>
-      <ChevronDown className="w-6 h-6 text-[#eab308]" />
+      <ChevronDown className="w-6 h-6 text-accent" />
     </div>
   );
 }
@@ -36,33 +36,33 @@ function ScrollIndicator() {
 function UserDashboard({ stats, loading }: { stats: DashboardStats | null; loading: boolean }) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8 w-full max-w-4xl mx-auto">
-      <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <Activity className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2" style={{ color: stats?.todayWorkout ? "#22c55e" : "#eab308" }} />
+      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-colors">
+        <Activity className={`w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 ${stats?.todayWorkout ? "text-green-500" : "text-accent"}`} />
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
           {loading ? "..." : stats?.todayWorkout ? "Sí" : "No"}
         </div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Entrenó</div>
+        <div className="text-icon text-xs sm:text-sm">Entrenó</div>
       </div>
-      <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
+      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-colors">
+        <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-accent mx-auto mb-1 sm:mb-2" />
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
           {loading ? "..." : stats?.streak || 0}
         </div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Racha (días)</div>
+        <div className="text-icon text-xs sm:text-sm">Racha (días)</div>
       </div>
-      <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <Target className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
+      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-colors">
+        <Target className="w-5 h-5 sm:w-6 sm:h-6 text-accent mx-auto mb-1 sm:mb-2" />
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
           {loading ? "..." : stats?.totalWorkouts || 0}
         </div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Workouts</div>
+        <div className="text-icon text-xs sm:text-sm">Workouts</div>
       </div>
-      <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-xl p-3 sm:p-4 text-center hover:border-[#eab308] transition-colors">
-        <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-[#eab308] mx-auto mb-1 sm:mb-2" />
+      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-colors">
+        <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-accent mx-auto mb-1 sm:mb-2" />
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
           {loading ? "..." : stats?.totalSets || 0}
         </div>
-        <div className="text-[#71717a] text-xs sm:text-sm">Series</div>
+        <div className="text-icon text-xs sm:text-sm">Series</div>
       </div>
     </div>
   );
@@ -220,7 +220,7 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-background text-white">
       {authLoading && <LoadingScreen />}
 
       <UserHeader />
@@ -233,7 +233,7 @@ export default function Home() {
       <main className="pt-20">
         {!user && (
           <section className="relative min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center overflow-hidden px-4 sm:px-6">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#18181b] opacity-90" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-card opacity-90" />
             <div
               className="absolute inset-0 opacity-20"
               style={{
@@ -242,7 +242,7 @@ export default function Home() {
                 backgroundPosition: 'center',
               }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent" />
 
             <div className="relative z-10 max-w-5xl mx-auto text-center w-full">
               <GuestCarousel onAuth={() => setShowAuthModal(true)} />
@@ -252,7 +252,7 @@ export default function Home() {
         )}
 
         <section id="daily-section" className={`relative ${!user ? 'py-20' : 'min-h-[85vh] sm:min-h-[90vh] flex items-center justify-center'} overflow-hidden`}>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a] via-[#0a0a0a] to-[#18181b] opacity-95" />
+            <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-card opacity-95" />
           {user && (
             <div
               className="absolute inset-0 opacity-10"
@@ -265,16 +265,16 @@ export default function Home() {
           )}
           {!user && (
             <div className="absolute inset-0">
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#eab308]/5 rounded-full blur-[120px]" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px]" />
             </div>
           )}
 
           <div className={`relative z-10 max-w-4xl mx-auto px-4 text-center ${user ? 'py-12' : ''}`}>
             {user && <UserDashboard stats={stats} loading={loadingStats} />}
 
-            <div className="inline-flex items-center gap-2 bg-[#eab308]/10 border border-[#eab308]/30 rounded-full px-4 py-2 mb-6 sm:mb-8">
-              <Calendar className="w-4 h-4 text-[#eab308]" />
-              <span className="text-sm text-[#eab308] uppercase tracking-wider" style={{ fontFamily: "var(--font-rajdhani)" }}>
+            <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-full px-4 py-2 mb-6 sm:mb-8">
+              <Calendar className="w-4 h-4 text-accent" />
+              <span className="text-sm text-accent uppercase tracking-wider" style={{ fontFamily: "var(--font-rajdhani)" }}>
                 {dateStr}
               </span>
             </div>
@@ -283,12 +283,12 @@ export default function Home() {
               className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 sm:mb-8"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              <span className="text-[#eab308]">CADA DÍA</span> <br />
-              UNA NUEVA <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-[#eab308]">OPORTUNIDAD</span>
+              <span className="text-accent">CADA DÍA</span> <br />
+              UNA NUEVA <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-accent">OPORTUNIDAD</span>
             </h1>
 
-            <div className="bg-[#18181b]/80 border border-[#3f3f46] rounded-2xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8 backdrop-blur-sm">
-              <Flame className="w-6 h-6 sm:w-8 sm:h-8 text-[#eab308] mx-auto mb-3 sm:mb-4" />
+            <div className="bg-card/80 border border rounded-2xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8 backdrop-blur-sm">
+              <Flame className="w-6 h-6 sm:w-8 sm:h-8 text-accent mx-auto mb-3 sm:mb-4" />
               <p
                 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold leading-relaxed text-white"
                 style={{ fontFamily: "var(--font-rajdhani)" }}
@@ -301,7 +301,7 @@ export default function Home() {
               {checkingPending ? (
                 <button
                   disabled
-                  className="flex items-center justify-center gap-2 sm:gap-3 bg-[#27272a] text-[#71717a] font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto cursor-wait"
+                  className="flex items-center justify-center gap-2 sm:gap-3 bg-muted text-icon font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl w-full sm:w-auto cursor-wait"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
@@ -310,7 +310,7 @@ export default function Home() {
               ) : pendingWorkout ? (
                 <button
                   onClick={() => router.push(`/workout/${pendingWorkout.id}`)}
-                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#22c55e] hover:bg-[#16a34a] text-black font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
+                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-green-500 hover:bg-green-600 text-black font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Play className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -320,7 +320,7 @@ export default function Home() {
               ) : (
                 <button
                   onClick={handleStartTraining}
-                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-[#eab308] hover:bg-[#ca9a04] text-black font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
+                  className="group flex items-center justify-center gap-2 sm:gap-3 bg-accent hover:bg-accent-hover text-black font-bold px-6 sm:px-8 py-3 sm:py-4 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -332,15 +332,15 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-24 bg-[#0a0a0a] relative overflow-hidden">
+        <section className="py-24 bg-background relative overflow-hidden">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-0" style={{
-              backgroundImage: `radial-gradient(circle at 25% 25%, #eab308 1px, transparent 1px), radial-gradient(circle at 75% 75%, #eab308 1px, transparent 1px)`,
+              backgroundImage: `radial-gradient(circle at 25% 25%, var(--accent) 1px, transparent 1px), radial-gradient(circle at 75% 75%, var(--accent) 1px, transparent 1px)`,
               backgroundSize: '40px 40px',
             }} />
           </div>
-          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
-          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
 
           <div className="max-w-7xl mx-auto px-4 relative z-10">
             <h2
@@ -348,103 +348,103 @@ export default function Home() {
               style={{ fontFamily: "var(--font-oswald)" }}
             >
               <span className="text-white">POR QUÉ </span>
-              <span className="text-[#eab308]">ELEGIRNOS</span>
+              <span className="text-accent">ELEGIRNOS</span>
             </h2>
-            <p className="text-[#71717a] text-center text-lg mb-16 max-w-2xl mx-auto">
+            <p className="text-icon text-center text-lg mb-16 max-w-2xl mx-auto">
               Esto no es una app más. Es tu weapon para transformar tu físico.
             </p>
 
             <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
-              <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
+              <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
                 <div className="relative z-10">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-[#eab308]/10 rounded-xl flex items-center justify-center group-hover:bg-[#eab308]/20 group-hover:scale-110 transition-all duration-300">
-                      <Smartphone className="w-8 h-8 text-[#eab308]" />
+                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
+                      <Smartphone className="w-8 h-8 text-accent" />
                     </div>
-                    <div className="w-px h-16 bg-[#3f3f46]" />
+                    <div className="w-px h-16 bg-zinc-700" />
                     <div className="flex-1">
                       <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
                         TU GYM
                       </h3>
-                      <h3 className="text-2xl md:text-3xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                      <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
                         EN EL BOLSILLO
                       </h3>
                     </div>
                   </div>
-                  <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
+                  <p className="text-muted-foreground text-lg leading-relaxed pl-20">
                     Una webapp que te acompaña ANTES, DURANTE y DESPUÉS de cada entrenamiento.
                     <span className="text-white font-medium block mt-2">Llévatela a everywhere. Sin excusas.</span>
                   </p>
                 </div>
               </div>
 
-              <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
+              <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
                 <div className="relative z-10">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-[#eab308]/10 rounded-xl flex items-center justify-center group-hover:bg-[#eab308]/20 group-hover:scale-110 transition-all duration-300">
-                      <History className="w-8 h-8 text-[#eab308]" />
+                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
+                      <History className="w-8 h-8 text-accent" />
                     </div>
-                    <div className="w-px h-16 bg-[#3f3f46]" />
+                    <div className="w-px h-16 bg-zinc-700" />
                     <div className="flex-1">
                       <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
                         CONTROL TOTAL
                       </h3>
-                      <h3 className="text-2xl md:text-3xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                      <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
                         DE TU HISTORIAL
                       </h3>
                     </div>
                   </div>
-                  <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
+                  <p className="text-muted-foreground text-lg leading-relaxed pl-20">
                     Cada serie, cada repetición, cada kilogramo queda registrado.
                     <span className="text-white font-medium block mt-2">Mira cuánto levantaste y SUPERA ese número.</span>
                   </p>
                 </div>
               </div>
 
-              <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
+              <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
                 <div className="relative z-10">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-[#eab308]/10 rounded-xl flex items-center justify-center group-hover:bg-[#eab308]/20 group-hover:scale-110 transition-all duration-300">
-                      <User className="w-8 h-8 text-[#eab308]" />
+                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
+                      <User className="w-8 h-8 text-accent" />
                     </div>
-                    <div className="w-px h-16 bg-[#3f3f46]" />
+                    <div className="w-px h-16 bg-zinc-700" />
                     <div className="flex-1">
                       <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
                         TU GYMBRO
                       </h3>
-                      <h3 className="text-2xl md:text-3xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                      <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
                         DIGITAL
                       </h3>
                     </div>
                   </div>
-                  <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
+                  <p className="text-muted-foreground text-lg leading-relaxed pl-20">
                     Tu compañero entrenando CONTIGO. Lleva la cuenta de tu disciplina
                     <span className="text-white font-medium block mt-2">y te exige romper tus propios RÉCORDS.</span>
                   </p>
                 </div>
               </div>
 
-              <div className="group bg-[#18181b] border border-[#3f3f46] rounded-xl p-8 hover:border-[#eab308] hover:shadow-[0_0_30px_rgba(234,179,8,0.15)] transition-all duration-300 cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-[#eab308]/5 rounded-bl-full group-hover:bg-[#eab308]/10 transition-colors" />
+              <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
                 <div className="relative z-10">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-[#eab308]/10 rounded-xl flex items-center justify-center group-hover:bg-[#eab308]/20 group-hover:scale-110 transition-all duration-300">
-                      <Timer className="w-8 h-8 text-[#eab308]" />
+                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
+                      <Timer className="w-8 h-8 text-accent" />
                     </div>
-                    <div className="w-px h-16 bg-[#3f3f46]" />
+                    <div className="w-px h-16 bg-zinc-700" />
                     <div className="flex-1">
                       <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
                         CRONÓMETRO
                       </h3>
-                      <h3 className="text-2xl md:text-3xl font-bold text-[#eab308]" style={{ fontFamily: "var(--font-oswald)" }}>
+                      <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
                         INTEGRADO
                       </h3>
                     </div>
                   </div>
-                  <p className="text-[#a1a1aa] text-lg leading-relaxed pl-20">
+                  <p className="text-muted-foreground text-lg leading-relaxed pl-20">
                     Descansa BETWEEN series. El timer corre automatically.
                     <span className="text-white font-medium block mt-2">Enfócate en LO QUE IMPORTA: entrenar DURO.</span>
                   </p>
@@ -454,20 +454,20 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="py-28 bg-[#0a0a0a] relative overflow-hidden">
+        <section className="py-28 bg-background relative overflow-hidden">
           <div className="absolute inset-0">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#0a0a0a] via-[#18181b] to-[#0a0a0a]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#eab308]/5 rounded-full blur-[120px]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-background via-card to-background" />
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent/5 rounded-full blur-[120px]" />
           </div>
 
-          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
-          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#eab308]/50 to-transparent" />
+            <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
+            <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/50 to-transparent" />
 
           <div className="max-w-6xl mx-auto px-4 relative z-10">
             <div className="text-center mb-16">
-              <div className="inline-flex items-center gap-3 bg-[#eab308]/10 border border-[#eab308]/30 rounded-full px-6 py-2 mb-6">
-                <span className="w-2 h-2 bg-[#eab308] rounded-full animate-pulse" />
-                <span className="text-[#eab308] text-sm font-medium uppercase tracking-wider" style={{ fontFamily: "var(--font-oswald)" }}>
+              <div className="inline-flex items-center gap-3 bg-accent/10 border border-accent/30 rounded-full px-6 py-2 mb-6">
+                <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+                <span className="text-accent text-sm font-medium uppercase tracking-wider" style={{ fontFamily: "var(--font-oswald)" }}>
                   NO ES SOLO OTRA WEB
                 </span>
               </div>
@@ -476,12 +476,12 @@ export default function Home() {
                 style={{ fontFamily: "var(--font-oswald)" }}
               >
                 <span className="text-white">LLEVA</span>
-                <span className="text-[#eab308]"> </span>
+                <span className="text-accent"> </span>
                 <span className="text-white">TU GYM</span>
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#eab308] to-[#ca9a04]">EN EL BOLSILLO</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-hover">EN EL BOLSILLO</span>
               </h2>
-              <p className="text-[#71717a] text-xl md:text-2xl max-w-2xl mx-auto mt-6">
+              <p className="text-icon text-xl md:text-2xl max-w-2xl mx-auto mt-6">
                 Instálala en tu home screen y <span className="text-white font-bold">úsala como app native</span>.
                 Sin stores, sin downloads, sin BS.
               </p>
@@ -489,12 +489,12 @@ export default function Home() {
 
             <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
               <div className="group relative">
-                <div className="absolute -inset-0.5 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500" />
-                <div className="relative bg-[#18181b] border border-[#3f3f46] rounded-2xl p-8 hover:border-[#eab308] transition-all duration-300">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#eab308]/10 to-transparent rounded-bl-2xl" />
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-accent to-accent-hover rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500" />
+                <div className="relative bg-card border border rounded-2xl p-8 hover:border-accent transition-all duration-300">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-2xl" />
 
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
+                    <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent-hover rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
                       <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <rect x="5" y="2" width="14" height="20" rx="2" stroke="black" />
                         <line x1="12" y1="6" x2="12" y2="6.01" strokeWidth="2" />
@@ -505,38 +505,38 @@ export default function Home() {
                       <h3 className="text-3xl font-bold" style={{ fontFamily: "var(--font-oswald)" }}>
                         <span className="text-white">ANDROID</span>
                       </h3>
-                      <p className="text-[#71717a] text-sm">Chrome</p>
+                      <p className="text-icon text-sm">Chrome</p>
                     </div>
                   </div>
 
                   <div className="space-y-0">
-                    <div className="flex items-center gap-4 py-3 border-b border-[#3f3f46]/50">
-                      <span className="w-8 h-8 bg-[#eab308] text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
-                      <span className="text-[#a1a1aa]">Abre <span className="text-white font-bold">Chrome</span> → totalgym.life</span>
+                    <div className="flex items-center gap-4 py-3 border-b border/50">
+                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
+                      <span className="text-muted-foreground">Abre <span className="text-white font-bold">Chrome</span> → totalgym.life</span>
                     </div>
-                    <div className="flex items-center gap-4 py-3 border-b border-[#3f3f46]/50">
-                      <span className="w-8 h-8 bg-[#eab308] text-black font-bold rounded-lg flex items-center justify-center text-sm">2</span>
-                      <span className="text-[#a1a1aa]">Toca <span className="text-white font-bold">⋮</span> (menú)</span>
+                    <div className="flex items-center gap-4 py-3 border-b border/50">
+                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">2</span>
+                      <span className="text-muted-foreground">Toca <span className="text-white font-bold">⋮</span> (menú)</span>
                     </div>
-                    <div className="flex items-center gap-4 py-3 border-b border-[#3f3f46]/50">
-                      <span className="w-8 h-8 bg-[#eab308] text-black font-bold rounded-lg flex items-center justify-center text-sm">3</span>
-                      <span className="text-[#a1a1aa]"><span className="text-white font-bold">Instalar app</span></span>
+                    <div className="flex items-center gap-4 py-3 border-b border/50">
+                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">3</span>
+                      <span className="text-muted-foreground"><span className="text-white font-bold">Instalar app</span></span>
                     </div>
                     <div className="flex items-center gap-4 py-3">
-                      <span className="w-8 h-8 bg-[#22c55e] text-black font-bold rounded-lg flex items-center justify-center text-sm">✓</span>
-                      <span className="text-[#22c55e] font-bold">LISTO EN SEGUNDOS</span>
+                    <span className="w-8 h-8 bg-green-500 text-black font-bold rounded-lg flex items-center justify-center text-sm">✓</span>
+                    <span className="text-green-500 font-bold">LISTO EN SEGUNDOS</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               <div className="group relative">
-                <div className="absolute -inset-0.5 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500" />
-                <div className="relative bg-[#18181b] border border-[#3f3f46] rounded-2xl p-8 hover:border-[#eab308] transition-all duration-300">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-[#eab308]/10 to-transparent rounded-bl-2xl" />
+                <div className="absolute -inset-0.5 bg-gradient-to-br from-accent to-accent-hover rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500" />
+                <div className="relative bg-card border border rounded-2xl p-8 hover:border-accent transition-all duration-300">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-2xl" />
 
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-[#eab308] to-[#ca9a04] rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
+                    <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent-hover rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
                       <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M12 2C9.243 2 7 4.243 7 7v10c0 2.757 2.243 5 5 5s5-2.243 5-5V7c0-2.757-2.243-5-5-5z" fill="none" stroke="black" />
                         <circle cx="12" cy="18" r="2" fill="black" />
@@ -546,26 +546,26 @@ export default function Home() {
                       <h3 className="text-3xl font-bold" style={{ fontFamily: "var(--font-oswald)" }}>
                         <span className="text-white">iPHONE</span>
                       </h3>
-                      <p className="text-[#71717a] text-sm">Safari</p>
+                      <p className="text-icon text-sm">Safari</p>
                     </div>
                   </div>
 
                   <div className="space-y-0">
-                    <div className="flex items-center gap-4 py-3 border-b border-[#3f3f46]/50">
-                      <span className="w-8 h-8 bg-[#eab308] text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
-                      <span className="text-[#a1a1aa]">Abre <span className="text-white font-bold">Safari</span> → totalgym.life</span>
+                    <div className="flex items-center gap-4 py-3 border-b border/50">
+                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
+                      <span className="text-muted-foreground">Abre <span className="text-white font-bold">Safari</span> → totalgym.life</span>
                     </div>
-                    <div className="flex items-center gap-4 py-3 border-b border-[#3f3f46]/50">
-                      <span className="w-8 h-8 bg-[#eab308] text-black font-bold rounded-lg flex items-center justify-center text-sm">2</span>
-                      <span className="text-[#a1a1aa]">Toca <span className="text-white font-bold">Compartir</span> (□)</span>
+                    <div className="flex items-center gap-4 py-3 border-b border/50">
+                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">2</span>
+                      <span className="text-muted-foreground">Toca <span className="text-white font-bold">Compartir</span> (□)</span>
                     </div>
-                    <div className="flex items-center gap-4 py-3 border-b border-[#3f3f46]/50">
-                      <span className="w-8 h-8 bg-[#eab308] text-black font-bold rounded-lg flex items-center justify-center text-sm">3</span>
-                      <span className="text-[#a1a1aa]"><span className="text-white font-bold">Agregar a inicio</span></span>
+                    <div className="flex items-center gap-4 py-3 border-b border/50">
+                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">3</span>
+                      <span className="text-muted-foreground"><span className="text-white font-bold">Agregar a inicio</span></span>
                     </div>
                     <div className="flex items-center gap-4 py-3">
-                      <span className="w-8 h-8 bg-[#22c55e] text-black font-bold rounded-lg flex items-center justify-center text-sm">✓</span>
-                      <span className="text-[#22c55e] font-bold">LISTO EN SEGUNDOS</span>
+                    <span className="w-8 h-8 bg-green-500 text-black font-bold rounded-lg flex items-center justify-center text-sm">✓</span>
+                    <span className="text-green-500 font-bold">LISTO EN SEGUNDOS</span>
                     </div>
                   </div>
                 </div>
@@ -573,32 +573,32 @@ export default function Home() {
             </div>
 
             <div className="mt-16 grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              <div className="text-center p-6 bg-[#18181b]/50 border border-[#3f3f46] rounded-xl hover:border-[#eab308] transition-colors group">
-                <div className="w-14 h-14 bg-[#eab308]/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
-                  <svg className="w-7 h-7 text-[#eab308]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="text-center p-6 bg-card/50 border border rounded-xl hover:border-accent transition-colors group">
+                  <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-accent/20 transition-colors">
+                  <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
                 <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>SIN WAITING</h4>
-                <p className="text-[#71717a] text-sm">Abre instant. No download, no install lag.</p>
+                <p className="text-icon text-sm">Abre instant. No download, no install lag.</p>
               </div>
-              <div className="text-center p-6 bg-[#18181b]/50 border border-[#3f3f46] rounded-xl hover:border-[#eab308] transition-colors group">
-                <div className="w-14 h-14 bg-[#eab308]/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
-                  <svg className="w-7 h-7 text-[#eab308]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="text-center p-6 bg-card/50 border border rounded-xl hover:border-accent transition-colors group">
+                  <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-accent/20 transition-colors">
+                  <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9H0m0 0h9.75m0 0l3 3m-3-3l3-3M9 5v.01M9 10v.01M9 15v.01M9 20v.01" />
                   </svg>
                 </div>
                 <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>AUTO-UPDATE</h4>
-                <p className="text-[#71717a] text-sm">Always latest version. Ningún manual update.</p>
+                <p className="text-icon text-sm">Always latest version. Ningún manual update.</p>
               </div>
-              <div className="text-center p-6 bg-[#18181b]/50 border border-[#3f3f46] rounded-xl hover:border-[#eab308] transition-colors group">
-                <div className="w-14 h-14 bg-[#eab308]/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-[#eab308]/20 transition-colors">
-                  <svg className="w-7 h-7 text-[#eab308]" fill="none" viewBox="0 0 24 24" stroke="currentModel">
+              <div className="text-center p-6 bg-card/50 border border rounded-xl hover:border-accent transition-colors group">
+                  <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-accent/20 transition-colors">
+                  <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
                 <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>FEELS NATIVE</h4>
-                <p className="text-[#71717a] text-sm">Full screen, sin Browser chrome BS.</p>
+                <p className="text-icon text-sm">Full screen, sin Browser chrome BS.</p>
               </div>
             </div>
           </div>
@@ -610,17 +610,17 @@ export default function Home() {
           <NotificationButton userId={user.id} />
         </div>
       )}
-      <footer className="bg-[#0a0a0a] border-t border-[#3f3f46] py-12">
+      <footer className="bg-background border-t border py-12">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-[#eab308] rounded flex items-center justify-center">
+            <div className="w-8 h-8 bg-accent rounded flex items-center justify-center">
               <Dumbbell className="w-4 h-4 text-black" />
             </div>
             <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
-              TOTAL<span className="text-[#eab308]">GYM</span>
+              TOTAL<span className="text-accent">GYM</span>
             </span>
           </div>
-          <p className="text-[#a1a1aa] text-sm">
+            <p className="text-muted-foreground text-sm">
             © 2026 TOTAL GYM. Entrena como un campeón.
           </p>
         </div>

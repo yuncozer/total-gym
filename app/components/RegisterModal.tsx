@@ -85,21 +85,21 @@ export function RegisterModal({ isOpen, onClose, onLoginSuccess }: RegisterModal
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
       <div 
-        className="absolute inset-0 bg-[#0a0a0a]/95 backdrop-blur-sm"
+        className="absolute inset-0 bg-background/95 backdrop-blur-sm"
         onClick={handleClose}
       />
       
-      <div className="relative z-10 w-full max-w-md mx-4 p-6 sm:p-8 rounded-2xl bg-[#18181b] border border-[#3f3f46] shadow-2xl">
+      <div className="relative z-10 w-full max-w-md mx-4 p-6 sm:p-8 rounded-2xl bg-card border border shadow-2xl">
         <button
           onClick={handleClose}
-          className="absolute top-4 right-4 text-[#71717a] hover:text-white cursor-pointer transition-colors"
+          className="absolute top-4 right-4 text-icon hover:text-white cursor-pointer transition-colors"
         >
           <X className="w-6 h-6" />
         </button>
 
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-[#eab308]/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
-            <Dumbbell className="w-10 h-10 text-[#eab308]" />
+          <div className="w-20 h-20 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
+            <Dumbbell className="w-10 h-10 text-accent" />
           </div>
           
           <h2 
@@ -107,13 +107,13 @@ export function RegisterModal({ isOpen, onClose, onLoginSuccess }: RegisterModal
             style={{ fontFamily: "var(--font-oswald)" }}
           >
             {mode === "login" ? (
-              <>BIENVENIDO DE <span className="text-[#eab308]">VUELTA</span></>
+              <>BIENVENIDO DE <span className="text-accent">VUELTA</span></>
             ) : (
-              <>CREA TU <span className="text-[#eab308]">CUENTA</span></>
+              <>CREA TU <span className="text-accent">CUENTA</span></>
             )}
           </h2>
           
-          <p className="text-[#a1a1aa] text-sm sm:text-base">
+          <p className="text-muted-foreground text-sm sm:text-base">
             {mode === "login" 
               ? "Inicia sesión para continuar tu entrenamiento" 
               : "Crea una cuenta gratis para no perder tu entrenamiento"}
@@ -129,8 +129,8 @@ export function RegisterModal({ isOpen, onClose, onLoginSuccess }: RegisterModal
               { icon: Smartphone, text: "Accede desde cualquier dispositivo" },
             ].map(({ icon: Icon, text }, i) => (
               <div key={i} className="flex items-center gap-3 text-sm sm:text-base">
-                <Icon className="w-5 h-5 text-[#22c55e] flex-shrink-0" />
-                <span className="text-[#d4d4d8]">{text}</span>
+                <Icon className="w-5 h-5 text-green-500 flex-shrink-0" />
+                <span className="text-zinc-300">{text}</span>
               </div>
             ))}
           </div>
@@ -138,40 +138,40 @@ export function RegisterModal({ isOpen, onClose, onLoginSuccess }: RegisterModal
 
         <form onSubmit={handleSubmit} className="space-y-4 mb-6">
           <div>
-            <label className="block text-sm text-[#a1a1aa] mb-2">Email</label>
+            <label className="block text-sm text-muted-foreground mb-2">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white placeholder-[#71717a] focus:outline-none focus:border-[#eab308] transition-colors"
+              className="w-full px-4 py-3 bg-background border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
               placeholder="tu@email.com"
             />
           </div>
           
           <div>
-            <label className="block text-sm text-[#a1a1aa] mb-2">Contraseña</label>
+            <label className="block text-sm text-muted-foreground mb-2">Contraseña</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white placeholder-[#71717a] focus:outline-none focus:border-[#eab308] transition-colors"
+              className="w-full px-4 py-3 bg-background border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
               placeholder="••••••••"
             />
           </div>
 
           {mode === "register" && (
             <div>
-              <label className="block text-sm text-[#a1a1aa] mb-2">Confirmar contraseña</label>
+              <label className="block text-sm text-muted-foreground mb-2">Confirmar contraseña</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required={mode === "register"}
                 minLength={6}
-                className="w-full px-4 py-3 bg-[#0a0a0a] border border-[#3f3f46] rounded-xl text-white placeholder-[#71717a] focus:outline-none focus:border-[#eab308] transition-colors"
+                className="w-full px-4 py-3 bg-background border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
                 placeholder="••••••••"
               />
             </div>
@@ -186,7 +186,7 @@ export function RegisterModal({ isOpen, onClose, onLoginSuccess }: RegisterModal
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 bg-[#eab308] hover:bg-[#ca9a04] disabled:bg-[#71717a] text-black font-bold text-lg rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
+            className="w-full py-4 bg-accent hover:bg-accent-hover disabled:bg-icon text-black font-bold text-lg rounded-xl transition-colors cursor-pointer flex items-center justify-center gap-2"
           >
             {loading ? (
               <Loader2 className="w-5 h-5 animate-spin" />
@@ -204,7 +204,7 @@ export function RegisterModal({ isOpen, onClose, onLoginSuccess }: RegisterModal
             <button
               type="button"
               onClick={() => { setMode("register"); setError(null); setPassword(""); setConfirmPassword(""); }}
-              className="w-full py-3 border border-[#3f3f46] text-[#a1a1aa] hover:text-white rounded-xl transition-colors cursor-pointer text-sm"
+              className="w-full py-3 border border text-muted-foreground hover:text-white rounded-xl transition-colors cursor-pointer text-sm"
             >
               Crear cuenta
             </button>
@@ -213,21 +213,21 @@ export function RegisterModal({ isOpen, onClose, onLoginSuccess }: RegisterModal
 
         <div className="text-center">
           {mode === "login" ? (
-            <p className="text-[#71717a] text-sm">
+            <p className="text-icon text-sm">
               ¿No tienes cuenta?{" "}
               <button
                 onClick={() => { setMode("register"); setError(null); setPassword(""); setConfirmPassword(""); }}
-                className="text-[#eab308] hover:text-[#ca9a04] font-bold cursor-pointer"
+                className="text-accent hover:text-accent-hover font-bold cursor-pointer"
               >
                 Crea una gratis
               </button>
             </p>
           ) : (
-            <p className="text-[#71717a] text-sm">
+            <p className="text-icon text-sm">
               ¿Ya tienes cuenta?{" "}
               <button
                 onClick={() => { setMode("login"); setError(null); setPassword(""); setConfirmPassword(""); }}
-                className="text-[#eab308] hover:text-[#ca9a04] font-bold cursor-pointer"
+                className="text-accent hover:text-accent-hover font-bold cursor-pointer"
               >
                 Inicia sesión
               </button>

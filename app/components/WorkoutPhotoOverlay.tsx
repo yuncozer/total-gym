@@ -448,7 +448,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
   }, [photoUrl, cropMeta, cropOffsetY, generateOverlay]);
 
   return (
-    <div className="fixed inset-0 z-50 bg-[#0a0a0a] flex flex-col">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col">
       {!isAndroid ? (
         <input
           ref={fileInputRef}
@@ -477,11 +477,11 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
         </>
       )}
 
-      <div className="flex items-center justify-between p-4 border-b border-[#3f3f46]">
+      <div className="flex items-center justify-between p-4 border-b border">
         <h2 className="text-lg font-bold" style={{ fontFamily: "var(--font-oswald)" }}>
-          FOTO DEL <span className="text-[#eab308]">ENTRENAMIENTO</span>
+          FOTO DEL <span className="text-accent">ENTRENAMIENTO</span>
         </h2>
-        <button onClick={onClose} className="p-2 text-[#71717a] hover:text-white cursor-pointer">
+        <button onClick={onClose} className="p-2 text-icon hover:text-white cursor-pointer">
           <X className="w-5 h-5" />
         </button>
       </div>
@@ -489,21 +489,21 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
       <div className="flex-1 flex flex-col items-center justify-center p-4 overflow-y-auto">
         {!photoUrl ? (
           <div className="text-center max-w-sm">
-            <div className="w-32 h-32 bg-[#18181b] rounded-2xl flex items-center justify-center mx-auto mb-6 border-2 border-dashed border-[#3f3f46]">
-              <Camera className="w-12 h-12 text-[#71717a]" />
+            <div className="w-32 h-32 bg-card rounded-2xl flex items-center justify-center mx-auto mb-6 border-2 border-dashed border">
+              <Camera className="w-12 h-12 text-icon" />
             </div>
             <h3 className="text-xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
-              CAPTURA TU <span className="text-[#eab308]">LOGRO</span>
+              CAPTURA TU <span className="text-accent">LOGRO</span>
             </h3>
-            <p className="text-[#a1a1aa] mb-6">
+            <p className="text-muted-foreground mb-6">
               Toma una foto y agrega las métricas de tu entrenamiento para compartir en redes sociales.
             </p>
-            <div className="flex gap-2 mb-6 bg-[#18181b] rounded-xl p-1 border border-[#3f3f46]">
+            <div className="flex gap-2 mb-6 bg-card rounded-xl p-1 border border">
               <button
                 onClick={() => setLayout("metrics")}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${layout === "metrics"
-                    ? "bg-[#eab308] text-black"
-                    : "text-[#71717a] hover:text-white"
+                    ? "bg-accent text-black"
+                    : "text-icon hover:text-white"
                   }`}
               >
                 <BarChart3 className="w-4 h-4" /> MÉTRICAS
@@ -511,8 +511,8 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
               <button
                 onClick={() => setLayout("quote")}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${layout === "quote"
-                    ? "bg-[#eab308] text-black"
-                    : "text-[#71717a] hover:text-white"
+                    ? "bg-accent text-black"
+                    : "text-icon hover:text-white"
                   }`}
               >
                 <MessageSquareQuote className="w-4 h-4" /> CITA
@@ -520,8 +520,8 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
               <button
                 onClick={() => setLayout("record")}
                 className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-sm font-bold cursor-pointer transition-all ${layout === "record"
-                    ? "bg-[#eab308] text-black"
-                    : "text-[#71717a] hover:text-white"
+                    ? "bg-accent text-black"
+                    : "text-icon hover:text-white"
                   }`}
               >
                 <Trophy className="w-4 h-4" /> RÉCORD
@@ -529,14 +529,14 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
             </div>
             <button
               onClick={handleTakePhoto}
-              className="flex items-center justify-center gap-2 w-full py-4 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl"
+              className="flex items-center justify-center gap-2 w-full py-4 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl"
             >
               <Camera className="w-5 h-5" /> TOMAR FOTO
             </button>
             {isAndroid && (
               <button
                 onClick={handlePickFromGallery}
-                className="flex items-center justify-center gap-2 w-full py-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer text-[#a1a1aa] hover:text-white font-bold rounded-xl mt-3"
+                className="flex items-center justify-center gap-2 w-full py-4 border border hover:border-accent cursor-pointer text-muted-foreground hover:text-white font-bold rounded-xl mt-3"
               >
                 <ImageIcon className="w-5 h-5" /> ELEGIR DE GALERÍA
               </button>
@@ -544,12 +544,12 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
           </div>
         ) : showCrop ? (
           <div className="w-full max-w-lg">
-            <p className="text-[#a1a1aa] text-sm text-center mb-4">
+            <p className="text-muted-foreground text-sm text-center mb-4">
               Ajusta la foto al marco 9:16
             </p>
             <div
               ref={cropContainerRef}
-              className="relative w-full overflow-hidden rounded-xl border-2 border-[#eab308] cursor-grab active:cursor-grabbing select-none"
+              className="relative w-full overflow-hidden rounded-xl border-2 border-accent cursor-grab active:cursor-grabbing select-none"
               style={{ aspectRatio: "9/16", touchAction: "none" }}
               onPointerDown={handleCropPointerDown}
               onPointerMove={handleCropPointerMove}
@@ -566,21 +566,21 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
               </div>
               <div className="absolute top-0 left-0 right-0 h-16 bg-gradient-to-b from-black/60 to-transparent pointer-events-none" />
               <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
-              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-[#eab308] pointer-events-none" />
-              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-[#eab308] pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-[#eab308] pointer-events-none" />
-              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-[#eab308] pointer-events-none" />
+              <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-accent pointer-events-none" />
+              <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-accent pointer-events-none" />
+              <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-accent pointer-events-none" />
+              <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-accent pointer-events-none" />
             </div>
             <div className="flex gap-3 mt-6">
               <button
                 onClick={cancelCrop}
-                className="flex-1 py-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer text-[#a1a1aa] hover:text-white font-bold rounded-xl"
+                className="flex-1 py-4 border border hover:border-accent cursor-pointer text-muted-foreground hover:text-white font-bold rounded-xl"
               >
                 <X className="w-5 h-5 inline mr-2" /> CANCELAR
               </button>
               <button
                 onClick={confirmCrop}
-                className="flex-1 py-4 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl"
+                className="flex-1 py-4 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl"
               >
                 <Check className="w-5 h-5 inline mr-2" /> CONFIRMAR
               </button>
@@ -590,11 +590,11 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
           <div className="flex flex-col items-center w-full max-w-lg">
             {generating ? (
               <div className="flex items-center justify-center py-20">
-                <Loader2 className="w-8 h-8 animate-spin text-[#eab308]" />
+                <Loader2 className="w-8 h-8 animate-spin text-accent" />
               </div>
             ) : generatedImageUrl ? (
               <>
-                <div className="w-full rounded-xl overflow-hidden border border-[#3f3f46] mb-6 shadow-lg bg-[#0a0a0a] flex items-center justify-center">
+                <div className="w-full rounded-xl overflow-hidden border border mb-6 shadow-lg bg-background flex items-center justify-center">
                   <img
                     src={generatedImageUrl}
                     alt="Entrenamiento TOTAL GYM"
@@ -605,19 +605,19 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
                 <div className="w-full space-y-3">
                   <button
                     onClick={handleShare}
-                    className="flex items-center justify-center gap-2 w-full py-4 bg-[#eab308] hover:bg-[#ca9a04] cursor-pointer text-black font-bold rounded-xl"
+                    className="flex items-center justify-center gap-2 w-full py-4 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl"
                   >
                     <Share2 className="w-5 h-5" /> COMPARTIR
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="flex items-center justify-center gap-2 w-full py-4 border border-[#3f3f46] hover:border-[#eab308] cursor-pointer font-bold rounded-xl"
+                    className="flex items-center justify-center gap-2 w-full py-4 border border hover:border-accent cursor-pointer font-bold rounded-xl"
                   >
                     <Download className="w-5 h-5" /> GUARDAR IMAGEN
                   </button>
                   <button
                     onClick={handleRetake}
-                    className="flex items-center justify-center gap-2 w-full py-3 text-[#71717a] hover:text-white cursor-pointer font-bold rounded-xl"
+                    className="flex items-center justify-center gap-2 w-full py-3 text-icon hover:text-white cursor-pointer font-bold rounded-xl"
                   >
                     <RotateCcw className="w-4 h-4" /> TOMAR OTRA FOTO
                   </button>
