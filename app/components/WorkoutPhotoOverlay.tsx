@@ -86,14 +86,14 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
           i.crossOrigin = "anonymous";
           i.onload = () => resolve(i);
           i.onerror = () => reject(new Error("Failed to load logo"));
-          i.src = "/icon-512.png";
+          i.src = "/logo.svg";
         }),
         new Promise<HTMLImageElement>((resolve, reject) => {
           const i = new Image();
           i.crossOrigin = "anonymous";
           i.onload = () => resolve(i);
           i.onerror = () => reject(new Error("Failed to load brand image"));
-          i.src = "/images/share-workout/url-domain.png";
+          i.src = "/images/share-workout/url-domain.svg";
         }),
       ]);
 
@@ -106,7 +106,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
 
       let width = img.naturalWidth;
       let height = img.naturalHeight;
-      const MAX_DIM = 1080;
+      const MAX_DIM = 2160;
       if (width > MAX_DIM || height > MAX_DIM) {
         if (width > height) {
           height = Math.round((height / width) * MAX_DIM);
@@ -117,8 +117,12 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
         }
       }
 
-      canvas.width = width;
-      canvas.height = height;
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.scale(dpr, dpr);
 
       ctx.drawImage(img, 0, 0, width, height);
 
@@ -286,7 +290,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
         : "";
       ctx.fillText(recordLabel, Math.round(width * 0.94), totalY);
 
-      const dataUrl = canvas.toDataURL("image/jpeg", 0.92);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.96);
       setGeneratedImageUrl(dataUrl);
     } catch (err) {
       console.error("Error generating overlay:", err);
@@ -320,13 +324,13 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
       const srcX = Math.round((img.naturalWidth - cropW) / 2);
 
       const c = document.createElement("canvas");
-      const maxDim = Math.min(1080, cropH);
+      const maxDim = Math.min(2160, cropH);
       c.width = Math.round(maxDim * TARGET_RATIO);
       c.height = maxDim;
       const ctx = c.getContext("2d")!;
       ctx.drawImage(img, srcX, 0, cropW, cropH, 0, 0, c.width, c.height);
 
-      const croppedUrl = c.toDataURL("image/jpeg", 0.92);
+      const croppedUrl = c.toDataURL("image/jpeg", 0.96);
       URL.revokeObjectURL(url);
       setPhotoUrl(croppedUrl);
       await generateOverlay(croppedUrl);
@@ -421,7 +425,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
     const srcY = Math.max(0, Math.min(cropMeta.naturalHeight - cropHeight, centeredSrcY - cropOffsetY / scale));
 
     const cropCanvas = document.createElement("canvas");
-    const maxDim = Math.min(1080, cropMeta.naturalWidth * 16 / 9, cropMeta.naturalHeight);
+    const maxDim = Math.min(2160, cropMeta.naturalWidth * 16 / 9, cropMeta.naturalHeight);
     cropCanvas.width = Math.round(maxDim * 9 / 16);
     cropCanvas.height = maxDim;
 
@@ -436,7 +440,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
     const cropCtx = cropCanvas.getContext("2d")!;
     cropCtx.drawImage(img, 0, srcY, cropMeta.naturalWidth, cropHeight, 0, 0, cropCanvas.width, cropCanvas.height);
 
-    const croppedUrl = cropCanvas.toDataURL("image/jpeg", 0.92);
+    const croppedUrl = cropCanvas.toDataURL("image/jpeg", 0.96);
     URL.revokeObjectURL(photoUrl);
     setPhotoUrl(croppedUrl);
     setShowCrop(false);
