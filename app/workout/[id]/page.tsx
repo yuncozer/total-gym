@@ -13,6 +13,8 @@ import {
   Flame,
   Share2,
   History,
+  Save,
+  Bookmark,
   Trash2
 } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
@@ -23,6 +25,7 @@ import type { ExerciseInWorkout } from "@/lib/workout/types";
 import { ConfirmModal } from "@/app/components/ConfirmModal";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
+import { SaveTemplateModal } from "@/app/components/SaveTemplateModal";
 import { getDailyQuote } from "@/lib/data/quote";
 
 function WorkoutContent({ workoutId }: { workoutId: string }) {
@@ -94,6 +97,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [deleteConfirmExercise, setDeleteConfirmExercise] = useState<ExerciseInWorkout | null>(null);
   const [isDeletingWorkout, setIsDeletingWorkout] = useState(false);
   const [showPhotoOverlay, setShowPhotoOverlay] = useState(false);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [workoutName, setWorkoutName] = useState("");
   const [showMotivationalModal, setShowMotivationalModal] = useState(false);
   const [modalPhrase, setModalPhrase] = useState("");
@@ -217,6 +221,9 @@ const handleCompleteSet = () => {
             <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowPhotoOverlay(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-accent/10 border-2 border-accent hover:bg-accent/20 cursor-pointer font-bold rounded-xl text-accent transition-all duration-300 animate-pulse">
               <Share2 className="w-5 h-5" /> COMPARTIR
             </button>
+            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowSaveTemplate(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border hover:border-accent cursor-pointer font-bold rounded-xl">
+              <Bookmark className="w-5 h-5" /> GUARDAR COMO TEMPLATE
+            </button>
             <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/historial"); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border hover:border-accent cursor-pointer font-bold rounded-xl">
               <History className="w-5 h-5" /> VER HISTORIAL
             </button>
@@ -230,6 +237,13 @@ const handleCompleteSet = () => {
             exercises={exercises}
             workoutName={workoutName.trim()}
             onClose={() => setShowPhotoOverlay(false)}
+          />
+        )}
+        {showSaveTemplate && (
+          <SaveTemplateModal
+            exercises={exercises}
+            onClose={() => setShowSaveTemplate(false)}
+            onSaved={() => setShowSaveTemplate(false)}
           />
         )}
       </div>

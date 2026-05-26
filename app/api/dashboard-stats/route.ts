@@ -35,11 +35,28 @@ export async function GET(request: NextRequest) {
     today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split("T")[0];
 
-    const { data: completedWorkouts, error: workoutsError } = await supabase
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    const isPremium = !sub || (sub.plan === "premium" && sub.status === "active");
+
+    let query = supabase
       .from("workouts")
       .select("id, date, completed_at")
       .eq("user_id", userId)
       .eq("status", "completed");
+
+    if (!isPremium) {
+      const dateLimit = new Date();
+      dateLimit.setDate(dateLimit.getDate() - 30);
+      dateLimit.setHours(0, 0, 0, 0);
+      query = query.gte("started_at", dateLimit.toISOString());
+    }
+
+    const { data: completedWorkouts, error: workoutsError } = await query;
 
     if (workoutsError) throw workoutsError;
 

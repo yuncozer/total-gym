@@ -38,6 +38,14 @@ export async function GET(request: NextRequest) {
 
     const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    const isPremium = !sub || (sub.plan === "premium" && sub.status === "active");
+
     const { data: weekWorkouts } = await supabase
       .from("workouts")
       .select("id", { count: "exact", head: true })
@@ -50,12 +58,20 @@ export async function GET(request: NextRequest) {
       .eq("user_id", session.user.id)
       .gte("started_at", firstDayOfMonth.toISOString());
 
-    const { data: allWorkouts } = await supabase
+    let streakQuery = supabase
       .from("workouts")
       .select("id, started_at")
       .eq("user_id", session.user.id)
-      .eq("status", "completed")
-      .order("started_at", { ascending: false });
+      .eq("status", "completed");
+
+    if (!isPremium) {
+      const dateLimit = new Date();
+      dateLimit.setDate(dateLimit.getDate() - 30);
+      dateLimit.setHours(0, 0, 0, 0);
+      streakQuery = streakQuery.gte("started_at", dateLimit.toISOString());
+    }
+
+    const { data: allWorkouts } = await streakQuery.order("started_at", { ascending: false });
 
     let streak = 0;
     if (allWorkouts && allWorkouts.length > 0) {

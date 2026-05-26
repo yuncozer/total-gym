@@ -39,3 +39,27 @@ export interface TimerState {
   descansando: boolean;
   timestampInicio?: number;
 }
+
+export interface TemplateExercise {
+  exerciseId: string;
+  name: string;
+  equipment: string;
+  sets: number;
+}
+
+export interface WorkoutTemplate {
+  id: string;
+  name: string;
+  exercises: TemplateExercise[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CustomExercise {
+  id: string;
+  name: string;
+  muscle_group: string;
+  equipment: string;
+  image_url: string | null;
+  created_at: string;
+}

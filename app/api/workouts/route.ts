@@ -86,11 +86,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: workouts, error } = await supabase
+    const { data: sub } = await supabase
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", session.user.id)
+      .maybeSingle();
+
+    const isPremium = !sub || (sub.plan === "premium" && sub.status === "active");
+
+    let query = supabase
       .from("workouts")
       .select("id, date, name, started_at, status, completed_at")
-      .eq("user_id", session.user.id)
-      .order("started_at", { ascending: false });
+      .eq("user_id", session.user.id);
+
+    if (!isPremium) {
+      const dateLimit = new Date();
+      dateLimit.setDate(dateLimit.getDate() - 30);
+      dateLimit.setHours(0, 0, 0, 0);
+      query = query.gte("started_at", dateLimit.toISOString());
+    }
+
+    const { data: workouts, error } = await query.order("started_at", { ascending: false });
 
     if (error) throw error;
 
