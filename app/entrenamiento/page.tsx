@@ -15,11 +15,14 @@ import {
   AlertCircle,
   Search,
   X,
+  Bookmark,
 } from "lucide-react";
 import { ExerciseCard, ImageModal, type WgerExercise } from "@/app/components/EjercicioCard";
 import { UserHeader } from "@/app/components/UserHeader";
 import { RegisterModal } from "@/app/components/RegisterModal";
+import { TemplateSelector } from "@/app/components/TemplateSelector";
 import { muscleGroupsData, MuscleGroup } from "@/lib/data/ejercicios";
+import type { WorkoutTemplate } from "@/lib/workout/types";
 
 const DEFAULT_SETS = 3;
 
@@ -58,6 +61,8 @@ export default function EntrenamientoPage() {
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [registerModalKey, setRegisterModalKey] = useState(0);
+  const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [customExercises, setCustomExercises] = useState<Record<string, WgerExercise[]>>({});
   const [recentExercises, setRecentExercises] = useState<Record<string, (WgerExercise & { lastWeight: number })[]>>({});
 
   const openRegisterModal = () => {
@@ -77,6 +82,49 @@ export default function EntrenamientoPage() {
     }
     initSupabase();
   }, []);
+
+  useEffect(() => {
+    if (!supabase) return;
+    loadCustomExercises();
+  }, [supabase]);
+
+  const loadCustomExercises = async () => {
+    if (!supabase) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const response = await fetch("/api/custom-exercises");
+      if (!response.ok) return;
+      const data = await response.json();
+      if (!data.success) return;
+      const grouped: Record<string, WgerExercise[]> = {};
+      for (const ex of data.data) {
+        const groupId = ex.muscle_group || "other";
+        if (!grouped[groupId]) grouped[groupId] = [];
+        grouped[groupId].push({
+          id: `custom_${ex.id}`,
+          uuid: `custom_${ex.id}`,
+          name: ex.name,
+          description: "",
+          category: "",
+          categoryId: 0,
+          muscles: [],
+          muscleIds: [],
+          secondaryMuscles: [],
+          secondaryMuscleIds: [],
+          equipment: String(ex.equipment || 0),
+          equipmentIds: [],
+          equipmentCategory: "",
+          imageUrl: null,
+          images: [],
+          variationGroup: null,
+        } as WgerExercise);
+      }
+      setCustomExercises(grouped);
+    } catch (err) {
+      console.error("Error loading custom exercises:", err);
+    }
+  };
 
   useEffect(() => {
     if (!supabase) return;
@@ -102,7 +150,7 @@ export default function EntrenamientoPage() {
     };
   }, [supabase]);
 
-const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises: WgerExercise[]) => void) => {
+  const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises: WgerExercise[]) => void) => {
     const cachedExercises = exercises[muscleGroup.id];
     if (cachedExercises) {
       if (onComplete) onComplete(cachedExercises);
@@ -251,6 +299,8 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
 
   const getFilteredExercises = (muscleId: string): WgerExercise[] => {
     const muscleExercises = exercises[muscleId] || [];
+    const customGroup = customExercises[muscleId] || [];
+    const allExercises = [...muscleExercises, ...customGroup];
     const equipment = selectedEquipment[muscleId] || "all";
     const search = searchQueries[muscleId] || "";
     const recent = recentExercises[muscleId] || [];
@@ -301,7 +351,8 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
     Object.entries(selectedExercises).forEach(([muscleId, exerciseIds]) => {
       exerciseIds.forEach(exerciseId => {
         const muscleExercises = exercises[muscleId] || [];
-        const exerciseData = muscleExercises.find(e => e.id === exerciseId);
+        const customGroup = customExercises[muscleId] || [];
+        const exerciseData = muscleExercises.find(e => e.id === exerciseId) || customGroup.find(e => e.id === exerciseId);
         if (exerciseData) {
           const defaultSets = Array.from({ length: DEFAULT_SETS }, () => ({
             reps: 0,
@@ -342,6 +393,20 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
   const handleConfirmar = async () => {
     const exList = getSelectedExercisesList();
     setResumen(exList);
+    setStep("summary");
+  };
+
+  const handleSelectTemplate = (template: WorkoutTemplate) => {
+    const exerciseList: ResumenEjercicio[] = template.exercises.map(ex => ({
+      id: ex.exerciseId,
+      uuid: "",
+      nombre: ex.name,
+      description: "",
+      equipment: ex.equipment,
+      sets: Array.from({ length: Math.max(ex.sets, 1) }, () => ({ reps: 0, peso: 0 })),
+    }));
+    setResumen(exerciseList);
+    setShowTemplateSelector(false);
     setStep("summary");
   };
 
@@ -403,7 +468,6 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
       setSaving(false);
     }
   };
-  console.log("Recent: ", recentExercises);
   if (step === "summary") {
     return (
       <div className="min-h-screen bg-background text-white">
@@ -582,6 +646,14 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
 
               <div className="text-center">
                 <button
+                  onClick={() => setShowTemplateSelector(true)}
+                  className="group flex items-center justify-center gap-2 font-bold px-6 py-3 mb-4 border border hover:border-accent text-muted-foreground hover:text-white rounded-xl transition-all cursor-pointer mx-auto"
+                >
+                  <Bookmark className="w-4 h-4" />
+                  CARGAR TEMPLATE
+                </button>
+
+                <button
                   onClick={() => {
                     setStep("exercises");
                     setCurrentMuscleIndex(0);
@@ -679,7 +751,7 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
                         </div>
                       </div>
 
-                        <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600">
+                      <div className="flex-1 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-zinc-700 scrollbar-track-transparent hover:scrollbar-thumb-zinc-600">
                         <div className="space-y-3">
                           {isLoading ? (
                             <div className="flex items-center justify-center py-8">
@@ -852,6 +924,12 @@ const fetchExercises = async (muscleGroup: MuscleGroup, onComplete?: (exercises:
         </div>
       </main>
 
+      {showTemplateSelector && (
+        <TemplateSelector
+          onSelect={handleSelectTemplate}
+          onClose={() => setShowTemplateSelector(false)}
+        />
+      )}
 
     </div>
   );

@@ -162,3 +162,33 @@ async function supabaseFetch(url: string, key: string) {
   if (!res.ok) return null;
   return res.json();
 }
+
+export async function loadTemplates(): Promise<import("./types").WorkoutTemplate[]> {
+  return fetchAPI("/api/templates");
+}
+
+export async function createTemplate(name: string, exercises: import("./types").TemplateExercise[]) {
+  return fetchAPI("/api/templates", {
+    method: "POST",
+    body: JSON.stringify({ name, exercises }),
+  });
+}
+
+export async function deleteTemplate(id: string) {
+  await fetchAPI(`/api/templates/${id}`, { method: "DELETE" });
+}
+
+export async function loadCustomExercises(): Promise<import("./types").CustomExercise[]> {
+  return fetchAPI("/api/custom-exercises");
+}
+
+export async function createCustomExercise(data: { name: string; muscle_group: string; equipment: string; image_url?: string }) {
+  return fetchAPI("/api/custom-exercises", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function loadExerciseProgress(exerciseId: string): Promise<{ date: string; maxWeight: number; maxReps: number; volume: number }[]> {
+  return fetchAPI(`/api/exercises/progress?exercise_id=${encodeURIComponent(exerciseId)}`);
+}
