@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
-import { TrendingUp, Dumbbell, Loader2, AlertCircle, ArrowLeft, Info } from "lucide-react";
+import { TrendingUp, Dumbbell, Loader2, AlertCircle, Info } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { useAuth } from "@/lib/useAuth";
 import {
@@ -22,7 +21,6 @@ interface ProgressPoint {
 }
 
 export default function ProgresoPage() {
-  const router = useRouter();
   const { loading: authLoading, authenticated } = useAuth(true);
   const [exercises, setExercises] = useState<ExerciseOption[]>([]);
   const [selectedExercise, setSelectedExercise] = useState<string>("");
@@ -113,15 +111,8 @@ export default function ProgresoPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <UserHeader />
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <button
-          onClick={() => router.back()}
-          className="flex items-center gap-2 text-icon hover:text-white transition-colors mb-6 cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Volver
-        </button>
+      <UserHeader showBack backHref="/" />
+      <main className="max-w-4xl mx-auto px-4 py-8 pt-24">
 
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">

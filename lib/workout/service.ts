@@ -63,6 +63,12 @@ export async function deleteWorkout(workoutId: string): Promise<void> {
   });
 }
 
+export async function cancelWorkout(workoutId: string): Promise<void> {
+  await fetchAPI(`/api/workouts/${workoutId}/cancel`, {
+    method: "POST",
+  });
+}
+
 export async function loadWorkoutHistory(): Promise<WorkoutSummary[]> {
   return fetchAPI("/api/workouts");
 }
