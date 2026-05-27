@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Loader2 } from "lucide-react";
+import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2 } from "lucide-react";
 import Link from "next/link";
 
 interface UserHeaderProps {
@@ -135,6 +135,14 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                     >
                       <TrendingUp className="w-4 h-4" />
                       <span className="text-sm">Progreso</span>
+                    </Link>
+                    <Link
+                      href="/admin"
+                      onClick={() => setShowDropdown(false)}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
+                    >
+                      <Shield className="w-4 h-4" />
+                      <span className="text-sm">Admin</span>
                     </Link>
                     <Link
                       href="/perfil"
