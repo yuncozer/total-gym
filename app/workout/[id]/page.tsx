@@ -19,6 +19,7 @@ import {
   Trash2,
   X,
   Maximize2,
+  XCircle,
 } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
@@ -107,6 +108,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [modalSubPhrase, setModalSubPhrase] = useState("");
   const [pendingAction, setPendingAction] = useState<"completeSet" | "addExtraSet" | null>(null);
   const [exerciseImage, setExerciseImage] = useState<string | null>(null);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -567,7 +569,28 @@ const handleCompleteSet = () => {
             <span>{progress.completed} completadas</span>
             <span>{progress.total - progress.completed} restantes</span>
           </div>
+
+          <button
+            onClick={() => setShowCancelConfirm(true)}
+            className="flex items-center justify-center gap-2 w-full py-3 mt-6 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer text-sm"
+          >
+            <XCircle className="w-4 h-4" /> Cancelar entrenamiento
+          </button>
         </div>
+
+        <ConfirmModal
+          isOpen={showCancelConfirm}
+          title="¿CANCELAR ENTRENAMIENTO?"
+          message="El entrenamiento se cancelará y no se guardará ningún progreso. ¿Estás seguro?"
+          confirmText="CANCELAR ENTRENAMIENTO"
+          onConfirm={async () => {
+            setShowCancelConfirm(false);
+            setIsDeletingWorkout(true);
+            await service.cancelWorkout(workoutId);
+            router.push("/");
+          }}
+          onCancel={() => setShowCancelConfirm(false)}
+        />
 
         <ConfirmModal
           isOpen={!!deleteConfirmExercise}
