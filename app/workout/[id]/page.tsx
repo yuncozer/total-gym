@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, use } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   ArrowLeft,
   Check,
@@ -15,7 +16,9 @@ import {
   History,
   Save,
   Bookmark,
-  Trash2
+  Trash2,
+  X,
+  Maximize2,
 } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
@@ -103,6 +106,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [modalPhrase, setModalPhrase] = useState("");
   const [modalSubPhrase, setModalSubPhrase] = useState("");
   const [pendingAction, setPendingAction] = useState<"completeSet" | "addExtraSet" | null>(null);
+  const [exerciseImage, setExerciseImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -285,6 +289,26 @@ const handleCompleteSet = () => {
                   </button>
                 ))}
               </div>
+              {selectedExercise.imageUrl && (
+                <div className="flex justify-center mb-4">
+                  <button
+                    onClick={() => setExerciseImage(selectedExercise.imageUrl!)}
+                    className="relative block"
+                    title="Ver ejercicio"
+                  >
+                    <Image
+                      src={selectedExercise.imageUrl}
+                      alt={selectedExercise.name}
+                      width={80}
+                      height={60}
+                      className="rounded-lg object-cover opacity-60"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <Maximize2 className="w-5 h-5 text-white drop-shadow-lg" />
+                    </div>
+                  </button>
+                </div>
+              )}
               <div className="text-center mb-6">
                 <span className="text-sm text-icon">SERIE </span>
                 <span className="text-4xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
@@ -436,6 +460,28 @@ const handleCompleteSet = () => {
           onComplete={handleMotivationalComplete}
           duration={2500}
         />
+
+        {exerciseImage && (
+          <div
+            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+            onClick={() => setExerciseImage(null)}
+          >
+            <button
+              onClick={() => setExerciseImage(null)}
+              className="absolute top-4 right-4 p-2 text-white/60 hover:text-white cursor-pointer z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <Image
+              src={exerciseImage}
+              alt="Ejercicio"
+              width={600}
+              height={450}
+              className="max-w-full max-h-[90vh] object-contain rounded-xl"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+        )}
       </div>
     );
   }

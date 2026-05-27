@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     if (workoutError) throw workoutError;
 
-    const setsToInsert = exercises.flatMap((ej: { id: string; name: string; sets: Array<{ reps: number; peso: number }> }) =>
+    const setsToInsert = exercises.flatMap((ej: { id: string; name: string; imageUrl?: string; sets: Array<{ reps: number; peso: number }> }) =>
       ej.sets.map((_, index) => ({
         workout_id: workout.id,
         exercise_id: ej.id,
@@ -59,7 +59,8 @@ export async function POST(request: NextRequest) {
         set_number: index + 1,
         reps: 0,
         weight_kg: 0,
-        is_completed: false
+        is_completed: false,
+        image_url: ej.imageUrl || null,
       }))
     );
 
@@ -114,10 +115,10 @@ export async function GET(request: NextRequest) {
       (workouts || []).map(async (workout) => {
         const { data: sets } = await supabase
           .from("workout_sets")
-          .select("id, exercise_id, exercise_name, set_number, reps, weight_kg, is_completed")
+          .select("id, exercise_id, exercise_name, image_url, set_number, reps, weight_kg, is_completed")
           .eq("workout_id", workout.id);
 
-        const grouped: Record<string, { exerciseId: string; name: string; equipment: string; sets: unknown[] }> = {};
+        const grouped: Record<string, { exerciseId: string; name: string; equipment: string; imageUrl?: string; sets: unknown[] }> = {};
         
         (sets || []).forEach(set => {
           if (!grouped[set.exercise_id]) {
@@ -125,6 +126,7 @@ export async function GET(request: NextRequest) {
               exerciseId: set.exercise_id,
               name: set.exercise_name,
               equipment: "",
+              imageUrl: set.image_url || undefined,
               sets: []
             };
           }

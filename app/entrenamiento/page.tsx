@@ -16,11 +16,15 @@ import {
   Search,
   X,
   Bookmark,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { ExerciseCard, ImageModal, type WgerExercise } from "@/app/components/EjercicioCard";
 import { UserHeader } from "@/app/components/UserHeader";
 import { RegisterModal } from "@/app/components/RegisterModal";
 import { TemplateSelector } from "@/app/components/TemplateSelector";
+import { CreateCustomExerciseModal } from "@/app/components/CreateCustomExerciseModal";
+import * as service from "@/lib/workout/service";
 import { muscleGroupsData, MuscleGroup } from "@/lib/data/ejercicios";
 import type { WorkoutTemplate } from "@/lib/workout/types";
 
@@ -31,6 +35,7 @@ const EQUIPMENT_TABS = [
   { id: "barbell", label: "Barra" },
   { id: "dumbbell", label: "Mancuernas" },
   { id: "body weight", label: "Peso corporal" },
+  { id: "personalizados", label: "Personalizados" },
   { id: "other", label: "Otros" },
 ];
 
@@ -40,6 +45,7 @@ interface ResumenEjercicio {
   nombre: string;
   description: string;
   equipment: string;
+  imageUrl?: string;
   sets: { reps: number; peso: number }[];
 }
 
@@ -62,6 +68,8 @@ export default function EntrenamientoPage() {
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [registerModalKey, setRegisterModalKey] = useState(0);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
+  const [showCreateCustomExercise, setShowCreateCustomExercise] = useState(false);
+  const [deletingCustomId, setDeletingCustomId] = useState<string | null>(null);
   const [customExercises, setCustomExercises] = useState<Record<string, WgerExercise[]>>({});
   const [recentExercises, setRecentExercises] = useState<Record<string, (WgerExercise & { lastWeight: number })[]>>({});
 
@@ -95,10 +103,10 @@ export default function EntrenamientoPage() {
       if (!session?.user) return;
       const response = await fetch("/api/custom-exercises");
       if (!response.ok) return;
-      const data = await response.json();
-      if (!data.success) return;
+      const exercises = await response.json();
+      if (!Array.isArray(exercises)) return;
       const grouped: Record<string, WgerExercise[]> = {};
-      for (const ex of data.data) {
+      for (const ex of exercises) {
         const groupId = ex.muscle_group || "other";
         if (!grouped[groupId]) grouped[groupId] = [];
         grouped[groupId].push({
@@ -306,8 +314,13 @@ export default function EntrenamientoPage() {
     const recent = recentExercises[muscleId] || [];
 
     let filtered = equipment === "all"
-      ? muscleExercises
-      : muscleExercises.filter(ex => ex.equipmentCategory === equipment);
+      ? allExercises
+      : equipment === "personalizados"
+        ? allExercises.filter(ex => ex.id.startsWith("custom_"))
+        : allExercises.filter(ex =>
+            ex.equipmentCategory === equipment ||
+            (ex.id.startsWith("custom_") && ex.equipment === equipment)
+          );
 
     if (search.trim()) {
       const lowerSearch = search.toLowerCase();
@@ -364,6 +377,7 @@ export default function EntrenamientoPage() {
             nombre: exerciseData.name,
             description: exerciseData.description,
             equipment: exerciseData.equipment,
+            imageUrl: exerciseData.imageUrl || undefined,
             sets: defaultSets
           });
         }
@@ -396,7 +410,7 @@ export default function EntrenamientoPage() {
     setStep("summary");
   };
 
-  const handleSelectTemplate = (template: WorkoutTemplate) => {
+  const handleSelectTemplate = async (template: WorkoutTemplate) => {
     const exerciseList: ResumenEjercicio[] = template.exercises.map(ex => ({
       id: ex.exerciseId,
       uuid: "",
@@ -408,6 +422,61 @@ export default function EntrenamientoPage() {
     setResumen(exerciseList);
     setShowTemplateSelector(false);
     setStep("summary");
+
+    const allExercises: Record<string, WgerExercise[]> = {};
+    const loadPromises = muscleGroups.map(mg =>
+      new Promise<void>((resolve) => {
+        fetchExercises(mg, (fetched) => {
+          allExercises[mg.id] = fetched;
+          resolve();
+        });
+      })
+    );
+    await Promise.all(loadPromises);
+
+    const muscleIds = new Set<string>();
+    const selectedExByMuscle: Record<string, string[]> = {};
+
+    for (const ex of template.exercises) {
+      let found = false;
+      for (const [muscleId, muscleExs] of Object.entries(allExercises)) {
+        if (muscleExs.some(e => e.id === ex.exerciseId || e.uuid === ex.exerciseId)) {
+          muscleIds.add(muscleId);
+          if (!selectedExByMuscle[muscleId]) selectedExByMuscle[muscleId] = [];
+          selectedExByMuscle[muscleId].push(ex.exerciseId);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        for (const [muscleId, customExs] of Object.entries(customExercises)) {
+          if (customExs.some(e => e.id === ex.exerciseId)) {
+            muscleIds.add(muscleId);
+            if (!selectedExByMuscle[muscleId]) selectedExByMuscle[muscleId] = [];
+            selectedExByMuscle[muscleId].push(ex.exerciseId);
+            break;
+          }
+        }
+      }
+    }
+
+    if (muscleIds.size > 0) {
+      setSelectedMuscles(Array.from(muscleIds));
+      setSelectedExercises(selectedExByMuscle);
+    }
+  };
+
+  const handleDeleteCustomExercise = async (exerciseId: string) => {
+    if (deletingCustomId) return;
+    setDeletingCustomId(exerciseId);
+    const uuid = exerciseId.replace("custom_", "");
+    try {
+      await service.deleteCustomExercise(uuid);
+      await loadCustomExercises();
+    } catch {
+    } finally {
+      setDeletingCustomId(null);
+    }
   };
 
   const handleGuardarYEjecutar = async () => {
@@ -451,7 +520,8 @@ export default function EntrenamientoPage() {
           set_number: index + 1,
           reps: 0,
           weight_kg: 0,
-          is_completed: false
+          is_completed: false,
+          image_url: ej.imageUrl || null,
         }))
       );
 
@@ -650,7 +720,7 @@ export default function EntrenamientoPage() {
                   className="group flex items-center justify-center gap-2 font-bold px-6 py-3 mb-4 border border hover:border-accent text-muted-foreground hover:text-white rounded-xl transition-all cursor-pointer mx-auto"
                 >
                   <Bookmark className="w-4 h-4" />
-                  CARGAR TEMPLATE
+                  CARGAR RUTINA GUARDADA
                 </button>
 
                 <button
@@ -731,6 +801,14 @@ export default function EntrenamientoPage() {
                           ))}
                         </div>
 
+                        <button
+                          onClick={() => { setShowCreateCustomExercise(true); }}
+                          className="flex items-center gap-2 text-sm text-icon hover:text-accent transition-colors mb-4 cursor-pointer"
+                        >
+                          <Plus className="w-4 h-4" />
+                          Nuevo ejercicio
+                        </button>
+
                         <div className="relative mb-4">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-icon" />
                           <input
@@ -759,62 +837,111 @@ export default function EntrenamientoPage() {
                               <span className="ml-2 text-icon">Cargando ejercicios...</span>
                             </div>
                           ) : filteredExercises.length > 0 ? (
-                            recent.length > 0 && !searchQueries[muscleId] ? (
-                              <>
-                                <div className="sticky -top-2 z-10 pt-2">
-                                  <div className="text-xs text-accent font-bold mb-2 uppercase tracking-wider bg-card py-2">
-                                    Recientes
+                            (() => {
+                              const customExs = filteredExercises.filter(e => e.id.startsWith("custom_"));
+                              const wgerExs = filteredExercises.filter(e => !e.id.startsWith("custom_"));
+                              const showRecent = recent.length > 0 && !searchQueries[muscleId];
+
+                              return showRecent ? (
+                                <>
+                                  <div className="sticky -top-2 z-10 pt-2">
+                                    <div className="text-xs text-accent font-bold mb-2 uppercase tracking-wider bg-card py-2">
+                                      Recientes
+                                    </div>
                                   </div>
-                                </div>
-                                {filteredExercises.slice(0, recent.length).map((exercise) => {
-                                  const recentExercise = recent.find(r => r.id === exercise.id);
-                                  return (
+                                  {recent.map((recentEx) => {
+                                    const fullExercise = wgerExs.find(e => e.id === recentEx.id);
+                                    if (!fullExercise) return null;
+                                    return (
+                                      <ExerciseCard
+                                        key={`recent-${fullExercise.id}`}
+                                        exercise={fullExercise}
+                                        selected={isExerciseSelected(muscleId, fullExercise.id)}
+                                        onSelect={() => toggleExercise(muscleId, fullExercise.id)}
+                                        onImageClick={handleImageClick}
+                                        lastWeight={recentEx.lastWeight}
+                                      />
+                                    );
+                                  })}
+
+                                  {customExs.length > 0 && (
+                                    <>
+                                      <div className="sticky top-0 z-10 pt-2">
+                                        <div className="text-xs text-accent font-bold mb-2 uppercase tracking-wider bg-card py-2">
+                                          Personalizados
+                                        </div>
+                                      </div>
+                                      {customExs.map((exercise) => {
+                                        const isDeletingCustom = deletingCustomId === exercise.id;
+                                        return (
+                                          <div key={`custom-${exercise.id}`} className="relative group">
+                                            <ExerciseCard
+                                              exercise={exercise}
+                                              selected={isExerciseSelected(muscleId, exercise.id)}
+                                              onSelect={() => { if (!deletingCustomId) toggleExercise(muscleId, exercise.id); }}
+                                              onImageClick={handleImageClick}
+                                            />
+                                            <button
+                                              onClick={(e) => { e.stopPropagation(); handleDeleteCustomExercise(exercise.id); }}
+                                              disabled={!!deletingCustomId}
+                                              className="absolute top-2 right-2 p-1.5 bg-red-500/20 text-red-500 rounded-lg opacity-60 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-wait"
+                                              title="Eliminar ejercicio"
+                                            >
+                                              {isDeletingCustom ? (
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                              ) : (
+                                                <Trash2 className="w-4 h-4" />
+                                              )}
+                                            </button>
+                                          </div>
+                                        );
+                                      })}
+                                    </>
+                                  )}
+
+                                  {wgerExs.length > recent.length && (
+                                    <>
+                                      <div className="sticky top-0 z-10 pt-2">
+                                        <div className="text-xs text-icon font-medium mb-2 uppercase tracking-wider bg-card py-2">
+                                          Todos los ejercicios
+                                        </div>
+                                      </div>
+                                      {wgerExs.slice(recent.length).map((exercise) => (
+                                        <ExerciseCard
+                                          key={`normal-${exercise.id}`}
+                                          exercise={exercise}
+                                          selected={isExerciseSelected(muscleId, exercise.id)}
+                                          onSelect={() => toggleExercise(muscleId, exercise.id)}
+                                          onImageClick={handleImageClick}
+                                        />
+                                      ))}
+                                    </>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <div className="text-xs text-icon font-medium mb-2 uppercase tracking-wider">
+                                    {searchQueries[muscleId] ? "Resultados" : "Ejercicios"}
+                                  </div>
+                                  {filteredExercises.map((exercise) => (
                                     <ExerciseCard
-                                      key={`recent-${exercise.id}`}
+                                      key={exercise.id}
                                       exercise={exercise}
                                       selected={isExerciseSelected(muscleId, exercise.id)}
                                       onSelect={() => toggleExercise(muscleId, exercise.id)}
                                       onImageClick={handleImageClick}
-                                      lastWeight={recentExercise?.lastWeight}
                                     />
-                                  );
-                                })}
-                                <div className="sticky top-0 z-10 pt-2">
-                                  <div className="text-xs text-icon font-medium mb-2 uppercase tracking-wider bg-card py-2">
-                                    Todos los ejercicios
-                                  </div>
-                                </div>
-                                {filteredExercises.slice(recent.length).map((exercise) => (
-                                  <ExerciseCard
-                                    key={`normal-${exercise.id}`}
-                                    exercise={exercise}
-                                    selected={isExerciseSelected(muscleId, exercise.id)}
-                                    onSelect={() => toggleExercise(muscleId, exercise.id)}
-                                    onImageClick={handleImageClick}
-                                  />
-                                ))}
-                              </>
-                            ) : (
-                              <>
-                                <div className="text-xs text-icon font-medium mb-2 uppercase tracking-wider">
-                                  {searchQueries[muscleId] ? "Resultados" : "Ejercicios"}
-                                </div>
-                                {filteredExercises.map((exercise) => (
-                                  <ExerciseCard
-                                    key={exercise.id}
-                                    exercise={exercise}
-                                    selected={isExerciseSelected(muscleId, exercise.id)}
-                                    onSelect={() => toggleExercise(muscleId, exercise.id)}
-                                    onImageClick={handleImageClick}
-                                  />
-                                ))}
-                              </>
-                            )
+                                  ))}
+                                </>
+                              );
+                            })()
                           ) : (
                             <div className="text-center py-8 text-icon">
                               {searchQueries[muscleId]
                                 ? `No se encontraron ejercicios para "${searchQueries[muscleId]}"`
-                                : "No hay ejercicios con este equipo"
+                                : currentEquipment === "personalizados"
+                                  ? "No has creado ejercicios personalizados"
+                                  : "No hay ejercicios con este equipo"
                               }
                             </div>
                           )}
@@ -928,6 +1055,16 @@ export default function EntrenamientoPage() {
         <TemplateSelector
           onSelect={handleSelectTemplate}
           onClose={() => setShowTemplateSelector(false)}
+        />
+      )}
+
+      {showCreateCustomExercise && (
+        <CreateCustomExerciseModal
+          preselectedMuscle={step === "exercises" ? selectedMuscles[currentMuscleIndex] : undefined}
+          onClose={() => setShowCreateCustomExercise(false)}
+          onCreated={() => {
+            loadCustomExercises();
+          }}
         />
       )}
 

@@ -33,7 +33,7 @@ export function SaveTemplateModal({ exercises, onClose, onSaved }: SaveTemplateM
       await service.createTemplate(name.trim(), templateExercises);
       setSaved(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Error al guardar el template");
+      setError(err instanceof Error ? err.message : "Error al guardar la rutina");
       setSaving(false);
     }
   };
@@ -49,12 +49,12 @@ export function SaveTemplateModal({ exercises, onClose, onSaved }: SaveTemplateM
             <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
               <Check className="w-8 h-8 text-green-500" />
             </div>
-            <p className="text-lg font-bold text-green-500">¡Template guardado!</p>
+            <p className="text-lg font-bold text-green-500">¡Rutina guardada!</p>
             <p className="text-icon text-sm mt-3 leading-relaxed">
               "{name.trim()}" está disponible para cargar desde la pantalla de <strong>Entrenamiento</strong>.
             </p>
             <p className="text-icon text-sm mt-2 leading-relaxed">
-              Usá el botón <strong className="text-white">CARGAR TEMPLATE</strong> al seleccionar grupos musculares para cargar esta rutina completa al instante.
+              Usá el botón <strong className="text-white">CARGAR RUTINA GUARDADA</strong> al seleccionar grupos musculares para cargar esta rutina completa al instante.
             </p>
             <button
               onClick={() => { onSaved(); onClose(); }}
@@ -67,7 +67,7 @@ export function SaveTemplateModal({ exercises, onClose, onSaved }: SaveTemplateM
         ) : (
           <>
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold">Guardar como template</h3>
+              <h3 className="text-lg font-bold">Guardar rutina</h3>
               <button onClick={onClose} className="p-1 text-icon hover:text-white cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
@@ -93,7 +93,7 @@ export function SaveTemplateModal({ exercises, onClose, onSaved }: SaveTemplateM
               className="flex items-center justify-center gap-2 w-full py-3 bg-accent hover:bg-accent-hover disabled:bg-zinc-700 disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl transition-colors"
             >
               {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-              GUARDAR TEMPLATE
+              GUARDAR RUTINA
             </button>
           </>
         )}

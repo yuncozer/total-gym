@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { TrendingUp, Dumbbell, Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+import { TrendingUp, Dumbbell, Loader2, AlertCircle, ArrowLeft, Info } from "lucide-react";
 import { UserHeader } from "@/app/components/UserHeader";
 import { useAuth } from "@/lib/useAuth";
 import {
@@ -31,6 +31,8 @@ export default function ProgresoPage() {
   const [loadingProgress, setLoadingProgress] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [metric, setMetric] = useState<"maxWeight" | "maxReps" | "volume">("maxWeight");
+  const [showGuide, setShowGuide] = useState(false);
+  const guideRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (authLoading) return;
@@ -91,6 +93,16 @@ export default function ProgresoPage() {
     return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
   };
 
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (guideRef.current && !guideRef.current.contains(e.target as Node)) {
+        setShowGuide(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
@@ -137,9 +149,9 @@ export default function ProgresoPage() {
                 ))}
               </select>
             </div>
-            <div>
+            <div className="relative">
               <label className="block text-sm text-icon mb-2">Métrica</label>
-              <div className="flex gap-2">
+              <div className="flex gap-2 items-center">
                 {(["maxWeight", "maxReps", "volume"] as const).map((m) => (
                   <button
                     key={m}
@@ -153,7 +165,51 @@ export default function ProgresoPage() {
                     {m === "maxWeight" ? "Peso" : m === "maxReps" ? "Reps" : "Volumen"}
                   </button>
                 ))}
+                <button
+                  onClick={() => setShowGuide(!showGuide)}
+                  className="w-10 h-10 rounded-xl bg-muted text-icon hover:text-white hover:border-accent transition-all flex items-center justify-center cursor-pointer shrink-0"
+                  title="¿Qué significan las métricas?"
+                >
+                  <Info className="w-4 h-4" />
+                </button>
               </div>
+
+              {showGuide && (
+                <div
+                  ref={guideRef}
+                  className="absolute right-0 top-full mt-2 w-72 z-10 bg-card border border rounded-2xl shadow-2xl p-5 space-y-4 animate-fade-in"
+                >
+                  <p className="text-white font-semibold text-sm">¿Qué significan las métricas?</p>
+
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">Peso máximo</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        El peso más alto que levantaste en una sola serie
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">Reps máximas</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        La mayor cantidad de repeticiones en una serie
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">Volumen total</p>
+                      <p className="text-muted-foreground text-xs mt-0.5">
+                        Peso × repeticiones de todas las series combinadas
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="border-t border pt-3">
+                    <p className="text-white font-semibold text-xs mb-1">Cómo leer el chart</p>
+                    <p className="text-muted-foreground text-xs">
+                      Cada punto es un entrenamiento. La línea muestra tu evolución en el tiempo. Mientras más arriba, mejor.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

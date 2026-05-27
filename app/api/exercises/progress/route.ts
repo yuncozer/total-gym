@@ -40,8 +40,7 @@ export async function GET(request: NextRequest) {
       .select("weight_kg, reps, completed_at, workout_id")
       .eq("exercise_id", exerciseId)
       .eq("is_completed", true)
-      .not("completed_at", "is", null)
-      .order("completed_at", { ascending: true });
+      .order("workout_id", { ascending: true });
 
     if (error) throw error;
 
