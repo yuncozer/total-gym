@@ -15,6 +15,7 @@ export interface ExerciseInWorkout {
   exerciseId: string;
   name: string;
   equipment: string;
+  imageUrl?: string;
   sets: WorkoutSet[];
 }
 

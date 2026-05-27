@@ -22,6 +22,7 @@ export async function createWorkout(
   exercises: Array<{
     id: string;
     name: string;
+    imageUrl?: string;
     sets: Array<{ reps: number; peso: number }>;
   }>
 ): Promise<{ id: string }> {
@@ -187,6 +188,10 @@ export async function createCustomExercise(data: { name: string; muscle_group: s
     method: "POST",
     body: JSON.stringify(data),
   });
+}
+
+export async function deleteCustomExercise(id: string) {
+  await fetchAPI(`/api/custom-exercises/${id}`, { method: "DELETE" });
 }
 
 export async function loadExerciseProgress(exerciseId: string): Promise<{ date: string; maxWeight: number; maxReps: number; volume: number }[]> {

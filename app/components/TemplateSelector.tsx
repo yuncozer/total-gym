@@ -52,7 +52,7 @@ export function TemplateSelector({ onSelect, onClose }: TemplateSelectorProps) {
       >
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold flex items-center gap-2">
-            <Bookmark className="w-5 h-5 text-accent" /> Mis templates
+            <Bookmark className="w-5 h-5 text-accent" /> Mis rutinas
           </h3>
           <button onClick={onClose} className="p-1 text-icon hover:text-white cursor-pointer">
             <X className="w-5 h-5" />
@@ -70,7 +70,7 @@ export function TemplateSelector({ onSelect, onClose }: TemplateSelectorProps) {
           ) : templates.length === 0 ? (
             <div className="text-center py-12">
               <Bookmark className="w-12 h-12 text-icon mx-auto mb-3" />
-              <p className="text-muted-foreground">No tienes templates guardados</p>
+              <p className="text-muted-foreground">No tienes rutinas guardadas</p>
             </div>
           ) : (
             templates.map(template => {
@@ -105,7 +105,7 @@ export function TemplateSelector({ onSelect, onClose }: TemplateSelectorProps) {
                     role="button"
                     tabIndex={deletingId ? -1 : 0}
                     className="p-1.5 text-icon hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all cursor-pointer disabled:pointer-events-none"
-                    title={isDeleting ? "Eliminando..." : "Eliminar template"}
+                    title={isDeleting ? "Eliminando..." : "Eliminar rutina"}
                   >
                     {isDeleting ? (
                       <Loader2 className="w-4 h-4 animate-spin text-red-500" />

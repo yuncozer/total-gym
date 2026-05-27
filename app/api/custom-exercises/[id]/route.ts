@@ -20,7 +20,10 @@ function createSupabaseClient(request: NextRequest) {
   );
 }
 
-export async function GET(request: NextRequest) {
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
     const supabase = createSupabaseClient(request);
     const { data: { session } } = await supabase.auth.getSession();
@@ -28,27 +31,19 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: sets, error } = await supabase
-      .from("workout_sets")
-      .select("exercise_id, exercise_name")
-      .eq("is_completed", true)
-      .order("exercise_id", { ascending: true });
+    const { id } = await params;
+
+    const { error } = await supabase
+      .from("custom_exercises")
+      .delete()
+      .eq("id", id)
+      .eq("user_id", session.user.id);
 
     if (error) throw error;
 
-    const seen = new Set<string>();
-    const exercises: { id: string; name: string }[] = [];
-    for (const set of sets || []) {
-      const key = set.exercise_id;
-      if (!seen.has(key)) {
-        seen.add(key);
-        exercises.push({ id: set.exercise_id, name: set.exercise_name });
-      }
-    }
-
-    return NextResponse.json(exercises);
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error loading user exercises:", error);
-    return NextResponse.json({ error: "Failed to load exercises" }, { status: 500 });
+    console.error("Error deleting custom exercise:", error);
+    return NextResponse.json({ error: "Failed to delete exercise" }, { status: 500 });
   }
 }
