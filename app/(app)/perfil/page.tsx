@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Flame, Dumbbell, TrendingUp, CalendarDays, Bell, BellOff } from "lucide-react";
-import { UserHeader } from "@/app/components/UserHeader";
+import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Bell, BellOff } from "lucide-react";
 import { usePushNotifications, updateNotificationSettings, saveSubscription } from "@/lib/push";
 import { useAuth } from "@/lib/useAuth";
+import { LoadingScreen } from "@/app/components/LoadingScreen";
 
 interface ProfileData {
   email: string;
@@ -15,13 +15,6 @@ interface ProfileData {
   level: string;
   goal: string;
   notify_enabled: boolean;
-}
-
-interface Stats {
-  weekWorkouts: number;
-  monthWorkouts: number;
-  streak: number;
-  totalVolume: number;
 }
 
 export default function PerfilPage() {
@@ -42,13 +35,6 @@ export default function PerfilPage() {
     level: "",
     goal: "",
     notify_enabled: false,
-  });
-
-  const [stats, setStats] = useState<Stats>({
-    weekWorkouts: 0,
-    monthWorkouts: 0,
-    streak: 0,
-    totalVolume: 0,
   });
 
   const { supported, subscribe, unsubscribe, loading: subLoading } = usePushNotifications();
@@ -85,72 +71,6 @@ export default function PerfilPage() {
             notify_enabled: profileData.notify_enabled || false,
           }));
         }
-
-        const now = new Date();
-        const dayOfWeek = now.getDay();
-        const monday = new Date(now);
-        monday.setDate(now.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-        monday.setHours(0, 0, 0, 0);
-
-        const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-        const { data: weekWorkouts } = await client
-          .from("workouts")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", session.user.id)
-          .gte("started_at", monday.toISOString());
-
-        const { data: monthWorkouts } = await client
-          .from("workouts")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", session.user.id)
-          .gte("started_at", firstDayOfMonth.toISOString());
-
-        const { data: allWorkouts } = await client
-          .from("workouts")
-          .select("id, started_at")
-          .eq("user_id", session.user.id)
-          .eq("status", "completed")
-          .order("started_at", { ascending: false });
-
-        let streak = 0;
-        if (allWorkouts && allWorkouts.length > 0) {
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          
-          let currentDate = new Date(today);
-          const workoutDates = new Set(
-            allWorkouts.map(w => {
-              const d = new Date(w.started_at);
-              d.setHours(0, 0, 0, 0);
-              return d.toISOString().split("T")[0];
-            })
-          );
-
-          while (workoutDates.has(currentDate.toISOString().split("T")[0])) {
-            streak++;
-            currentDate.setDate(currentDate.getDate() - 1);
-          }
-        }
-
-        const { data: setsData } = await client
-          .from("workout_sets")
-          .select("reps, weight_kg")
-          .eq("is_completed", true);
-
-        let totalVolume = 0;
-        if (setsData) {
-          setsData.forEach(set => {
-            totalVolume += (set.reps || 0) * (set.weight_kg || 0);
-          });
-        }
-
-        setStats({
-          weekWorkouts: weekWorkouts?.length || 0,
-          monthWorkouts: monthWorkouts?.length || 0,
-          streak,
-          totalVolume: Math.round(totalVolume),
-        });
       }
       setLoading(false);
     }
@@ -212,29 +132,13 @@ export default function PerfilPage() {
     }
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background text-white flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background text-white">
-        <UserHeader showBack />
-        <main className="pt-24 pb-12 px-4 flex items-center justify-center min-h-[50vh]">
-          <Loader2 className="w-8 h-8 animate-spin text-accent" />
-        </main>
-      </div>
-    );
+  if (authLoading || loading) {
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-background text-white">
-      <UserHeader showBack />
-      
+            
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
@@ -262,31 +166,7 @@ export default function PerfilPage() {
             </div>
           )}
 
-          <div className="bg-card rounded-xl p-4 mb-6 border border">
-            <h2 className="text-sm font-bold text-icon uppercase mb-4">ESTADÍSTICAS</h2>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="text-center">
-                <Flame className="w-6 h-6 text-accent mx-auto mb-1" />
-                <span className="text-2xl font-bold">{stats.weekWorkouts}</span>
-                <p className="text-xs text-icon">Esta semana</p>
-              </div>
-              <div className="text-center">
-                <CalendarDays className="w-6 h-6 text-accent mx-auto mb-1" />
-                <span className="text-2xl font-bold">{stats.monthWorkouts}</span>
-                <p className="text-xs text-icon">Este mes</p>
-              </div>
-              <div className="text-center">
-                <TrendingUp className="w-6 h-6 text-green-500 mx-auto mb-1" />
-                <span className="text-2xl font-bold text-green-500">{stats.streak}</span>
-                <p className="text-xs text-icon">Días racha</p>
-              </div>
-              <div className="text-center">
-                <Dumbbell className="w-6 h-6 text-accent mx-auto mb-1" />
-                <span className="text-2xl font-bold">{stats.totalVolume.toLocaleString()}</span>
-                <p className="text-xs text-icon">Volumen (kg)</p>
-              </div>
-            </div>
-          </div>
+
 
           <div className="space-y-6">
             <div>

@@ -1,3 +1,4 @@
+import toast from "react-hot-toast";
 import type { ExerciseInWorkout, WorkoutSummary, WorkoutSet } from "./types";
 
 export interface NewExerciseDef {
@@ -8,21 +9,55 @@ export interface NewExerciseDef {
   setsCount: number;
 }
 
-async function fetchAPI(url: string, options: RequestInit = {}) {
-  const response = await fetch(url, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
-  });
-  
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: "Request failed" }));
-    throw new Error(error.error || "Request failed");
+const FETCH_TIMEOUT = 15000;
+const MAX_RETRIES = 2;
+
+async function fetchWithTimeout(url: string, options: RequestInit, timeout: number): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeout);
+  try {
+    const response = await fetch(url, { ...options, signal: controller.signal });
+    return response;
+  } finally {
+    clearTimeout(timer);
   }
-  
-  return response.json();
+}
+
+async function fetchAPI(url: string, options: RequestInit = {}) {
+  let lastError: Error | null = null;
+
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const response = await fetchWithTimeout(url, {
+        ...options,
+        headers: {
+          "Content-Type": "application/json",
+          ...options.headers,
+        },
+      }, FETCH_TIMEOUT);
+
+      if (!response.ok) {
+        const error = await response.json().catch(() => ({ error: "Error de conexión" }));
+        throw new Error(error.error || "Error de conexión");
+      }
+
+      return response.json();
+    } catch (err) {
+      lastError = err instanceof Error ? err : new Error("Error de conexión");
+
+      if (lastError.name === "AbortError") {
+        lastError = new Error("La solicitud tardó demasiado. Revisa tu conexión.");
+      }
+
+      if (attempt < MAX_RETRIES) {
+        await new Promise(r => setTimeout(r, (attempt + 1) * 1000));
+      }
+    }
+  }
+
+  const finalError = lastError!;
+  toast.error(finalError.message, { id: `fetch-${url}` });
+  throw finalError;
 }
 
 export async function createWorkout(
@@ -190,14 +225,22 @@ export async function getDashboardStats(userId: string): Promise<DashboardStats>
 }
 
 async function supabaseFetch(url: string, key: string) {
-  const res = await fetch(url, {
-    headers: {
-      apikey: key,
-      Authorization: `Bearer ${key}`,
-    },
-  });
-  if (!res.ok) return null;
-  return res.json();
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT);
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: {
+        apikey: key,
+        Authorization: `Bearer ${key}`,
+      },
+    });
+    clearTimeout(timer);
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
+  }
 }
 
 export async function loadTemplates(): Promise<import("./types").WorkoutTemplate[]> {
@@ -232,4 +275,30 @@ export async function deleteCustomExercise(id: string) {
 
 export async function loadExerciseProgress(exerciseId: string): Promise<{ date: string; maxWeight: number; maxReps: number; volume: number }[]> {
   return fetchAPI(`/api/exercises/progress?exercise_id=${encodeURIComponent(exerciseId)}`);
+}
+
+export interface UserStats {
+  totalWorkouts: number;
+  totalVolume: number;
+  streak: number;
+  totalHours: number;
+  workoutsThisWeek: number;
+  workoutsLastWeek: number;
+  volumeThisWeek: number;
+  volumeLastWeek: number;
+  hoursThisWeek: number;
+  hoursLastWeek: number;
+  consistency30d: number;
+  topExercise: { name: string; count: number } | null;
+  bestRecord: { exerciseName: string; weight: number; date: string; daysAgo: number } | null;
+  weeklyVolume: { week: string; volume: number }[];
+  volumeChange: number | null;
+  streakMilestone: string | null;
+  workoutsChangeWeek: number | null;
+  volumeChangeWeek: number | null;
+  hoursChangeWeek: number | null;
+}
+
+export async function loadUserStats(): Promise<UserStats> {
+  return fetchAPI("/api/user-stats");
 }

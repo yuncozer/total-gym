@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/useAuth";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
+import { LoadingScreen } from "@/app/components/LoadingScreen";
 
 export default function AdminLayout({
   children,
@@ -34,11 +35,7 @@ export default function AdminLayout({
   }, [authLoading, authenticated]);
 
   if (authLoading || checking) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-accent animate-spin" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!authenticated || !isAdmin) {
