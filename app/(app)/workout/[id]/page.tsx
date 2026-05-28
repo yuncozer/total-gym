@@ -21,7 +21,6 @@ import {
   Maximize2,
   XCircle,
 } from "lucide-react";
-import { UserHeader } from "@/app/components/UserHeader";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
 import * as service from "@/lib/workout/service";
@@ -181,18 +180,7 @@ const handleCompleteSet = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-background text-white">
-        <UserHeader showBack backHref="/" />
-        <main className="pt-24 pb-12 px-4 flex items-center justify-center">
-          <Loader2 className="w-8 h-8 animate-spin text-accent" />
-        </main>
-      </div>
-    );
-  }
-
-  if (isDeletingWorkout) {
+  if (loading || isDeletingWorkout) {
     return <LoadingScreen />;
   }
 
@@ -201,8 +189,7 @@ const handleCompleteSet = () => {
     return (
       <div className="min-h-screen bg-background text-white">
         <div className="absolute inset-0 bg-gradient-to-b from-background via-background to-card opacity-90" />
-        <UserHeader showBack backHref="/" />
-        <main className="relative z-10 pt-24 pb-12 px-4">
+                <main className="relative z-10 pt-24 pb-12 px-4">
           <div className="max-w-md mx-auto text-center">
             <div className="w-24 h-24 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse">
               <CheckCircle2 className="w-12 h-12 text-green-500" />
@@ -267,8 +254,7 @@ const handleCompleteSet = () => {
 
     return (
       <div className="min-h-screen bg-background text-white">
-        <UserHeader showBack backHref="/" />
-        <main className="pt-24 pb-12 px-4">
+                <main className="pt-24 pb-12 px-4">
           <div className="max-w-md mx-auto">
             <button onClick={handleBack} className="flex items-center gap-2 text-muted-foreground hover:text-white cursor-pointer mb-6">
               <ArrowLeft className="w-4 h-4" /> Volver
@@ -503,8 +489,7 @@ const handleCompleteSet = () => {
 
   return (
     <div className="min-h-screen bg-background text-white">
-      <UserHeader showBack backHref="/" />
-      <main className="pt-24 pb-12 px-4">
+            <main className="pt-24 pb-12 px-4">
         <div className="max-w-md mx-auto">
           <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
             TU <span className="text-accent">ENTRENAMIENTO</span>

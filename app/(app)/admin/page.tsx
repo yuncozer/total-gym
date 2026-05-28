@@ -14,8 +14,7 @@ import {
   AlertCircle,
   CheckCircle2,
 } from "lucide-react";
-import { UserHeader } from "@/app/components/UserHeader";
-
+import { LoadingScreen } from "@/app/components/LoadingScreen";
 interface Stats {
   totalUsers: number;
   totalWorkouts: number;
@@ -145,20 +144,12 @@ export default function AdminPage() {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-black">
-        <UserHeader showBack backHref="/" />
-        <div className="min-h-screen flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-accent animate-spin" />
-        </div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-black">
-      <UserHeader showBack backHref="/" />
-      <main className="max-w-4xl mx-auto px-4 py-8 pt-24">
+            <main className="max-w-4xl mx-auto px-4 py-8 pt-24">
 
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">

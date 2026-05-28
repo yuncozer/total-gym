@@ -3,6 +3,7 @@ import { Oswald, Rajdhani, Barlow_Condensed } from "next/font/google";
 import "./globals.css";
 import { OfflineBanner } from "@/app/components/OfflineBanner";
 import { Analytics } from "@vercel/analytics/next";
+import { ToastProvider } from "@/app/components/ToastProvider";
 
 const oswald = Oswald({
   variable: "--font-oswald",
@@ -126,6 +127,7 @@ export default function RootLayout({
         />
         {children}
         <OfflineBanner />
+        <ToastProvider />
         <Analytics />
       </body>
     </html>

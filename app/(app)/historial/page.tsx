@@ -2,8 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Target, Loader2, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X, Flame, Calendar, Share2 } from "lucide-react";
-import { UserHeader } from "@/app/components/UserHeader";
+import { CheckCircle2, Clock, Target, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X, Flame, Calendar, Share2 } from "lucide-react";
 import { loadWorkoutHistory, type WorkoutSummary, type WorkoutSet, type ExerciseInWorkout } from "@/lib/workout";
 import { useAuth } from "@/lib/useAuth";
 import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
@@ -324,15 +323,7 @@ export default function HistorialPage() {
   const hasActiveFilters = activeFilter !== "all" || selectedDayIndex !== null;
   const hasWeeklyWorkouts = hasWorkoutsThisWeek(workouts);
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-background text-white flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-2 border-accent border-t-transparent rounded-full" />
-      </div>
-    );
-  }
-
-  if (loading) {
+  if (authLoading || loading) {
     return <LoadingScreen />;
   }
 
@@ -354,8 +345,7 @@ export default function HistorialPage() {
 
   return (
     <div className="min-h-screen bg-background text-white">
-      <UserHeader showBack backHref="/" />
-
+      
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">

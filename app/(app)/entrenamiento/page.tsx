@@ -20,7 +20,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { ExerciseCard, ImageModal, type WgerExercise } from "@/app/components/EjercicioCard";
-import { UserHeader } from "@/app/components/UserHeader";
 import { RegisterModal } from "@/app/components/RegisterModal";
 import { TemplateSelector } from "@/app/components/TemplateSelector";
 import { CreateCustomExerciseModal } from "@/app/components/CreateCustomExerciseModal";
@@ -541,8 +540,7 @@ export default function EntrenamientoPage() {
   if (step === "summary") {
     return (
       <div className="min-h-screen bg-background text-white">
-        <UserHeader showBack backHref="/" />
-
+        
         <main className="pt-24 pb-12 px-4">
           <div className="max-w-2xl mx-auto">
             <div className="text-center mb-8">
@@ -641,8 +639,7 @@ export default function EntrenamientoPage() {
 
   return (
     <div className="min-h-screen bg-background text-white">
-      <UserHeader showBack backHref="/" />
-
+      
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-10">

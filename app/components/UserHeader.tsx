@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2 } from "lucide-react";
+import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3 } from "lucide-react";
 import Link from "next/link";
 
 interface UserHeaderProps {
@@ -92,7 +92,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                 <path d="m12 19-7-7 7-7"/>
                 <path d="M19 12H5"/>
               </svg>
-              <span className="text-sm font-medium">VOLVER</span>
+              <span className="text-sm font-medium">VOLVER A INICIO</span>
             </Link>
           )}
         </div>
@@ -135,6 +135,14 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                     >
                       <TrendingUp className="w-4 h-4" />
                       <span className="text-sm">Progreso</span>
+                    </Link>
+                    <Link
+                      href="/estadisticas"
+                      onClick={() => setShowDropdown(false)}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
+                    >
+                      <BarChart3 className="w-4 h-4" />
+                      <span className="text-sm">Estadísticas</span>
                     </Link>
                     <Link
                       href="/admin"

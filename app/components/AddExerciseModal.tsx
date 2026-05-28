@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { X, Plus, Loader2, Minus, Search, Check, Maximize2 } from "lucide-react";
+import toast from "react-hot-toast";
 import { muscleGroupsData, type MuscleGroup } from "@/lib/data/ejercicios";
 import * as service from "@/lib/workout/service";
 import type { NewExerciseDef } from "@/lib/workout/service";
@@ -53,7 +54,9 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
   useEffect(() => {
     service.loadCustomExercises().then((custom) => {
       setCustomExercises(Array.isArray(custom) ? custom : []);
-    }).catch(() => {});
+    }).catch(() => {
+      toast.error("No se pudieron cargar los ejercicios personalizados");
+    });
   }, []);
 
   const selectMuscle = async (muscleId: string) => {

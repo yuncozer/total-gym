@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { TrendingUp, Dumbbell, Loader2, AlertCircle, Info } from "lucide-react";
-import { UserHeader } from "@/app/components/UserHeader";
 import { useAuth } from "@/lib/useAuth";
+import { LoadingScreen } from "@/app/components/LoadingScreen";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from "recharts";
@@ -102,17 +102,12 @@ export default function ProgresoPage() {
   }, []);
 
   if (loading || authLoading) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <Loader2 className="w-8 h-8 text-accent animate-spin" />
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   return (
     <div className="min-h-screen bg-black">
-      <UserHeader showBack backHref="/" />
-      <main className="max-w-4xl mx-auto px-4 py-8 pt-24">
+            <main className="max-w-4xl mx-auto px-4 py-8 pt-24">
 
         <div className="flex items-center gap-3 mb-8">
           <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
