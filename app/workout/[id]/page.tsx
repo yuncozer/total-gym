@@ -88,6 +88,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     goToSet,
     updateSet,
     completeSet,
+    undoSetComplete,
     addExtraSet,
     setAsLastSet,
     getSetsCompletados,
@@ -422,12 +423,20 @@ const handleCompleteSet = () => {
                       {Math.floor(timer.segundos / 60).toString().padStart(2, '0')}:{(timer.segundos % 60).toString().padStart(2, '0')}
                     </div>
                   </div>
-                  <button
-                    onClick={handleNextSet}
-                    className="flex items-center justify-center gap-2 w-full py-3 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl"
-                  >
-                    <Play className="w-4 h-4" /> COMENZAR SIGUIENTE SERIE
-                  </button>
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={undoSetComplete}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 border border-zinc-600 text-icon hover:text-white hover:border-zinc-500 rounded-xl transition-colors cursor-pointer text-sm"
+                    >
+                      EDITAR SERIE
+                    </button>
+                    <button
+                      onClick={handleNextSet}
+                      className="flex items-center justify-center gap-2 w-full py-3 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl"
+                    >
+                      <Play className="w-4 h-4" /> COMENZAR SIGUIENTE SERIE
+                    </button>
+                  </div>
                 </div>
               )}
 

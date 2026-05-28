@@ -32,6 +32,7 @@ interface WorkoutContextValue {
   goToSet: (index: number) => void;
   updateSet: (field: "reps" | "weight_kg", value: number) => void;
   completeSet: () => Promise<void>;
+  undoSetComplete: () => void;
   addExtraSet: () => Promise<void>;
   setAsLastSet: (value: boolean) => void;
   
@@ -402,6 +403,32 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     saveTimerToStorage(now, true, selectedExercise.exerciseId);
   }, [selectedExercise, currentSetIndex, exercises, saveSets, setTimer, saveTimerToStorage]);
 
+  const undoSetComplete = useCallback(() => {
+    if (!selectedExercise) return;
+
+    const set = selectedExercise.sets[currentSetIndex];
+    if (!set.is_completed) return;
+
+    const updatedExercises = [...exercises];
+    const exerciseIdx = updatedExercises.findIndex(e => e.exerciseId === selectedExercise.exerciseId);
+
+    if (exerciseIdx >= 0) {
+      updatedExercises[exerciseIdx] = {
+        ...updatedExercises[exerciseIdx],
+        sets: updatedExercises[exerciseIdx].sets.map((s, i) =>
+          i === currentSetIndex ? { ...s, is_completed: false } : s
+        )
+      };
+    }
+
+    setExercises(updatedExercises);
+    setSelectedExercise(updatedExercises[exerciseIdx]);
+    setIsLastSet(false);
+    setTimer({ segundos: 0, activo: false, descansando: false });
+    clearTimerStorage();
+    saveSets(updatedExercises);
+  }, [selectedExercise, currentSetIndex, exercises, saveSets]);
+
   const setAsLastSet = useCallback((value: boolean) => {
     setIsLastSet(value);
   }, []);
@@ -494,6 +521,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     goToSet,
     updateSet,
     completeSet,
+    undoSetComplete,
     addExtraSet,
     setAsLastSet,
     
