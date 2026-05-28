@@ -30,7 +30,9 @@ import { ConfirmModal } from "@/app/components/ConfirmModal";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 import { SaveTemplateModal } from "@/app/components/SaveTemplateModal";
+import { AddExerciseModal } from "@/app/components/AddExerciseModal";
 import { getDailyQuote } from "@/lib/data/quote";
+import type { NewExerciseDef } from "@/lib/workout/service";
 
 function WorkoutContent({ workoutId }: { workoutId: string }) {
   const router = useRouter();
@@ -92,7 +94,8 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     getTotalSets,
     isExerciseCompleted,
     getLastWeight,
-    removeExercise
+    removeExercise,
+    addExercises,
   } = workout;
 
   const [phraseSeed, setPhraseSeed] = useState(0);
@@ -109,6 +112,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [pendingAction, setPendingAction] = useState<"completeSet" | "addExtraSet" | null>(null);
   const [exerciseImage, setExerciseImage] = useState<string | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
+  const [showAddExercise, setShowAddExercise] = useState(false);
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -571,8 +575,15 @@ const handleCompleteSet = () => {
           </div>
 
           <button
+            onClick={() => setShowAddExercise(true)}
+            className="flex items-center justify-center gap-2 w-full py-3 mt-6 border border-accent/30 text-accent hover:bg-accent/10 rounded-xl transition-colors cursor-pointer text-sm"
+          >
+            <Plus className="w-4 h-4" /> Agregar ejercicio
+          </button>
+
+          <button
             onClick={() => setShowCancelConfirm(true)}
-            className="flex items-center justify-center gap-2 w-full py-3 mt-6 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer text-sm"
+            className="flex items-center justify-center gap-2 w-full py-3 mt-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer text-sm"
           >
             <XCircle className="w-4 h-4" /> Cancelar entrenamiento
           </button>
@@ -613,6 +624,15 @@ const handleCompleteSet = () => {
           }}
           onCancel={() => setDeleteConfirmExercise(null)}
         />
+
+        {showAddExercise && (
+          <AddExerciseModal
+            onClose={() => setShowAddExercise(false)}
+            onAddExercises={async (exercises) => {
+              await addExercises(exercises);
+            }}
+          />
+        )}
       </main>
     </div>
   );

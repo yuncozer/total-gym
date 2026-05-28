@@ -102,7 +102,7 @@ export default function Home() {
       .from("workouts")
       .select("id, date, started_at, status")
       .eq("user_id", userId)
-      .neq("status", "completed")
+      .eq("status", "pendiente")
       .order("started_at", { ascending: false })
       .limit(1)
       .maybeSingle();
