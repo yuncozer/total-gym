@@ -98,7 +98,8 @@ export async function GET(request: NextRequest) {
     let query = supabase
       .from("workouts")
       .select("id, date, name, started_at, status, completed_at")
-      .eq("user_id", session.user.id);
+      .eq("user_id", session.user.id)
+      .neq("status", "cancelled");
 
     if (!isPremium) {
       const dateLimit = new Date();

@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import type { ExerciseInWorkout, WorkoutSet, TimerState } from "./types";
+import type { NewExerciseDef } from "./service";
 import * as progressFn from "./progress";
 import * as service from "./service";
 import { createClient as createSupabaseClient } from "@/lib/supabase/client";
@@ -27,6 +28,7 @@ interface WorkoutContextValue {
   selectExercise: (exercise: ExerciseInWorkout) => void;
   deselectExercise: () => void;
   removeExercise: (exerciseId: string) => Promise<void>;
+  addExercises: (newExercises: NewExerciseDef[]) => Promise<void>;
   goToSet: (index: number) => void;
   updateSet: (field: "reps" | "weight_kg", value: number) => void;
   completeSet: () => Promise<void>;
@@ -432,6 +434,20 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     }
   }, [exercises, selectedExercise, saveSets, workoutId]);
 
+  const addExercises = useCallback(async (newExercises: NewExerciseDef[]) => {
+    const updated = service.buildExercisesFromNewDefs(exercises, newExercises);
+    setExercises(updated);
+
+    if (selectedExercise) {
+      const stillSelected = updated.find(e => e.exerciseId === selectedExercise.exerciseId);
+      if (!stillSelected) {
+        setSelectedExercise(null);
+      }
+    }
+
+    await saveSets(updated);
+  }, [exercises, selectedExercise, saveSets]);
+
   const playNotificationSound = useCallback(() => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -474,6 +490,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     selectExercise,
     deselectExercise,
     removeExercise,
+    addExercises,
     goToSet,
     updateSet,
     completeSet,

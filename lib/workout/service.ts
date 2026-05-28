@@ -1,4 +1,12 @@
-import type { ExerciseInWorkout, WorkoutSummary } from "./types";
+import type { ExerciseInWorkout, WorkoutSummary, WorkoutSet } from "./types";
+
+export interface NewExerciseDef {
+  exerciseId: string;
+  name: string;
+  equipment: string;
+  imageUrl?: string;
+  setsCount: number;
+}
 
 async function fetchAPI(url: string, options: RequestInit = {}) {
   const response = await fetch(url, {
@@ -67,6 +75,28 @@ export async function cancelWorkout(workoutId: string): Promise<void> {
   await fetchAPI(`/api/workouts/${workoutId}/cancel`, {
     method: "POST",
   });
+}
+
+export function buildExercisesFromNewDefs(
+  currentExercises: ExerciseInWorkout[],
+  newExercises: NewExerciseDef[]
+): ExerciseInWorkout[] {
+  const newExerciseObjects: ExerciseInWorkout[] = newExercises.map(def => ({
+    exerciseId: def.exerciseId,
+    name: def.name,
+    equipment: def.equipment,
+    imageUrl: def.imageUrl,
+    sets: Array.from({ length: def.setsCount }, (_, i) => ({
+      exercise_id: def.exerciseId,
+      exercise_name: def.name,
+      set_number: i + 1,
+      reps: 0,
+      weight_kg: 0,
+      is_completed: false,
+    } as WorkoutSet)),
+  }));
+
+  return [...currentExercises, ...newExerciseObjects];
 }
 
 export async function loadWorkoutHistory(): Promise<WorkoutSummary[]> {
