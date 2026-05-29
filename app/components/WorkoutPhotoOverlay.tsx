@@ -18,7 +18,7 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
   const [photoUrl, setPhotoUrl] = useState<string | null>(null);
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [layout, setLayout] = useState<"metrics" | "quote" | "record">("metrics");
+  const [layout, setLayout] = useState<"metrics" | "quote" | "record">("quote");
   const [captureMode, setCaptureMode] = useState<"camera" | "gallery">("camera");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);

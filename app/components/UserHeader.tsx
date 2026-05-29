@@ -2,8 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3 } from "lucide-react";
+import Image from "next/image";
+import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3, Globe } from "lucide-react";
 import Link from "next/link";
+import { useLanguage } from "@/lib/i18n";
 
 interface UserHeaderProps {
   showBack?: boolean;
@@ -16,6 +18,7 @@ function getInitials(email: string): string {
 
 export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps) {
   const router = useRouter();
+  const { lang, setLang, t } = useLanguage();
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -69,11 +72,9 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
     return (
       <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="w-20 h-8 bg-muted animate-pulse rounded" />
-          <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
-            TOTAL<span className="text-accent">GYM</span>
-          </span>
-          <div className="w-20 h-8 bg-muted animate-pulse rounded" />
+          <div className="w-[36px] h-[36px] bg-muted animate-pulse rounded-lg" />
+          <div className="w-28 h-8 bg-muted animate-pulse rounded" />
+          <div className="w-[36px] h-[36px] bg-muted animate-pulse rounded-full" />
         </div>
       </header>
     );
@@ -82,8 +83,8 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-b border">
       <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          {showBack && (
+        <div className="flex items-center gap-3 w-[140px]">
+          {showBack ? (
             <Link 
               href={backHref}
               className="flex items-center gap-2 text-muted-foreground hover:text-white transition-colors"
@@ -92,16 +93,26 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                 <path d="m12 19-7-7 7-7"/>
                 <path d="M19 12H5"/>
               </svg>
-              <span className="text-sm font-medium">VOLVER A INICIO</span>
+              <span className="text-sm font-medium">{t("header.back")}</span>
+            </Link>
+          ) : (
+            <Link href="/">
+              <Image
+                src="/logo.png"
+                alt="TOTAL GYM"
+                width={36}
+                height={36}
+                className="object-contain"
+              />
             </Link>
           )}
         </div>
-        
+
         <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
           TOTAL<span className="text-accent">GYM</span>
         </span>
 
-        <div className="flex items-center gap-3" ref={dropdownRef}>
+        <div className="flex items-center gap-3 w-[140px] justify-end" ref={dropdownRef}>
           {user ? (
             <div className="relative">
               <button
@@ -126,7 +137,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
                     >
                       <History className="w-4 h-4" />
-                      <span className="text-sm">Historial</span>
+                      <span className="text-sm">{t("header.historial")}</span>
                     </Link>
                     <Link
                       href="/progreso"
@@ -134,7 +145,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
                     >
                       <TrendingUp className="w-4 h-4" />
-                      <span className="text-sm">Progreso</span>
+                      <span className="text-sm">{t("header.progreso")}</span>
                     </Link>
                     <Link
                       href="/estadisticas"
@@ -142,7 +153,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
                     >
                       <BarChart3 className="w-4 h-4" />
-                      <span className="text-sm">Estadísticas</span>
+                      <span className="text-sm">{t("header.estadisticas")}</span>
                     </Link>
                     <Link
                       href="/admin"
@@ -150,7 +161,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
                     >
                       <Shield className="w-4 h-4" />
-                      <span className="text-sm">Admin</span>
+                      <span className="text-sm">{t("header.admin")}</span>
                     </Link>
                     <Link
                       href="/perfil"
@@ -158,14 +169,41 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
                     >
                       <User className="w-4 h-4" />
-                      <span className="text-sm">Mi Perfil</span>
+                      <span className="text-sm">{t("header.perfil")}</span>
                     </Link>
+                    <div className="border-t border my-1" />
+                    <div className="px-4 py-2">
+                      <p className="text-xs text-muted-foreground mb-1.5 uppercase tracking-wider">{t("header.language")}</p>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setLang("es")}
+                          className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+                            lang === "es"
+                              ? "bg-accent text-black"
+                              : "bg-muted text-muted-foreground hover:text-white"
+                          }`}
+                        >
+                          ES
+                        </button>
+                        <button
+                          onClick={() => setLang("en")}
+                          className={`flex-1 px-3 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
+                            lang === "en"
+                              ? "bg-accent text-black"
+                              : "bg-muted text-muted-foreground hover:text-white"
+                          }`}
+                        >
+                          EN
+                        </button>
+                      </div>
+                    </div>
+                    <div className="border-t border my-1" />
                     <button
                       onClick={handleSignOut}
                       className="flex items-center gap-3 w-full px-4 py-2.5 text-red-500 hover:bg-muted transition-colors cursor-pointer"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span className="text-sm">Cerrar Sesión</span>
+                      <span className="text-sm">{t("header.signOut")}</span>
                     </button>
                   </div>
                 </div>
@@ -177,7 +215,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
               className="flex items-center gap-1 px-3 py-1.5 bg-accent text-black rounded-lg text-sm font-medium hover:bg-accent-hover transition-colors"
             >
               <LogIn className="w-4 h-4" />
-              <span>LOGIN</span>
+              <span>{t("header.login")}</span>
             </Link>
           )}
         </div>
@@ -187,7 +225,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center">
           <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-accent mx-auto mb-4" />
-            <p className="text-white font-medium">Cerrando sesión...</p>
+            <p className="text-white font-medium">{t("header.signingOut")}</p>
           </div>
         </div>
       )}

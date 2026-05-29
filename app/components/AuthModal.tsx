@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { X, AlertTriangle, LogIn, UserPlus, Database, History, Trophy } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -9,6 +10,7 @@ interface AuthModalProps {
 }
 
 export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+  const { t } = useLanguage();
   if (!isOpen) return null;
 
   return (
@@ -31,41 +33,41 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             className="text-2xl font-bold text-white"
             style={{ fontFamily: "var(--font-oswald)" }}
           >
-            CREA TU CUENTA
+            {t("auth.title")}
           </h2>
         </div>
 
         <p className="text-muted-foreground text-center mb-6">
-          Necesitas una cuenta para guardar tu progreso y consultar tu historial de entrenamiento.
+          {t("auth.desc")}
         </p>
 
         <div className="space-y-3 mb-6">
           <div className="flex items-start gap-3 p-3 bg-muted rounded-xl">
             <Database className="w-5 h-5 text-accent mt-0.5" />
             <div>
-              <span className="text-white font-medium block">Tus datos siempre seguros</span>
-              <span className="text-icon text-sm">Puedes continuar entrenando desde cualquier dispositivo</span>
+              <span className="text-white font-medium block">{t("auth.dataSafe")}</span>
+              <span className="text-icon text-sm">{t("auth.dataSafeDesc")}</span>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-muted rounded-xl">
             <History className="w-5 h-5 text-accent mt-0.5" />
             <div>
-              <span className="text-white font-medium block">Consulta tu historial</span>
-              <span className="text-icon text-sm">Revisa cuánto levantaste la última vez que hiciste cada ejercicio</span>
+              <span className="text-white font-medium block">{t("auth.viewHistory")}</span>
+              <span className="text-icon text-sm">{t("auth.viewHistoryDesc")}</span>
             </div>
           </div>
           <div className="flex items-start gap-3 p-3 bg-muted rounded-xl">
             <Trophy className="w-5 h-5 text-accent mt-0.5" />
             <div>
-              <span className="text-white font-medium block">Tu progreso queda registrado</span>
-              <span className="text-icon text-sm">Ve tu evolución workout tras workout</span>
+              <span className="text-white font-medium block">{t("auth.trackProgress")}</span>
+              <span className="text-icon text-sm">{t("auth.trackProgressDesc")}</span>
             </div>
           </div>
         </div>
 
         <div className="bg-card border border-red-500/30 rounded-xl p-3 mb-6">
           <p className="text-red-500 text-sm">
-            <span className="font-medium">Sin cuenta:</span> tus datos se perderán al cerrar esta página y no podrás recuperarlos.
+            <span className="font-medium">{t("auth.warning")}</span>
           </p>
         </div>
 
@@ -76,7 +78,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             style={{ fontFamily: "var(--font-oswald)" }}
           >
             <UserPlus className="w-5 h-5" />
-            CREAR CUENTA
+            {t("auth.createAccount")}
           </Link>
           
           <Link
@@ -85,7 +87,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             style={{ fontFamily: "var(--font-oswald)" }}
           >
             <LogIn className="w-5 h-5" />
-            YA TENGO CUENTA
+            {t("auth.haveAccount")}
           </Link>
         </div>
       </div>

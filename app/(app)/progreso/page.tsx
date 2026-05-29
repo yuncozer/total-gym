@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useLanguage } from "@/lib/i18n";
 import { TrendingUp, Dumbbell, Loader2, AlertCircle, Info } from "lucide-react";
 import { useAuth } from "@/lib/useAuth";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
@@ -22,6 +23,7 @@ interface ProgressPoint {
 
 export default function ProgresoPage() {
   const { loading: authLoading, authenticated } = useAuth(true);
+  const { t, lang } = useLanguage();
   const [exercises, setExercises] = useState<ExerciseOption[]>([]);
   const [selectedExercise, setSelectedExercise] = useState<string>("");
   const [progress, setProgress] = useState<ProgressPoint[]>([]);
@@ -49,7 +51,7 @@ export default function ProgresoPage() {
         setSelectedExercise(data[0].id);
       }
     } catch (err) {
-      setError("Error al cargar ejercicios");
+      setError(t("progreso.errorExercises"));
       console.error(err);
     } finally {
       setLoading(false);
@@ -71,7 +73,7 @@ export default function ProgresoPage() {
       const data = await res.json();
       setProgress(data);
     } catch (err) {
-      setError("Error al cargar progreso");
+      setError(t("progreso.error"));
       console.error(err);
     } finally {
       setLoadingProgress(false);
@@ -80,15 +82,15 @@ export default function ProgresoPage() {
 
   const metricLabel = (m: typeof metric) => {
     switch (m) {
-      case "maxWeight": return "Peso máximo (kg)";
-      case "maxReps": return "Reps máximas";
-      case "volume": return "Volumen total (kg)";
+      case "maxWeight": return t("progreso.weightLabel");
+      case "maxReps": return t("progreso.repsLabel");
+      case "volume": return t("progreso.volumeLabel");
     }
   };
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr + "T12:00:00");
-    return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+    return d.toLocaleDateString(lang === "en" ? "en-US" : "es-ES", { day: "numeric", month: "short" });
   };
 
   useEffect(() => {
@@ -115,16 +117,16 @@ export default function ProgresoPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
-              Progreso de Ejercicios
+              {t("progreso.title")}
             </h1>
-            <p className="text-icon text-sm">Evolución de cargas y repeticiones</p>
+            <p className="text-icon text-sm">{t("progreso.subtitle")}</p>
           </div>
         </div>
 
         <div className="bg-card rounded-2xl p-6 space-y-6 mb-8">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1">
-              <label className="block text-sm text-icon mb-2">Ejercicio</label>
+              <label className="block text-sm text-icon mb-2">{t("progreso.exerciseLabel")}</label>
               <select
                 value={selectedExercise}
                 onChange={(e) => setSelectedExercise(e.target.value)}
@@ -136,7 +138,7 @@ export default function ProgresoPage() {
               </select>
             </div>
             <div className="relative">
-              <label className="block text-sm text-icon mb-2">Métrica</label>
+              <label className="block text-sm text-icon mb-2">{t("progreso.metricLabel")}</label>
               <div className="flex gap-2 items-center">
                 {(["maxWeight", "maxReps", "volume"] as const).map((m) => (
                   <button
@@ -148,13 +150,13 @@ export default function ProgresoPage() {
                         : "bg-muted text-icon hover:text-white"
                     }`}
                   >
-                    {m === "maxWeight" ? "Peso" : m === "maxReps" ? "Reps" : "Volumen"}
+                    {m === "maxWeight" ? t("progreso.metricWeight") : m === "maxReps" ? t("progreso.metricReps") : t("progreso.metricVolume")}
                   </button>
                 ))}
                 <button
                   onClick={() => setShowGuide(!showGuide)}
                   className="w-10 h-10 rounded-xl bg-muted text-icon hover:text-white hover:border-accent transition-all flex items-center justify-center cursor-pointer shrink-0"
-                  title="¿Qué significan las métricas?"
+                  title={t("progreso.metricTitle")}
                 >
                   <Info className="w-4 h-4" />
                 </button>
@@ -165,33 +167,33 @@ export default function ProgresoPage() {
                   ref={guideRef}
                   className="absolute right-0 top-full mt-2 w-72 z-10 bg-card border border rounded-2xl shadow-2xl p-5 space-y-4 animate-fade-in"
                 >
-                  <p className="text-white font-semibold text-sm">¿Qué significan las métricas?</p>
+                  <p className="text-white font-semibold text-sm">{t("progreso.metricTitle")}</p>
 
                   <div className="space-y-3">
                     <div>
-                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">Peso máximo</p>
+                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">{t("progreso.metricMaxWeight")}</p>
                       <p className="text-muted-foreground text-xs mt-0.5">
-                        El peso más alto que levantaste en una sola serie
+                        {t("progreso.metricMaxWeightDesc")}
                       </p>
                     </div>
                     <div>
-                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">Reps máximas</p>
+                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">{t("progreso.metricMaxReps")}</p>
                       <p className="text-muted-foreground text-xs mt-0.5">
-                        La mayor cantidad de repeticiones en una serie
+                        {t("progreso.metricMaxRepsDesc")}
                       </p>
                     </div>
                     <div>
-                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">Volumen total</p>
+                      <p className="text-accent text-xs font-semibold uppercase tracking-wider">{t("progreso.metricVolumeTotal")}</p>
                       <p className="text-muted-foreground text-xs mt-0.5">
-                        Peso × repeticiones de todas las series combinadas
+                        {t("progreso.metricVolumeTotalDesc")}
                       </p>
                     </div>
                   </div>
 
                   <div className="border-t border pt-3">
-                    <p className="text-white font-semibold text-xs mb-1">Cómo leer el chart</p>
+                    <p className="text-white font-semibold text-xs mb-1">{t("progreso.chartGuide")}</p>
                     <p className="text-muted-foreground text-xs">
-                      Cada punto es un entrenamiento. La línea muestra tu evolución en el tiempo. Mientras más arriba, mejor.
+                      {t("progreso.chartGuideDesc")}
                     </p>
                   </div>
                 </div>
@@ -215,8 +217,8 @@ export default function ProgresoPage() {
           ) : progress.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-20 text-icon">
               <Dumbbell className="w-12 h-12 mb-4 opacity-30" />
-              <p className="text-lg font-medium">Sin datos de progreso</p>
-              <p className="text-sm mt-1">Completa entrenamientos para ver tu evolución</p>
+              <p className="text-lg font-medium">{t("progreso.noData")}</p>
+              <p className="text-sm mt-1">{t("progreso.noDataMsg")}</p>
             </div>
           ) : (
             <div className="h-[400px]">

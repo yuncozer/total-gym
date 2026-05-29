@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/lib/i18n";
 import {
   Users,
   Dumbbell,
@@ -56,6 +57,7 @@ export default function AdminPage() {
   const [addError, setAddError] = useState<string | null>(null);
   const [addSuccess, setAddSuccess] = useState(false);
   const [deletingAdminId, setDeletingAdminId] = useState<string | null>(null);
+  const { t, lang } = useLanguage();
 
   useEffect(() => {
     loadData();
@@ -80,7 +82,7 @@ export default function AdminPage() {
       setTopExercises(await exercisesRes.json());
       setAdmins(await adminsRes.json());
     } catch (err) {
-      setError("Error al cargar datos del dashboard");
+      setError(t("admin.error"));
       console.error(err);
     } finally {
       setLoading(false);
@@ -104,7 +106,7 @@ export default function AdminPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.error || "Error al agregar admin");
+        throw new Error(data.error || t("admin.addError"));
       }
 
       setAddSuccess(true);
@@ -118,7 +120,7 @@ export default function AdminPage() {
   };
 
   const handleRemoveAdmin = async (userId: string) => {
-    if (!confirm("¿Eliminar este administrador?")) return;
+    if (!confirm(t("admin.confirmDelete"))) return;
 
     setDeletingAdminId(userId);
 
@@ -140,7 +142,7 @@ export default function AdminPage() {
   const formatDate = (dateStr: string | null) => {
     if (!dateStr) return "—";
     const d = new Date(dateStr);
-    return d.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" });
+    return d.toLocaleDateString(lang === "es" ? "es-ES" : "en-US", { day: "numeric", month: "short", year: "numeric" });
   };
 
   if (loading) {
@@ -157,9 +159,9 @@ export default function AdminPage() {
           </div>
           <div>
             <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
-              Admin Dashboard
+              {t("admin.title")}
             </h1>
-            <p className="text-icon text-sm">Panel de administración de la plataforma</p>
+            <p className="text-icon text-sm">{t("admin.subtitle")}</p>
           </div>
         </div>
 
@@ -177,35 +179,35 @@ export default function AdminPage() {
                 <Users className="w-4 h-4 text-accent" />
               </div>
               <p className="text-2xl font-bold text-white">{stats.totalUsers}</p>
-              <p className="text-xs text-icon mt-0.5">Usuarios totales</p>
+              <p className="text-xs text-icon mt-0.5">{t("admin.totalUsers")}</p>
             </div>
             <div className="bg-card rounded-2xl p-4">
               <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center mb-3">
                 <Dumbbell className="w-4 h-4 text-blue-400" />
               </div>
               <p className="text-2xl font-bold text-white">{stats.totalWorkouts}</p>
-              <p className="text-xs text-icon mt-0.5">Workouts completados</p>
+              <p className="text-xs text-icon mt-0.5">{t("admin.workoutsCompleted")}</p>
             </div>
             <div className="bg-card rounded-2xl p-4">
               <div className="w-8 h-8 rounded-lg bg-green-500/20 flex items-center justify-center mb-3">
                 <TrendingUp className="w-4 h-4 text-green-400" />
               </div>
               <p className="text-2xl font-bold text-white">{stats.totalSetsCompleted.toLocaleString()}</p>
-              <p className="text-xs text-icon mt-0.5">Sets completados</p>
+              <p className="text-xs text-icon mt-0.5">{t("admin.setsCompleted")}</p>
             </div>
             <div className="bg-card rounded-2xl p-4">
               <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center mb-3">
                 <Crown className="w-4 h-4 text-purple-400" />
               </div>
               <p className="text-2xl font-bold text-white">{stats.premiumUsers}</p>
-              <p className="text-xs text-icon mt-0.5">Usuarios premium</p>
+              <p className="text-xs text-icon mt-0.5">{t("admin.premiumUsers")}</p>
             </div>
             <div className="bg-card rounded-2xl p-4 col-span-2 lg:col-span-1">
               <div className="w-8 h-8 rounded-lg bg-orange-500/20 flex items-center justify-center mb-3">
                 <Activity className="w-4 h-4 text-orange-400" />
               </div>
               <p className="text-2xl font-bold text-white">{stats.activeUsers30d}</p>
-              <p className="text-xs text-icon mt-0.5">Activos (30d)</p>
+              <p className="text-xs text-icon mt-0.5">{t("admin.activeUsers")}</p>
             </div>
           </div>
         )}
@@ -214,16 +216,16 @@ export default function AdminPage() {
           <div className="bg-card rounded-2xl p-5">
             <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
               <Users className="w-4 h-4 text-accent" />
-              Usuarios recientes
+              {t("admin.recentUsers")}
             </h2>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-icon text-xs uppercase tracking-wider border-b border">
-                    <th className="text-left py-2 pr-2">Email</th>
-                    <th className="text-center py-2 px-2">Workouts</th>
-                    <th className="text-center py-2 px-2">Plan</th>
-                    <th className="text-right py-2 pl-2">Última actividad</th>
+                    <th className="text-left py-2 pr-2">{t("admin.email")}</th>
+                    <th className="text-center py-2 px-2">{t("admin.workouts")}</th>
+                    <th className="text-center py-2 px-2">{t("admin.plan")}</th>
+                    <th className="text-right py-2 pl-2">{t("admin.lastActivity")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -239,7 +241,7 @@ export default function AdminPage() {
                             ? "bg-purple-500/20 text-purple-400"
                             : "bg-zinc-700/50 text-zinc-400"
                         }`}>
-                          {user.subscription.plan === "premium" ? "Premium" : "Free"}
+                          {user.subscription.plan === "premium" ? t("admin.premium") : t("admin.free")}
                         </span>
                       </td>
                       <td className="py-2.5 pl-2 text-right text-icon text-xs">
@@ -250,7 +252,7 @@ export default function AdminPage() {
                   {users.length === 0 && (
                     <tr>
                       <td colSpan={4} className="py-8 text-center text-icon">
-                        No hay usuarios registrados
+                        {t("admin.noUsers")}
                       </td>
                     </tr>
                   )}
@@ -262,10 +264,10 @@ export default function AdminPage() {
           <div className="bg-card rounded-2xl p-5">
             <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
               <TrendingUp className="w-4 h-4 text-accent" />
-              Ejercicios más usados
+              {t("admin.topExercises")}
             </h2>
             {topExercises.length === 0 ? (
-              <p className="text-icon text-sm py-4 text-center">No hay datos de ejercicios aún</p>
+              <p className="text-icon text-sm py-4 text-center">{t("admin.noExercises")}</p>
             ) : (
               <div className="space-y-2">
                 {topExercises.map((ex, i) => (
@@ -289,7 +291,7 @@ export default function AdminPage() {
           <div className="bg-card rounded-2xl p-5">
             <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
               <Shield className="w-4 h-4 text-accent" />
-              Administradores
+              {t("admin.administrators")}
             </h2>
 
             <div className="space-y-2 mb-4">
@@ -300,13 +302,13 @@ export default function AdminPage() {
                 >
                   <div>
                     <p className="text-white text-sm">{admin.email}</p>
-                    <p className="text-icon text-xs">Admin desde {formatDate(admin.createdAt)}</p>
+                    <p className="text-icon text-xs">{t("admin.since")} {formatDate(admin.createdAt)}</p>
                   </div>
                   <button
                     onClick={() => handleRemoveAdmin(admin.userId)}
                     disabled={deletingAdminId === admin.userId}
                     className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
-                    title="Eliminar admin"
+                    title={t("admin.deleteAdmin")}
                   >
                     {deletingAdminId === admin.userId ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -317,7 +319,7 @@ export default function AdminPage() {
                 </div>
               ))}
               {admins.length === 0 && (
-                <p className="text-icon text-sm py-2">No hay administradores</p>
+                <p className="text-icon text-sm py-2">{t("admin.noAdmins")}</p>
               )}
             </div>
 
@@ -326,7 +328,7 @@ export default function AdminPage() {
                 type="email"
                 value={newAdminEmail}
                 onChange={(e) => { setNewAdminEmail(e.target.value); setAddError(null); setAddSuccess(false); }}
-                placeholder="Email del nuevo admin"
+                placeholder={t("admin.newAdminPlaceholder")}
                 className="flex-1 bg-muted text-white rounded-xl px-4 py-2.5 text-sm border border focus:border-accent outline-none"
                 disabled={addingAdmin}
               />
@@ -340,7 +342,7 @@ export default function AdminPage() {
                 ) : (
                   <Plus className="w-4 h-4" />
                 )}
-                Agregar admin
+                {t("admin.addAdmin")}
               </button>
             </form>
 
@@ -351,7 +353,7 @@ export default function AdminPage() {
             )}
             {addSuccess && (
               <p className="flex items-center gap-1 text-green-400 text-xs mt-2">
-                <CheckCircle2 className="w-3 h-3" />Admin agregado correctamente
+                <CheckCircle2 className="w-3 h-3" />{t("admin.addSuccess")}
               </p>
             )}
           </div>

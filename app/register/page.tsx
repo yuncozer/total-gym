@@ -6,11 +6,13 @@ import Link from "next/link";
 import { Mail, Lock, UserPlus, ArrowLeft, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
 import { signInWithGoogle } from "@/lib/auth";
+import { useLanguage } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -51,19 +53,19 @@ router.push("/login");
     setError(null);
 
     if (confirmPassword.length > 0 && passwordMatch === false) {
-      setError("Las contraseñas no coinciden");
+      setError(t("register.errorMismatch"));
       setLoading(false);
       return;
     }
 
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres");
+      setError(t("register.errorMinLength"));
       setLoading(false);
       return;
     }
 
     if (!sexo) {
-      setError("Por favor selecciona tu sexo");
+      setError(t("register.errorGender"));
       setLoading(false);
       return;
     }
@@ -78,14 +80,14 @@ router.push("/login");
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || "Error al crear cuenta");
+        setError(data.error || t("register.errorGeneric"));
         setLoading(false);
         return;
       }
 
       router.push("/entrenamiento");
     } catch (err) {
-      setError("Error de conexión");
+      setError(t("register.errorConnection"));
       setLoading(false);
     }
   };
@@ -109,7 +111,7 @@ router.push("/login");
             className="flex items-center gap-2 text-muted-foreground hover:text-white transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
-            <span className="text-sm font-medium">VOLVER</span>
+            <span className="text-sm font-medium">{t("register.back")}</span>
           </Link>
           <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
             TOTAL<span className="text-accent">GYM</span>
@@ -124,17 +126,17 @@ router.push("/login");
               className="text-3xl font-bold mb-2"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              CREAR <span className="text-accent">CUENTA</span>
+              {t("register.title").replace(t("register.titlePart2"), "").trim()} <span className="text-accent">{t("register.titlePart2")}</span>
             </h1>
             <p className="text-muted-foreground">
-              Regístrate para guardar tu progreso
+              {t("register.subtitle")}
             </p>
           </div>
 
           <form onSubmit={handleRegister} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Email *
+                {t("register.emailLabel")}
               </label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
@@ -142,7 +144,7 @@ router.push("/login");
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tu@email.com"
+                  placeholder={t("register.emailPlaceholder")}
                   required
                   className="w-full pl-12 pr-4 py-3 bg-card border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
                 />
@@ -151,7 +153,7 @@ router.push("/login");
 
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Contraseña *
+                {t("register.passwordLabel")}
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
@@ -164,7 +166,7 @@ router.push("/login");
                       setPasswordMatch(e.target.value === confirmPassword);
                     }
                   }}
-                  placeholder="Mínimo 6 caracteres"
+                  placeholder={t("register.passwordPlaceholder")}
                   required
                   minLength={6}
                   className="w-full pl-12 pr-4 py-3 bg-card border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
@@ -174,7 +176,7 @@ router.push("/login");
 
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Confirmar Contraseña *
+                {t("register.confirmLabel")}
               </label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
@@ -189,7 +191,7 @@ router.push("/login");
                       setPasswordMatch(null);
                     }
                   }}
-                  placeholder="Repite tu contraseña"
+                  placeholder={t("register.confirmPlaceholder")}
                   required
                   minLength={6}
                   className="w-full pl-12 pr-12 py-3 bg-card border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
@@ -208,7 +210,7 @@ router.push("/login");
 
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Sexo *
+                {t("register.genderLabel")}
               </label>
               <div className="flex gap-3">
                 <button
@@ -221,7 +223,7 @@ router.push("/login");
                   }`}
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
-                  HOMBRE
+                  {t("register.male")}
                 </button>
                 <button
                   type="button"
@@ -233,7 +235,7 @@ router.push("/login");
                   }`}
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
-                  MUJER
+                  {t("register.female")}
                 </button>
               </div>
             </div>
@@ -252,18 +254,18 @@ router.push("/login");
               style={{ fontFamily: "var(--font-oswald)" }}
             >
               {loading ? (
-                <span className="animate-pulse">CREANDO CUENTA...</span>
+                <span className="animate-pulse">{t("register.creating")}</span>
               ) : (
                 <>
                   <UserPlus className="w-5 h-5" />
-                  CREAR CUENTA
+                  {t("register.submit")}
                 </>
               )}
             </button>
 
             <div className="relative flex items-center justify-center my-4">
               <div className="border-t border w-full" />
-              <span className="absolute px-3 bg-background text-icon text-xs">o</span>
+              <span className="absolute px-3 bg-background text-icon text-xs">{t("register.or")}</span>
             </div>
 
             <button
@@ -274,7 +276,7 @@ router.push("/login");
               style={{ fontFamily: "var(--font-oswald)" }}
             >
               {googleLoading ? (
-                <span className="animate-pulse">REDIRIGIENDO...</span>
+                <span className="animate-pulse">{t("register.redirecting")}</span>
               ) : (
                 <>
                   <svg className="w-5 h-5" viewBox="0 0 24 24">
@@ -283,7 +285,7 @@ router.push("/login");
                     <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
                     <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
                   </svg>
-                  REGISTRARSE CON GOOGLE
+                  {t("register.google")}
                 </>
               )}
             </button>
@@ -291,9 +293,9 @@ router.push("/login");
 
           <div className="mt-6 text-center">
             <p className="text-icon">
-              ¿Ya tienes cuenta?{" "}
+              {t("register.hasAccount")}{" "}
               <Link href="/login" className="text-accent hover:underline font-medium cursor-pointer">
-                Inicia sesión
+                {t("register.loginHere")}
               </Link>
             </p>
           </div>

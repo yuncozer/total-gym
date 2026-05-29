@@ -6,6 +6,7 @@ import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Bell, BellOff }
 import { usePushNotifications, updateNotificationSettings, saveSubscription } from "@/lib/push";
 import { useAuth } from "@/lib/useAuth";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
+import { useLanguage } from "@/lib/i18n";
 
 interface ProfileData {
   email: string;
@@ -19,6 +20,7 @@ interface ProfileData {
 
 export default function PerfilPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const { loading: authLoading, authenticated } = useAuth(true);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -142,14 +144,15 @@ export default function PerfilPage() {
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
-            <h1 
+            <h1
               className="text-3xl font-bold mb-2"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              MI <span className="text-accent">PERFIL</span>
+              {t("perfil.title").split(" ")[0]}{" "}
+              <span className="text-accent">{t("perfil.title").split(" ").slice(1).join(" ")}</span>
             </h1>
             <p className="text-muted-foreground">
-              Actualiza tus datos personales
+              {t("perfil.subtitle")}
             </p>
           </div>
 
@@ -162,7 +165,7 @@ export default function PerfilPage() {
 
           {success && (
             <div className="flex items-center gap-2 p-3 mb-4 bg-green-500/10 border border-green-500/30 rounded-xl text-green-500">
-              <span className="text-sm">Datos guardados correctamente</span>
+              <span className="text-sm">{t("perfil.saveSuccess")}</span>
             </div>
           )}
 
@@ -171,7 +174,7 @@ export default function PerfilPage() {
           <div className="space-y-6">
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Email
+                {t("perfil.email")}
               </label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
@@ -186,7 +189,7 @@ export default function PerfilPage() {
 
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Sexo
+                {t("perfil.gender")}
               </label>
               <div className="flex gap-3">
                 <button
@@ -199,7 +202,7 @@ export default function PerfilPage() {
                   }`}
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
-                  HOMBRE
+                  {t("perfil.male")}
                 </button>
                 <button
                   type="button"
@@ -211,7 +214,7 @@ export default function PerfilPage() {
                   }`}
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
-                  MUJER
+                  {t("perfil.female")}
                 </button>
               </div>
             </div>
@@ -219,7 +222,7 @@ export default function PerfilPage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Altura (cm)
+                {t("perfil.height")}
               </label>
               <div className="relative">
                 <Ruler className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
@@ -235,7 +238,7 @@ export default function PerfilPage() {
               
               <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Peso (kg)
+                {t("perfil.weight")}
               </label>
               <div className="relative">
                 <Scale className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-icon" />
@@ -252,13 +255,13 @@ export default function PerfilPage() {
 
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Nivel de experiencia
+                {t("perfil.experience")}
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: "principiante", label: "Principiante" },
-                  { value: "intermedio", label: "Intermedio" },
-                  { value: "avanzado", label: "Avanzado" }
+                  { value: "principiante", key: "perfil.beginner" as const },
+                  { value: "intermedio", key: "perfil.intermediate" as const },
+                  { value: "avanzado", key: "perfil.advanced" as const }
                 ].map((nivel) => (
                   <button
                     key={nivel.value}
@@ -270,7 +273,7 @@ export default function PerfilPage() {
                         : "bg-card border border text-muted-foreground hover:border-accent"
                     }`}
                   >
-                    {nivel.label}
+                    {t(nivel.key)}
                   </button>
                 ))}
               </div>
@@ -278,13 +281,13 @@ export default function PerfilPage() {
 
             <div>
               <label className="block text-sm font-medium text-muted-foreground mb-2">
-                Objetivo
+                {t("perfil.goal")}
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {[
-                  { value: "ganar_musculo", label: "Ganar músculo" },
-                  { value: "perder_grasa", label: "Perder grasa" },
-                  { value: "mantener", label: "Mantener" }
+                  { value: "ganar_musculo", key: "perfil.goalMuscle" as const },
+                  { value: "perder_grasa", key: "perfil.goalFat" as const },
+                  { value: "mantener", key: "perfil.goalMaintain" as const }
                 ].map((obj) => (
                   <button
                     key={obj.value}
@@ -296,7 +299,7 @@ export default function PerfilPage() {
                         : "bg-card border border text-muted-foreground hover:border-accent"
                     }`}
                   >
-                    {obj.label}
+                    {t(obj.key)}
                   </button>
                 ))}
               </div>
@@ -311,12 +314,12 @@ export default function PerfilPage() {
               {saving ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  GUARDANDO...
+                  {t("perfil.saving")}
                 </>
               ) : (
                 <>
                   <Save className="w-5 h-5" />
-                  GUARDAR CAMBIOS
+                  {t("perfil.saveChanges")}
                 </>
               )}
             </button>
@@ -333,10 +336,10 @@ export default function PerfilPage() {
                   </div>
                   <div>
                     <p className="text-white font-medium" style={{ fontFamily: "var(--font-rajdhani)" }}>
-                      Recordatorio Diario
+                      {t("perfil.dailyReminder")}
                     </p>
                     <p className="text-muted-foreground text-sm">
-                      {profile.notify_enabled ? "Activado" : "Desactivado"}
+                      {profile.notify_enabled ? t("perfil.notifOn") : t("perfil.notifOff")}
                     </p>
                   </div>
                 </div>
@@ -351,7 +354,7 @@ export default function PerfilPage() {
                       setSuccess(true);
                       setTimeout(() => setSuccess(false), 3000);
                     } catch (err) {
-                      setError("Error al actualizar notificaciones");
+                      setError(t("perfil.notifError"));
                     } finally {
                       setNotifyLoading(false);
                     }
@@ -364,12 +367,12 @@ export default function PerfilPage() {
                   }`}
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
-                  {notifyLoading ? (
+                    {notifyLoading ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : profile.notify_enabled ? (
-                    "DESACTIVAR"
+                    t("perfil.deactivate")
                   ) : (
-                    "ACTIVAR"
+                    t("perfil.activate")
                   )}
                 </button>
               </div>
