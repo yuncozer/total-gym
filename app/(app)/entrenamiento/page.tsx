@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Fragment as ReactFragment } from "react";
+import { useState, useEffect, useRef, Fragment as ReactFragment } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import type { Session } from "@supabase/supabase-js";
@@ -23,6 +23,7 @@ import { ExerciseCard, ImageModal, type WgerExercise } from "@/app/components/Ej
 import { RegisterModal } from "@/app/components/RegisterModal";
 import { TemplateSelector } from "@/app/components/TemplateSelector";
 import { CreateCustomExerciseModal } from "@/app/components/CreateCustomExerciseModal";
+import WorkoutIntroVideo from "@/app/components/WorkoutIntroVideo";
 import * as service from "@/lib/workout/service";
 import { muscleGroupsData, MuscleGroup } from "@/lib/data/ejercicios";
 import { isCardioExercise, isExcludedCardio, getDefaultCardioSets, CardioGroup, getCardioGroup } from "@/lib/data/cardio";
@@ -72,6 +73,8 @@ export default function EntrenamientoPage() {
   const [registerModalKey, setRegisterModalKey] = useState(0);
   const [showTemplateSelector, setShowTemplateSelector] = useState(false);
   const [showCreateCustomExercise, setShowCreateCustomExercise] = useState(false);
+  const [showIntroVideo, setShowIntroVideo] = useState(false);
+  const pendingWorkoutId = useRef<string | null>(null);
   const [deletingCustomId, setDeletingCustomId] = useState<string | null>(null);
   const [customExercises, setCustomExercises] = useState<Record<string, WgerExercise[]>>({});
   const [recentExercises, setRecentExercises] = useState<Record<string, (WgerExercise & { lastWeight: number })[]>>({});
@@ -98,6 +101,17 @@ export default function EntrenamientoPage() {
     if (!supabase) return;
     loadCustomExercises();
   }, [supabase]);
+
+  useEffect(() => {
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.href = "/videos/comencemos.mp4";
+    link.as = "video";
+    document.head.appendChild(link);
+    return () => {
+      document.head.removeChild(link);
+    };
+  }, []);
 
   const loadCustomExercises = async () => {
     if (!supabase) return;
@@ -495,16 +509,16 @@ export default function EntrenamientoPage() {
     }
   };
 
-  const handleGuardarYEjecutar = async () => {
+  const guardarYRedirigir = async () => {
     if (!supabase) return;
 
     setSaving(true);
     setError(null);
 
     const { data: { session } } = await supabase.auth.getSession();
-    console.log("[handleGuardarYEjecutar] session:", session?.user?.id);
+    console.log("[guardarYRedirigir] session:", session?.user?.id);
     if (!session?.user) {
-      console.log("[handleGuardarYEjecutar] no session, showing modal");
+      console.log("[guardarYRedirigir] no session, showing modal");
       setError("Debes iniciar sesión para guardar el entrenamiento");
       sessionStorage.setItem("pending_workout_summary", JSON.stringify(resumen));
       setSaving(false);
@@ -567,11 +581,24 @@ export default function EntrenamientoPage() {
 
       if (setsError) throw setsError;
 
-      router.push(`/workout/${workout.id}`);
+      setSaving(false);
+      pendingWorkoutId.current = workout.id;
+      setShowIntroVideo(true);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Error al guardar el entrenamiento";
       setError(errorMessage);
       setSaving(false);
+    }
+  };
+
+  const handleGuardarYEjecutar = () => {
+    guardarYRedirigir();
+  };
+
+  const handleVideoComplete = () => {
+    setShowIntroVideo(false);
+    if (pendingWorkoutId.current) {
+      router.push(`/workout/${pendingWorkoutId.current}`);
     }
   };
   if (step === "summary") {
@@ -674,9 +701,15 @@ export default function EntrenamientoPage() {
           onClose={() => setShowRegisterModal(false)}
           onLoginSuccess={() => {
             setError(null);
-            handleGuardarYEjecutar();
+            guardarYRedirigir();
           }}
         />
+        {showIntroVideo && (
+          <WorkoutIntroVideo
+            videoSrc="/videos/comencemos.mp4"
+            onComplete={handleVideoComplete}
+          />
+        )}
       </div>
     );
   }
@@ -1109,6 +1142,12 @@ export default function EntrenamientoPage() {
         />
       )}
 
+      {showIntroVideo && (
+        <WorkoutIntroVideo
+          videoSrc="/videos/comencemos.mp4"
+          onComplete={handleVideoComplete}
+        />
+      )}
     </div>
   );
 }
