@@ -63,6 +63,8 @@ export async function GET(request: NextRequest) {
     const emptyResponse = {
       totalWorkouts: 0,
       totalVolume: 0,
+      totalDistanceKm: 0,
+      totalCardioMinutes: 0,
       streak: 0,
       totalHours: 0,
       workoutsThisWeek: 0,
@@ -88,7 +90,7 @@ export async function GET(request: NextRequest) {
 
     const { data: sets, error: setsError } = await supabase
       .from("workout_sets")
-      .select("exercise_id, exercise_name, reps, weight_kg, is_completed, workout_id")
+      .select("exercise_id, exercise_name, reps, weight_kg, is_cardio, distance_km, duration_minutes, is_completed, workout_id")
       .eq("is_completed", true)
       .in("workout_id", workoutIds);
 
@@ -305,9 +307,22 @@ export async function GET(request: NextRequest) {
       ? Math.round(((hoursThisWeek - hoursLastWeek) / hoursLastWeek) * 100)
       : null;
 
+    let totalDistanceKm = 0;
+    let totalCardioMinutes = 0;
+    (sets || []).forEach(s => {
+      if (s.is_cardio) {
+        totalDistanceKm += (s.distance_km || 0);
+        totalCardioMinutes += (s.duration_minutes || 0);
+      }
+    });
+    totalDistanceKm = Math.round(totalDistanceKm * 100) / 100;
+    totalCardioMinutes = Math.round(totalCardioMinutes * 100) / 100;
+
     return NextResponse.json({
       totalWorkouts,
       totalVolume,
+      totalDistanceKm,
+      totalCardioMinutes,
       streak,
       totalHours,
       workoutsThisWeek,

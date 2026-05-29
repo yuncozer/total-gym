@@ -7,6 +7,7 @@ export interface NewExerciseDef {
   equipment: string;
   imageUrl?: string;
   setsCount: number;
+  isCardio?: boolean;
 }
 
 const FETCH_TIMEOUT = 15000;
@@ -116,20 +117,26 @@ export function buildExercisesFromNewDefs(
   currentExercises: ExerciseInWorkout[],
   newExercises: NewExerciseDef[]
 ): ExerciseInWorkout[] {
-  const newExerciseObjects: ExerciseInWorkout[] = newExercises.map(def => ({
-    exerciseId: def.exerciseId,
-    name: def.name,
-    equipment: def.equipment,
-    imageUrl: def.imageUrl,
-    sets: Array.from({ length: def.setsCount }, (_, i) => ({
-      exercise_id: def.exerciseId,
-      exercise_name: def.name,
-      set_number: i + 1,
-      reps: 0,
-      weight_kg: 0,
-      is_completed: false,
-    } as WorkoutSet)),
-  }));
+  const newExerciseObjects: ExerciseInWorkout[] = newExercises.map(def => {
+    const isCardio = def.isCardio ?? false;
+    return {
+      exerciseId: def.exerciseId,
+      name: def.name,
+      equipment: def.equipment,
+      imageUrl: def.imageUrl,
+      sets: Array.from({ length: def.setsCount }, (_, i) => ({
+        exercise_id: def.exerciseId,
+        exercise_name: def.name,
+        set_number: i + 1,
+        reps: isCardio ? null : 0,
+        weight_kg: isCardio ? null : 0,
+        is_cardio: isCardio,
+        distance_km: isCardio ? 0 : null,
+        duration_minutes: isCardio ? 0 : null,
+        is_completed: false,
+      } as WorkoutSet)),
+    };
+  });
 
   return [...currentExercises, ...newExerciseObjects];
 }

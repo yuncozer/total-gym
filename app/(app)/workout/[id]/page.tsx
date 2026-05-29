@@ -31,6 +31,7 @@ import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 import { SaveTemplateModal } from "@/app/components/SaveTemplateModal";
 import { AddExerciseModal } from "@/app/components/AddExerciseModal";
 import { getDailyQuote } from "@/lib/data/quote";
+import { getCardioGroup, CardioGroup } from "@/lib/data/cardio";
 import type { NewExerciseDef } from "@/lib/workout/service";
 
 function WorkoutContent({ workoutId }: { workoutId: string }) {
@@ -94,6 +95,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     getTotalSets,
     isExerciseCompleted,
     getLastWeight,
+    getLastCardio,
     removeExercise,
     addExercises,
   } = workout;
@@ -184,6 +186,11 @@ const handleCompleteSet = () => {
     return <LoadingScreen />;
   }
 
+  if (exercises.length === 0 && !loading) {
+    router.push("/");
+    return null;
+  }
+
   if (isWorkoutComplete) {
     const quote = getDailyQuote();
     return (
@@ -251,6 +258,7 @@ const handleCompleteSet = () => {
   if (selectedExercise) {
     const set = selectedExercise.sets[currentSetIndex];
     const lastSet = currentSetIndex === selectedExercise.sets.length - 1;
+    const isCardio = set?.is_cardio;
 
     return (
       <div className="min-h-screen bg-background text-white">
@@ -262,26 +270,38 @@ const handleCompleteSet = () => {
             <div className="bg-card rounded-xl p-6 border border">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="font-bold text-2xl">{selectedExercise.name}</h2>
-                <span className="text-sm text-icon">{selectedExercise.sets.length} series</span>
+                {isCardio ? (
+                  <span className="text-sm text-icon">
+                    {(set?.distance_km ?? 0) > 0 && `${set.distance_km} km`}
+                    {(set?.distance_km ?? 0) > 0 && (set?.duration_minutes ?? 0) > 0 && " · "}
+                    {(set?.duration_minutes ?? 0) > 0 && `${set.duration_minutes} min`}
+                  </span>
+                ) : (
+                  <span className="text-sm text-icon">{selectedExercise.sets.length} series</span>
+                )}
               </div>
-              <div className="flex items-center justify-center gap-2 mb-6">
-                {selectedExercise.sets.map((_, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => goToSet(idx)}
-                    disabled={idx > currentSetIndex && !selectedExercise.sets[idx].is_completed}
-                    className={`w-10 h-10 rounded-full text-sm font-bold cursor-pointer ${idx === currentSetIndex
-                      ? "bg-accent text-black"
-                      : selectedExercise.sets[idx].is_completed
-                        ? "bg-green-500 text-black"
-                        : "bg-muted text-icon"
-                      }`}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-              </div>
+
+              {!isCardio && (
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  {selectedExercise.sets.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => goToSet(idx)}
+                      disabled={idx > currentSetIndex && !selectedExercise.sets[idx].is_completed}
+                      className={`w-10 h-10 rounded-full text-sm font-bold cursor-pointer ${idx === currentSetIndex
+                        ? "bg-accent text-black"
+                        : selectedExercise.sets[idx].is_completed
+                          ? "bg-green-500 text-black"
+                          : "bg-muted text-icon"
+                        }`}
+                    >
+                      {idx + 1}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               {selectedExercise.imageUrl && (
                 <div className="flex justify-center mb-4">
                   <button
@@ -302,61 +322,102 @@ const handleCompleteSet = () => {
                   </button>
                 </div>
               )}
-              <div className="text-center mb-6">
-                <span className="text-sm text-icon">SERIE </span>
-                <span className="text-4xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                  {currentSetIndex + 1}
-                </span>
-              </div>
-              <div className="space-y-4 mb-4">
-                <div>
-                  <label className="block text-sm text-icon mb-2">REPETICIONES</label>
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => !set.is_completed && set.reps > 0 && updateSet('reps', set.reps - 1)}
-                      disabled={set.is_completed || set.reps <= 0}
-                      className="w-12 h-12 bg-card border border rounded-xl text-white font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
-                    >
-                      -
-                    </button>
+
+              {!isCardio && (
+                <div className="text-center mb-6">
+                  <span className="text-sm text-icon">SERIE </span>
+                  <span className="text-4xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {currentSetIndex + 1}
+                  </span>
+                </div>
+              )}
+
+              {isCardio ? (
+                <div className="space-y-4 mb-4">
+                  {getCardioGroup(selectedExercise.exerciseId) === CardioGroup.A && (
+                    <div>
+                      <label className="block text-sm text-icon mb-2">DISTANCIA (KM)</label>
+                      <input
+                        type="number"
+                        value={set?.distance_km ?? ""}
+                        onChange={(e) => updateSet('distance_km', parseFloat(e.target.value) || 0)}
+                        disabled={set?.is_completed}
+                        inputMode="decimal"
+                        placeholder={(() => {
+                          const last = getLastCardio(selectedExercise.exerciseId);
+                          return last.distance_km > 0 ? `Último: ${last.distance_km} km` : "0";
+                        })()}
+                        className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
+                      />
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-sm text-icon mb-2">DURACIÓN (MIN)</label>
                     <input
                       type="number"
-                      value={set.reps || ""}
-                      onChange={(e) => updateSet('reps', parseInt(e.target.value) || 0)}
-                      disabled={set.is_completed}
-                      inputMode="numeric"
-                      className="flex-1 w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl"
+                      value={set?.duration_minutes ?? ""}
+                      onChange={(e) => updateSet('duration_minutes', parseFloat(e.target.value) || 0)}
+                      disabled={set?.is_completed}
+                      inputMode="decimal"
+                      placeholder={(() => {
+                        const last = getLastCardio(selectedExercise.exerciseId);
+                        return last.duration_minutes > 0 ? `Último: ${last.duration_minutes} min` : "0";
+                      })()}
+                      className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
                     />
-                    <button
-                      type="button"
-                      onClick={() => !set.is_completed && updateSet('reps', set.reps + 1)}
-                      disabled={set.is_completed}
-                      className="w-12 h-12 bg-card border border rounded-xl text-white font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
-                    >
-                      +
-                    </button>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm text-icon mb-2">
-                    {getEquipmentLabel(selectedExercise.equipment)}
-                  </label>
-                  <input
-                    type="number"
-                    value={set.weight_kg || ""}
-                    onChange={(e) => updateSet('weight_kg', parseFloat(e.target.value) || 0)}
-                    disabled={set.is_completed}
-                    placeholder={(() => {
-                      const lastW = getLastWeight(selectedExercise.exerciseId);
-                      return lastW > 0 ? `Último: ${lastW} kg` : undefined;
-                    })()}
-                    className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
-                  />
+              ) : (
+                <div className="space-y-4 mb-4">
+                  <div>
+                    <label className="block text-sm text-icon mb-2">REPETICIONES</label>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => !set.is_completed && (set.reps ?? 0) > 0 && updateSet('reps', (set.reps ?? 0) - 1)}
+                        disabled={set.is_completed || (set.reps ?? 0) <= 0}
+                        className="w-12 h-12 bg-card border border rounded-xl text-white font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                      >
+                        -
+                      </button>
+                      <input
+                        type="number"
+                        value={set.reps ?? ""}
+                        onChange={(e) => updateSet('reps', parseInt(e.target.value) || 0)}
+                        disabled={set.is_completed}
+                        inputMode="numeric"
+                        className="flex-1 w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => !set.is_completed && updateSet('reps', (set.reps ?? 0) + 1)}
+                        disabled={set.is_completed}
+                        className="w-12 h-12 bg-card border border rounded-xl text-white font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer shrink-0"
+                      >
+                        +
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm text-icon mb-2">
+                      {getEquipmentLabel(selectedExercise.equipment)}
+                    </label>
+                    <input
+                      type="number"
+                      value={set.weight_kg ?? ""}
+                      onChange={(e) => updateSet('weight_kg', parseFloat(e.target.value) || 0)}
+                      disabled={set.is_completed}
+                      placeholder={(() => {
+                        const lastW = getLastWeight(selectedExercise.exerciseId);
+                        return lastW > 0 ? `Último: ${lastW} kg` : undefined;
+                      })()}
+                      className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {showExtraSetButton && set.reps > 0 && set.weight_kg > 0 && !set.is_completed && lastSet && (
+              {!isCardio && showExtraSetButton && (set.reps ?? 0) > 0 && (set.weight_kg ?? 0) > 0 && !set.is_completed && lastSet && (
                 <button
                   type="button"
                   onClick={handleAddExtraSet}
@@ -366,7 +427,7 @@ const handleCompleteSet = () => {
                 </button>
               )}
 
-              {!lastSet && !set.is_completed && (
+              {!isCardio && !lastSet && !set.is_completed && (
                 <button
                   type="button"
                   onClick={() => setAsLastSet(!isLastSet)}
@@ -389,11 +450,20 @@ const handleCompleteSet = () => {
                   disabled={saving || !canCompleteSet}
                   className="flex items-center justify-center gap-3 w-full py-5 bg-green-500 hover:bg-green-600 disabled:bg-zinc-700 disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl mt-4"
                 >
-                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : <><Check className="w-5 h-5" /> SERIE COMPLETADA</>}
+                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : isCardio ? <><Check className="w-5 h-5" /> REGISTRAR</> : <><Check className="w-5 h-5" /> SERIE COMPLETADA</>}
                 </button>
               )}
 
-              {timer.descansando && (
+              {isCardio && set.is_completed && (
+                <div className="text-center py-4 text-green-500">
+                  <span className="font-bold text-lg">
+                    {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
+                  </span>
+                  <div className="text-sm text-green-500/70 mt-1">Registrado</div>
+                </div>
+              )}
+
+              {!isCardio && timer.descansando && (
                 <div className="mt-4 p-4 bg-card rounded-xl border border">
                   {set.is_completed && (
                     <div className="text-center mb-3 pb-3 border-b border">
@@ -426,7 +496,7 @@ const handleCompleteSet = () => {
                 </div>
               )}
 
-              {!timer.descansando && set.is_completed && !isExerciseComplete && (
+              {!isCardio && !timer.descansando && set.is_completed && !isExerciseComplete && (
                 <div className="text-center py-4 text-green-500">
                   <span className="font-bold text-lg">
                     {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
@@ -515,6 +585,9 @@ const handleCompleteSet = () => {
               const total = getTotalSets(exercise);
               const isComplete = completados === total;
 
+              const firstSet = exercise.sets[0];
+              const isCardioEx = firstSet?.is_cardio;
+
               return (
                 <div key={exercise.exerciseId} className="relative">
                   <button
@@ -538,7 +611,16 @@ const handleCompleteSet = () => {
                         )}
                         <div>
                           <h3 className="font-bold text-lg">{exercise.name}</h3>
-                          <p className="text-sm text-icon">{total} series</p>
+                          {isCardioEx ? (
+                            <p className="text-sm text-icon">
+                              {(firstSet?.distance_km ?? 0) > 0 && `${firstSet.distance_km} km`}
+                              {(firstSet?.distance_km ?? 0) > 0 && (firstSet?.duration_minutes ?? 0) > 0 && " · "}
+                              {(firstSet?.duration_minutes ?? 0) > 0 && `${firstSet.duration_minutes} min`}
+                              {(firstSet?.distance_km ?? 0) <= 0 && (firstSet?.duration_minutes ?? 0) <= 0 && "Cardio"}
+                            </p>
+                          ) : (
+                            <p className="text-sm text-icon">{total} series</p>
+                          )}
                         </div>
                       </div>
                       <span className={`text-lg font-bold ${isComplete ? "text-green-500" : "text-accent"}`}>

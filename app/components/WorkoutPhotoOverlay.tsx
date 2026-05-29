@@ -134,8 +134,8 @@ export function WorkoutPhotoOverlay({ exercises, workoutName, completedAt, worko
         e.sets.forEach(s => {
           if (!s.is_completed) return;
           totalCompletedSets++;
-          if (s.weight_kg > maxWeight) {
-            maxWeight = s.weight_kg;
+          if ((s.weight_kg ?? 0) > maxWeight) {
+            maxWeight = s.weight_kg ?? 0;
             maxWeightExercise = e.name;
           }
         });

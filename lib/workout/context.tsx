@@ -30,7 +30,7 @@ interface WorkoutContextValue {
   removeExercise: (exerciseId: string) => Promise<void>;
   addExercises: (newExercises: NewExerciseDef[]) => Promise<void>;
   goToSet: (index: number) => void;
-  updateSet: (field: "reps" | "weight_kg", value: number) => void;
+  updateSet: (field: "reps" | "weight_kg" | "distance_km" | "duration_minutes", value: number) => void;
   completeSet: () => Promise<void>;
   undoSetComplete: () => void;
   addExtraSet: () => Promise<void>;
@@ -41,6 +41,7 @@ interface WorkoutContextValue {
   isExerciseCompleted: (exercise: ExerciseInWorkout) => boolean;
   
   getLastWeight: (exerciseId: string) => number;
+  getLastCardio: (exerciseId: string) => { distance_km: number; duration_minutes: number };
   
   playNotificationSound: () => void;
 }
@@ -79,6 +80,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
   });
 
   const [lastWeightByExercise, setLastWeightByExercise] = useState<Record<string, number>>({});
+  const [lastCardioByExercise, setLastCardioByExercise] = useState<Record<string, { distance_km: number; duration_minutes: number }>>({});
 
   const TIMER_STORAGE_KEY = `totalgym_timer_${workoutId}`;
   const TIMER_MAX_HOURS = 3;
@@ -140,9 +142,52 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     }
   }, []);
 
+  const fetchLastCardio = useCallback(async (exerciseId: string, userId: string): Promise<{ distance_km: number; duration_minutes: number }> => {
+    try {
+      const supabase = createSupabaseClient();
+      
+      const { data: workouts } = await supabase
+        .from("workouts")
+        .select("id")
+        .eq("user_id", userId);
+
+      if (!workouts || workouts.length === 0) return { distance_km: 0, duration_minutes: 0 };
+
+      const workoutIds = workouts.map((w: { id: string }) => w.id);
+
+      const { data } = await supabase
+        .from("workout_sets")
+        .select("distance_km, duration_minutes, completed_at")
+        .in("workout_id", workoutIds)
+        .eq("exercise_id", exerciseId)
+        .eq("is_completed", true)
+        .order("completed_at", { ascending: false })
+        .limit(10);
+
+      if (!data || data.length === 0) return { distance_km: 0, duration_minutes: 0 };
+
+      const best = data.reduce((max: { distance_km: number; duration_minutes: number }, set: { distance_km: number | null; duration_minutes: number | null }) => {
+        const d = set.distance_km || 0;
+        const dur = set.duration_minutes || 0;
+        if (d > max.distance_km) return { distance_km: d, duration_minutes: dur };
+        if (d === max.distance_km && dur > max.duration_minutes) return { distance_km: d, duration_minutes: dur };
+        return max;
+      }, { distance_km: 0, duration_minutes: 0 });
+
+      return best;
+    } catch (err) {
+      console.error("Error fetching last cardio:", err);
+      return { distance_km: 0, duration_minutes: 0 };
+    }
+  }, []);
+
   const getLastWeight = useCallback((exerciseId: string): number => {
     return lastWeightByExercise[exerciseId] || 0;
   }, [lastWeightByExercise]);
+
+  const getLastCardio = useCallback((exerciseId: string): { distance_km: number; duration_minutes: number } => {
+    return lastCardioByExercise[exerciseId] || { distance_km: 0, duration_minutes: 0 };
+  }, [lastCardioByExercise]);
 
   const restoreTimerFromStorage = useCallback(() => {
     const stored = getTimerFromStorage();
@@ -258,23 +303,30 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     setSelectedExercise(exercise);
     
     const set = exercise.sets[idx];
-    setShowExtraSetButton(set && set.reps > 0 && set.weight_kg > 0 && !set.is_completed);
+    setShowExtraSetButton(!!set && !set.is_cardio && (set.reps ?? 0) > 0 && (set.weight_kg ?? 0) > 0 && !set.is_completed);
     
-    try {
-      const session = await getSession();
-      if (session?.user) {
-        const lastWeight = await fetchLastWeight(exercise.exerciseId, session.user.id);
-        if (lastWeight > 0) {
-          setLastWeightByExercise(prev => ({
-            ...prev,
-            [exercise.exerciseId]: lastWeight
-          }));
+      try {
+        const session = await getSession();
+        if (session?.user) {
+          const lastWeight = await fetchLastWeight(exercise.exerciseId, session.user.id);
+          if (lastWeight > 0) {
+            setLastWeightByExercise(prev => ({
+              ...prev,
+              [exercise.exerciseId]: lastWeight
+            }));
+          }
+          const lastCardio = await fetchLastCardio(exercise.exerciseId, session.user.id);
+          if (lastCardio.distance_km > 0 || lastCardio.duration_minutes > 0) {
+            setLastCardioByExercise(prev => ({
+              ...prev,
+              [exercise.exerciseId]: lastCardio
+            }));
+          }
         }
+      } catch (err) {
+        console.error("Error loading last weight:", err);
       }
-    } catch (err) {
-      console.error("Error loading last weight:", err);
-    }
-  }, [fetchLastWeight]);
+  }, [fetchLastWeight, fetchLastCardio]);
 
   const deselectExercise = useCallback(() => {
     const prog = progressFn.getProgress(exercises);
@@ -291,7 +343,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     setCurrentSetIndex(index);
   }, []);
 
-  const updateSet = useCallback((field: "reps" | "weight_kg", value: number) => {
+  const updateSet = useCallback((field: "reps" | "weight_kg" | "distance_km" | "duration_minutes", value: number) => {
     if (!selectedExercise) return;
     
     setExercises(prev => prev.map(ej => {
@@ -349,6 +401,20 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
       setIsWorkoutComplete(true);
       await service.completeWorkout(workoutId);
       clearTimerStorage();
+    } else if (selectedExercise?.exerciseId && updatedExercises[exerciseIdx]?.sets?.[0]?.is_cardio) {
+      setTimer({ segundos: 0, activo: false, descansando: false });
+      const completedSet = selectedExercise.sets[currentSetIndex];
+      if (completedSet) {
+        const currentLast = lastCardioByExercise[selectedExercise.exerciseId] || { distance_km: 0, duration_minutes: 0 };
+        const newDist = completedSet.distance_km || 0;
+        const newDur = completedSet.duration_minutes || 0;
+        if (newDist > currentLast.distance_km || (newDist === currentLast.distance_km && newDur > currentLast.duration_minutes)) {
+          setLastCardioByExercise(prev => ({
+            ...prev,
+            [selectedExercise.exerciseId]: { distance_km: newDist, duration_minutes: newDur }
+          }));
+        }
+      }
     } else {
       const now = Date.now();
       setTimer({ segundos: 0, activo: true, descansando: true, timestampInicio: now });
@@ -446,9 +512,9 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     await saveSets(updated);
 
     if (updated.length === 0) {
-      setIsWorkoutComplete(true);
-      await service.completeWorkout(workoutId);
+      await service.cancelWorkout(workoutId);
       clearTimerStorage();
+      return;
     } else {
       const allComplete = updated.every(e =>
         e.sets.length > 0 && e.sets.every(s => s.is_completed)
@@ -506,9 +572,11 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     showExtraSetButton,
     timer,
     setTimer,
-    canCompleteSet: selectedExercise ? 
-      selectedExercise.sets[currentSetIndex]?.reps > 0 && 
-      selectedExercise.sets[currentSetIndex]?.weight_kg > 0 : false,
+    canCompleteSet: selectedExercise ? (
+      selectedExercise.sets[currentSetIndex]?.is_cardio
+        ? (selectedExercise.sets[currentSetIndex]?.distance_km ?? 0) > 0 || (selectedExercise.sets[currentSetIndex]?.duration_minutes ?? 0) > 0
+        : (selectedExercise.sets[currentSetIndex]?.reps ?? 0) > 0 && (selectedExercise.sets[currentSetIndex]?.weight_kg ?? 0) > 0
+    ) : false,
     progress: progressFn.getProgress(exercises),
     progressPercentage: exercises.length > 0 
       ? (progressFn.getProgress(exercises).completed / progressFn.getProgress(exercises).total) * 100 
@@ -530,6 +598,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     isExerciseCompleted: progressFn.isExerciseComplete,
     
     getLastWeight,
+    getLastCardio,
     
     playNotificationSound
   };

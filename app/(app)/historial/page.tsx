@@ -514,7 +514,11 @@ export default function HistorialPage() {
                                           <span className="font-medium">{exerciseName}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                          <span className="text-sm text-icon">{exerciseCompleted}/{sets.length} series</span>
+                                          <span className="text-sm text-icon">
+                                            {sets[0]?.is_cardio
+                                              ? `Cardio`
+                                              : `${exerciseCompleted}/${sets.length} series`}
+                                          </span>
                                           {exerciseExpanded ? <ChevronUp className="w-4 h-4 text-icon" /> : <ChevronDown className="w-4 h-4 text-icon" />}
                                         </div>
                                       </button>
@@ -525,14 +529,34 @@ export default function HistorialPage() {
                                             <div key={set.id} className={`flex items-center justify-between p-2 rounded ${set.is_completed ? "bg-green-500/10" : "bg-card"}`}>
                                               <div className="flex items-center gap-2">
                                                 {set.is_completed ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Clock className="w-4 h-4 text-icon" />}
-                                                <span className="text-sm text-muted-foreground">Serie {set.set_number}</span>
+                                                {set.is_cardio ? (
+                                                  <span className="text-sm text-muted-foreground">Cardio</span>
+                                                ) : (
+                                                  <span className="text-sm text-muted-foreground">Serie {set.set_number}</span>
+                                                )}
                                               </div>
                                               <div className="flex items-center gap-4">
-                                                <span className="text-sm font-medium">{set.reps} reps</span>
-          <span className="flex items-center gap-1 text-sm text-accent">
-                                                  <Scale className="w-3 h-3" />
-                                                  {set.weight_kg} kg
-                                                </span>
+                                                {set.is_cardio ? (
+                                                  <>
+                                                    {(set.distance_km ?? 0) > 0 && (
+                                                      <span className="text-sm font-medium">{set.distance_km} km</span>
+                                                    )}
+                                                    {(set.duration_minutes ?? 0) > 0 && (
+                                                      <span className="flex items-center gap-1 text-sm text-accent">
+                                                        <Clock className="w-3 h-3" />
+                                                        {set.duration_minutes} min
+                                                      </span>
+                                                    )}
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <span className="text-sm font-medium">{set.reps ?? 0} reps</span>
+                                                    <span className="flex items-center gap-1 text-sm text-accent">
+                                                      <Scale className="w-3 h-3" />
+                                                      {set.weight_kg ?? 0} kg
+                                                    </span>
+                                                  </>
+                                                )}
                                               </div>
                                             </div>
                                           ))}
