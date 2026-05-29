@@ -4,6 +4,7 @@ import "./globals.css";
 import { OfflineBanner } from "@/app/components/OfflineBanner";
 import { Analytics } from "@vercel/analytics/next";
 import { ToastProvider } from "@/app/components/ToastProvider";
+import { Providers } from "@/app/components/Providers";
 
 const oswald = Oswald({
   variable: "--font-oswald",
@@ -125,7 +126,7 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        {children}
+        <Providers>{children}</Providers>
         <OfflineBanner />
         <ToastProvider />
         <Analytics />

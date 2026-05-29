@@ -2,19 +2,22 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target, RefreshCw } from "lucide-react";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
 import { NotificationButton } from "@/app/components/NotificationButton";
+import { useLanguage, strings, type StringKey, type Lang } from "@/lib/i18n";
 import type { Session } from "@supabase/supabase-js";
 import { getDailyQuote } from "@/lib/data/quote";
 import { getDashboardStats, type DashboardStats } from "@/lib/workout/service";
 
-export function getFormattedDate(): string {
+export function getFormattedDate(lang: string): string {
   const now = new Date();
-  return now.toLocaleDateString("es-ES", {
+  return now.toLocaleDateString(lang === "en" ? "en-US" : "es-ES", {
     weekday: "long",
     year: "numeric",
     month: "long",
@@ -23,46 +26,62 @@ export function getFormattedDate(): string {
 }
 
 function ScrollIndicator() {
+  const { t } = useLanguage();
   return (
     <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
       <span className="text-icon text-sm uppercase tracking-widest" style={{ fontFamily: "var(--font-oswald)" }}>
-        Descubre más
+        {t("home.hero.subtitle")}
       </span>
       <ChevronDown className="w-6 h-6 text-accent" />
     </div>
   );
 }
 
+function getGreeting(lang: string): string {
+  const hour = new Date().getHours();
+  const key = hour < 12 ? "home.greeting.morning" : hour < 18 ? "home.greeting.afternoon" : "home.greeting.evening";
+  return strings[key as StringKey]?.[lang as Lang] ?? key;
+}
+
+function getNameFromEmail(email: string): string {
+  return email.split("@")[0] || "";
+}
+
 function UserDashboard({ stats, loading }: { stats: DashboardStats | null; loading: boolean }) {
+  const { t } = useLanguage();
   return (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4 mb-6 sm:mb-8 w-full max-w-4xl mx-auto">
-      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-colors">
-        <Activity className={`w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 ${stats?.todayWorkout ? "text-green-500" : "text-accent"}`} />
+      <div className={`bg-card/80 border rounded-xl p-3 sm:p-4 text-center transition-all duration-300 hover:scale-105 ${stats?.todayWorkout ? "border-green-500/50 shadow-[0_0_20px_rgba(34,197,94,0.15)]" : "border hover:border-accent"}`}>
+        <Activity className={`w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 ${stats?.todayWorkout ? "text-green-500" : "text-icon"}`} />
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
-          {loading ? "..." : stats?.todayWorkout ? "Sí" : "No"}
+          {loading ? "..." : stats?.todayWorkout ? t("home.stats.trainedYes") : t("home.stats.trainedNo")}
         </div>
-        <div className="text-icon text-xs sm:text-sm">Entrenó</div>
+        <div className="text-icon text-xs sm:text-sm">{t("home.stats.trainedLabel")}</div>
       </div>
-      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-colors">
-        <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 text-accent mx-auto mb-1 sm:mb-2" />
+      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-all duration-300 hover:scale-105">
+        {stats?.streak && stats.streak > 0 ? (
+          <Flame className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+        ) : (
+          <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-icon" />
+        )}
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
           {loading ? "..." : stats?.streak || 0}
         </div>
-        <div className="text-icon text-xs sm:text-sm">Racha (días)</div>
+        <div className="text-icon text-xs sm:text-sm">{t("home.stats.streakLabel")}</div>
       </div>
-      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-colors">
+      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-all duration-300 hover:scale-105">
         <Target className="w-5 h-5 sm:w-6 sm:h-6 text-accent mx-auto mb-1 sm:mb-2" />
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
           {loading ? "..." : stats?.totalWorkouts || 0}
         </div>
-        <div className="text-icon text-xs sm:text-sm">Workouts</div>
+        <div className="text-icon text-xs sm:text-sm">{t("home.stats.workoutsLabel")}</div>
       </div>
-      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-colors">
+      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-all duration-300 hover:scale-105">
         <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6 text-accent mx-auto mb-1 sm:mb-2" />
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
           {loading ? "..." : stats?.totalSets || 0}
         </div>
-        <div className="text-icon text-xs sm:text-sm">Series</div>
+        <div className="text-icon text-xs sm:text-sm">{t("home.stats.setsLabel")}</div>
       </div>
     </div>
   );
@@ -79,8 +98,9 @@ export default function Home() {
   const [loadingStats, setLoadingStats] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
+  const { t, lang } = useLanguage();
   const quote = getDailyQuote();
-  const dateStr = getFormattedDate();
+  const dateStr = getFormattedDate(lang);
 
   const loadStats = async () => {
     setLoadingStats(true);
@@ -279,18 +299,29 @@ export default function Home() {
               </span>
             </div>
 
+            {user && (
+                <p className="text-accent text-lg sm:text-xl mb-2 font-medium" style={{ fontFamily: "var(--font-rajdhani)" }}>
+                {getGreeting(lang)}, {getNameFromEmail(user.email)}
+              </p>
+            )}
+
             <h1
               className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight mb-6 sm:mb-8"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              <span className="text-accent">CADA DÍA</span> <br />
-              UNA NUEVA <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-accent">OPORTUNIDAD</span>
+              {user ? (
+                <>{t("home.hero.loggedPart1") && <>{t("home.hero.loggedPart1")} </>}<span className="text-accent">{t("home.hero.loggedPart2")}</span></>
+              ) : (
+                <>
+                  <span className="text-accent">{t("home.hero.guestPart1")}</span> <br />
+                  <>{t("home.hero.guestPart2")} </><span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-accent">{t("home.hero.guestPart3")}</span>
+                </>
+              )}
             </h1>
 
-            <div className="bg-card/80 border border rounded-2xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8 backdrop-blur-sm">
-              <Flame className="w-6 h-6 sm:w-8 sm:h-8 text-accent mx-auto mb-3 sm:mb-4" />
+            <div className={`bg-card/80 border border-accent/20 backdrop-blur-sm animate-[fadeInUp_0.6s_ease-out] ${user ? "rounded-xl p-6 sm:p-8 mb-6 sm:mb-8 max-w-2xl mx-auto shadow-[0_0_40px_rgba(234,179,8,0.06)] hover:shadow-[0_0_60px_rgba(234,179,8,0.12)] transition-shadow duration-500" : "rounded-2xl p-6 sm:p-8 md:p-10 mb-6 sm:mb-8"}`}>
               <p
-                className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-semibold leading-relaxed text-white"
+                className={`font-semibold leading-relaxed text-white ${user ? "text-lg sm:text-xl" : "text-lg sm:text-xl md:text-2xl lg:text-3xl"}`}
                 style={{ fontFamily: "var(--font-rajdhani)" }}
               >
                 &ldquo;{quote}&rdquo;
@@ -305,7 +336,7 @@ export default function Home() {
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin" />
-                  VERIFICANDO...
+                  {t("home.cta.verifying")}
                 </button>
               ) : pendingWorkout ? (
                 <button
@@ -314,7 +345,7 @@ export default function Home() {
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Play className="w-4 h-4 sm:w-5 sm:h-5" />
-                  CONTINUAR ({pendingWorkout.completed}/{pendingWorkout.total})
+                  {t("home.cta.continue")} ({pendingWorkout.completed}/{pendingWorkout.total})
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               ) : (
@@ -324,11 +355,24 @@ export default function Home() {
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Zap className="w-4 h-4 sm:w-5 sm:h-5" />
-                  COMENZAR RUTINA
+                  {t("home.cta.start")}
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               )}
             </div>
+
+            {user && stats && stats.totalWorkouts === 0 && (
+              <div className="mt-4 sm:mt-6 inline-flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-full px-4 py-2 text-xs sm:text-sm text-accent">
+                <Zap className="w-3.5 h-3.5" />
+                {t("home.cta.firstTime")}
+              </div>
+            )}
+
+            {user && !pendingWorkout && !checkingPending && stats && !stats.todayWorkout && stats.totalWorkouts > 0 && (
+              <p className="text-icon text-xs sm:text-sm mt-3">
+                {t("home.cta.notTrainedToday")}
+              </p>
+            )}
           </div>
         </section>
 
@@ -347,109 +391,109 @@ export default function Home() {
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              <span className="text-white">POR QUÉ </span>
-              <span className="text-accent">ELEGIRNOS</span>
+              <span className="text-white">{t("home.features.title1")} </span>
+              <span className="text-accent">{t("home.features.title2")}</span>
             </h2>
             <p className="text-icon text-center text-lg mb-16 max-w-2xl mx-auto">
-              Esto no es una app más. Es tu weapon para transformar tu físico.
+              {t("home.features.subtitle")}
             </p>
 
             <div className="grid md:grid-cols-2 gap-4 lg:gap-6">
               <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
+                <div className="absolute top-0 left-0 w-24 h-24 bg-accent/5 rounded-br-full group-hover:bg-accent/10 transition-colors" />
                 <div className="relative z-10">
                   <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
-                      <Smartphone className="w-8 h-8 text-accent" />
-                    </div>
-                    <div className="w-px h-16 bg-zinc-700" />
-                    <div className="flex-1">
-                      <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
-                        TU GYM
-                      </h3>
-                      <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                        EN EL BOLSILLO
-                      </h3>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground text-lg leading-relaxed pl-20">
-                    Una webapp que te acompaña ANTES, DURANTE y DESPUÉS de cada entrenamiento.
-                    <span className="text-white font-medium block mt-2">Llévatela a everywhere. Sin excusas.</span>
-                  </p>
+                <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
+                  <Smartphone className="w-8 h-8 text-accent" />
+                </div>
+                <div className="w-px h-16 bg-zinc-700" />
+                <div className="flex-1">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("feature.card1.title1")}
+                  </h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("feature.card1.title2")}
+                  </h3>
                 </div>
               </div>
+              <p className="text-muted-foreground text-lg leading-relaxed pl-20">
+                {t("feature.card1.desc1")}
+                <span className="text-white font-medium block mt-2">{t("feature.card1.desc2")}</span>
+              </p>
+            </div>
+          </div>
 
-              <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
-                <div className="relative z-10">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
-                      <History className="w-8 h-8 text-accent" />
-                    </div>
-                    <div className="w-px h-16 bg-zinc-700" />
-                    <div className="flex-1">
-                      <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
-                        CONTROL TOTAL
-                      </h3>
-                      <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                        DE TU HISTORIAL
-                      </h3>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground text-lg leading-relaxed pl-20">
-                    Cada serie, cada repetición, cada kilogramo queda registrado.
-                    <span className="text-white font-medium block mt-2">Mira cuánto levantaste y SUPERA ese número.</span>
-                  </p>
+          <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
+            <div className="relative z-10">
+              <div className="flex items-start gap-4 mb-4 flex-row-reverse">
+                <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
+                  <History className="w-8 h-8 text-accent" />
+                </div>
+                <div className="w-px h-16 bg-zinc-700" />
+                <div className="flex-1 text-right">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("feature.card2.title1")}
+                  </h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("feature.card2.title2")}
+                  </h3>
                 </div>
               </div>
+              <p className="text-muted-foreground text-lg leading-relaxed pr-20 text-right">
+                {t("feature.card2.desc1")}
+                <span className="text-white font-medium block mt-2">{t("feature.card2.desc2")}</span>
+              </p>
+            </div>
+          </div>
 
-              <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
-                <div className="relative z-10">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
-                      <User className="w-8 h-8 text-accent" />
-                    </div>
-                    <div className="w-px h-16 bg-zinc-700" />
-                    <div className="flex-1">
-                      <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
-                        TU GYMBRO
-                      </h3>
-                      <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                        DIGITAL
-                      </h3>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground text-lg leading-relaxed pl-20">
-                    Tu compañero entrenando CONTIGO. Lleva la cuenta de tu disciplina
-                    <span className="text-white font-medium block mt-2">y te exige romper tus propios RÉCORDS.</span>
-                  </p>
+          <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-24 h-24 bg-accent/5 rounded-br-full group-hover:bg-accent/10 transition-colors" />
+            <div className="relative z-10">
+              <div className="flex items-start gap-4 mb-4">
+                <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
+                  <User className="w-8 h-8 text-accent" />
+                </div>
+                <div className="w-px h-16 bg-zinc-700" />
+                <div className="flex-1">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("feature.card3.title1")}
+                  </h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("feature.card3.title2")}
+                  </h3>
                 </div>
               </div>
+              <p className="text-muted-foreground text-lg leading-relaxed pl-20">
+                {t("feature.card3.desc1")}
+                <span className="text-white font-medium block mt-2">{t("feature.card3.desc2")}</span>
+              </p>
+            </div>
+          </div>
 
-              <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
-                <div className="relative z-10">
-                  <div className="flex items-start gap-4 mb-4">
-                    <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
-                      <Timer className="w-8 h-8 text-accent" />
-                    </div>
-                    <div className="w-px h-16 bg-zinc-700" />
-                    <div className="flex-1">
-                      <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
-                        CRONÓMETRO
-                      </h3>
-                      <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                        INTEGRADO
-                      </h3>
-                    </div>
-                  </div>
-                  <p className="text-muted-foreground text-lg leading-relaxed pl-20">
-                    Descansa BETWEEN series. El timer corre automatically.
-                    <span className="text-white font-medium block mt-2">Enfócate en LO QUE IMPORTA: entrenar DURO.</span>
-                  </p>
+          <div className="group bg-card border border rounded-xl p-8 hover:border-accent hover:shadow-accent/15 transition-all duration-300 cursor-pointer relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-accent/5 rounded-bl-full group-hover:bg-accent/10 transition-colors" />
+            <div className="relative z-10">
+              <div className="flex items-start gap-4 mb-4 flex-row-reverse">
+                <div className="w-16 h-16 bg-accent/10 rounded-xl flex items-center justify-center group-hover:bg-accent/20 group-hover:scale-110 transition-all duration-300">
+                  <Timer className="w-8 h-8 text-accent" />
+                </div>
+                <div className="w-px h-16 bg-zinc-700" />
+                <div className="flex-1 text-right">
+                  <h3 className="text-2xl md:text-3xl font-bold mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("feature.card4.title1")}
+                  </h3>
+                  <h3 className="text-2xl md:text-3xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("feature.card4.title2")}
+                  </h3>
                 </div>
               </div>
+              <p className="text-muted-foreground text-lg leading-relaxed pr-20 text-right">
+                {t("feature.card4.desc1")}
+                <span className="text-white font-medium block mt-2">{t("feature.card4.desc2")}</span>
+              </p>
+            </div>
+          </div>
             </div>
           </div>
         </section>
@@ -468,22 +512,21 @@ export default function Home() {
               <div className="inline-flex items-center gap-3 bg-accent/10 border border-accent/30 rounded-full px-6 py-2 mb-6">
                 <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
                 <span className="text-accent text-sm font-medium uppercase tracking-wider" style={{ fontFamily: "var(--font-oswald)" }}>
-                  NO ES SOLO OTRA WEB
+                  {t("home.pwa.badge")}
                 </span>
               </div>
               <h2
                 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-4"
                 style={{ fontFamily: "var(--font-oswald)" }}
               >
-                <span className="text-white">LLEVA</span>
+                <span className="text-white">{t("home.pwa.title1")}</span>
                 <span className="text-accent"> </span>
-                <span className="text-white">TU GYM</span>
+                <span className="text-white">{t("home.pwa.title2")}</span>
                 <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-hover">EN EL BOLSILLO</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-accent-hover">{t("home.pwa.title3")}</span>
               </h2>
               <p className="text-icon text-xl md:text-2xl max-w-2xl mx-auto mt-6">
-                Instálala en tu home screen y <span className="text-white font-bold">úsala como app native</span>.
-                Sin stores, sin downloads, sin BS.
+                {t("home.pwa.subtitle")}
               </p>
             </div>
 
@@ -494,16 +537,12 @@ export default function Home() {
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-2xl" />
 
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent-hover rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                      <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <rect x="5" y="2" width="14" height="20" rx="2" stroke="black" />
-                        <line x1="12" y1="6" x2="12" y2="6.01" strokeWidth="2" />
-                        <circle cx="12" cy="18" r="1" />
-                      </svg>
+                    <div className="w-16 h-16 bg-zinc-800 rounded-xl flex items-center justify-center">
+                      <Image src="/images/icons/android.png" alt="Android" width={40} height={40} className="object-contain" />
                     </div>
                     <div>
                       <h3 className="text-3xl font-bold" style={{ fontFamily: "var(--font-oswald)" }}>
-                        <span className="text-white">ANDROID</span>
+                        <span className="text-white">{t("home.pwa.android")}</span>
                       </h3>
                       <p className="text-icon text-sm">Chrome</p>
                     </div>
@@ -512,19 +551,19 @@ export default function Home() {
                   <div className="space-y-0">
                     <div className="flex items-center gap-4 py-3 border-b border/50">
                       <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
-                      <span className="text-muted-foreground">Abre <span className="text-white font-bold">Chrome</span> → totalgym.life</span>
+                      <span className="text-muted-foreground">{t("home.pwa.step1")}</span>
                     </div>
                     <div className="flex items-center gap-4 py-3 border-b border/50">
                       <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">2</span>
-                      <span className="text-muted-foreground">Toca <span className="text-white font-bold">⋮</span> (menú)</span>
+                      <span className="text-muted-foreground">{t("home.pwa.step2Android")}</span>
                     </div>
                     <div className="flex items-center gap-4 py-3 border-b border/50">
                       <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">3</span>
-                      <span className="text-muted-foreground"><span className="text-white font-bold">Instalar app</span></span>
+                      <span className="text-muted-foreground"><span className="text-white font-bold">{t("home.pwa.step3Android")}</span></span>
                     </div>
                     <div className="flex items-center gap-4 py-3">
                     <span className="w-8 h-8 bg-green-500 text-black font-bold rounded-lg flex items-center justify-center text-sm">✓</span>
-                    <span className="text-green-500 font-bold">LISTO EN SEGUNDOS</span>
+                    <span className="text-green-500 font-bold">{t("home.pwa.done")}</span>
                     </div>
                   </div>
                 </div>
@@ -536,15 +575,12 @@ export default function Home() {
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-2xl" />
 
                   <div className="flex items-center gap-4 mb-8">
-                    <div className="w-16 h-16 bg-gradient-to-br from-accent to-accent-hover rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(234,179,8,0.3)]">
-                      <svg className="w-10 h-10 text-black" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                        <path d="M12 2C9.243 2 7 4.243 7 7v10c0 2.757 2.243 5 5 5s5-2.243 5-5V7c0-2.757-2.243-5-5-5z" fill="none" stroke="black" />
-                        <circle cx="12" cy="18" r="2" fill="black" />
-                      </svg>
+                    <div className="w-16 h-16 bg-zinc-800 rounded-xl flex items-center justify-center">
+                      <Image src="/images/icons/apple.png" alt="iPhone" width={40} height={40} className="object-contain" />
                     </div>
                     <div>
                       <h3 className="text-3xl font-bold" style={{ fontFamily: "var(--font-oswald)" }}>
-                        <span className="text-white">iPHONE</span>
+                        <span className="text-white">{t("home.pwa.iphone")}</span>
                       </h3>
                       <p className="text-icon text-sm">Safari</p>
                     </div>
@@ -553,19 +589,19 @@ export default function Home() {
                   <div className="space-y-0">
                     <div className="flex items-center gap-4 py-3 border-b border/50">
                       <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
-                      <span className="text-muted-foreground">Abre <span className="text-white font-bold">Safari</span> → totalgym.life</span>
+                      <span className="text-muted-foreground">{t("home.pwa.step1iOS")}</span>
                     </div>
                     <div className="flex items-center gap-4 py-3 border-b border/50">
                       <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">2</span>
-                      <span className="text-muted-foreground">Toca <span className="text-white font-bold">Compartir</span> (□)</span>
+                      <span className="text-muted-foreground">{t("home.pwa.step2iOS")}</span>
                     </div>
                     <div className="flex items-center gap-4 py-3 border-b border/50">
                       <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">3</span>
-                      <span className="text-muted-foreground"><span className="text-white font-bold">Agregar a inicio</span></span>
+                      <span className="text-muted-foreground"><span className="text-white font-bold">{t("home.pwa.step3iOS")}</span></span>
                     </div>
                     <div className="flex items-center gap-4 py-3">
                     <span className="w-8 h-8 bg-green-500 text-black font-bold rounded-lg flex items-center justify-center text-sm">✓</span>
-                    <span className="text-green-500 font-bold">LISTO EN SEGUNDOS</span>
+                    <span className="text-green-500 font-bold">{t("home.pwa.done")}</span>
                     </div>
                   </div>
                 </div>
@@ -579,17 +615,15 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                   </svg>
                 </div>
-                <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>SIN WAITING</h4>
-                <p className="text-icon text-sm">Abre instant. No download, no install lag.</p>
+                <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>{t("home.mini.waiting")}</h4>
+                <p className="text-icon text-sm">{t("home.mini.waitingDesc")}</p>
               </div>
               <div className="text-center p-6 bg-card/50 border border rounded-xl hover:border-accent transition-colors group">
                   <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-accent/20 transition-colors">
-                  <svg className="w-7 h-7 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9H0m0 0h9.75m0 0l3 3m-3-3l3-3M9 5v.01M9 10v.01M9 15v.01M9 20v.01" />
-                  </svg>
+                  <RefreshCw className="w-7 h-7 text-accent" />
                 </div>
-                <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>AUTO-UPDATE</h4>
-                <p className="text-icon text-sm">Always latest version. Ningún manual update.</p>
+                <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>{t("home.mini.update")}</h4>
+                <p className="text-icon text-sm">{t("home.mini.updateDesc")}</p>
               </div>
               <div className="text-center p-6 bg-card/50 border border rounded-xl hover:border-accent transition-colors group">
                   <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4 group-hover:bg-accent/20 transition-colors">
@@ -597,8 +631,8 @@ export default function Home() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
                 </div>
-                <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>FEELS NATIVE</h4>
-                <p className="text-icon text-sm">Full screen, sin Browser chrome BS.</p>
+                <h4 className="text-white font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>{t("home.mini.native")}</h4>
+                <p className="text-icon text-sm">{t("home.mini.nativeDesc")}</p>
               </div>
             </div>
           </div>
@@ -610,19 +644,53 @@ export default function Home() {
           <NotificationButton userId={user.id} />
         </div>
       )}
-      <footer className="bg-background border-t border py-12">
-        <div className="max-w-6xl mx-auto px-4 text-center">
-          <div className="flex items-center justify-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-accent rounded flex items-center justify-center">
-              <Dumbbell className="w-4 h-4 text-black" />
+      <footer className="bg-background border-t border py-16">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-8 mb-10">
+            <div className="text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-3">
+                <Image
+                  src="/logo.png"
+                  alt="TOTAL GYM"
+                  width={28}
+                  height={28}
+                  className="object-contain"
+                />
+                <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
+                  TOTAL<span className="text-accent">GYM</span>
+                </span>
+              </div>
+              <p className="text-muted-foreground text-sm max-w-xs mx-auto md:mx-0">
+                {t("footer.description")}
+              </p>
             </div>
-            <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
-              TOTAL<span className="text-accent">GYM</span>
-            </span>
+
+            <div className="text-center md:text-left">
+              <h4 className="text-white font-bold text-sm uppercase tracking-wider mb-4" style={{ fontFamily: "var(--font-oswald)" }}>
+                {t("footer.navigation")}
+              </h4>
+              <ul className="space-y-2">
+                <li>
+                  <Link href="/" className="text-muted-foreground text-sm hover:text-white transition-colors">{t("footer.home")}</Link>
+                </li>
+                <li>
+                  <Link href="/entrenamiento" className="text-muted-foreground text-sm hover:text-white transition-colors">{t("footer.training")}</Link>
+                </li>
+                <li>
+                  <Link href="/historial" className="text-muted-foreground text-sm hover:text-white transition-colors">{t("footer.history")}</Link>
+                </li>
+                <li>
+                  <Link href="/progreso" className="text-muted-foreground text-sm hover:text-white transition-colors">{t("footer.progress")}</Link>
+                </li>
+              </ul>
+            </div>
           </div>
-            <p className="text-muted-foreground text-sm">
-            © 2026 TOTAL GYM. Entrena como un campeón.
-          </p>
+
+          <div className="pt-8 text-center">
+            <p className="text-muted-foreground text-xs">
+              © 2026 TOTAL GYM. {t("footer.copyright")}
+            </p>
+          </div>
         </div>
       </footer>
     </div>

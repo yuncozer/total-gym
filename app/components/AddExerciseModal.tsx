@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 import { muscleGroupsData, type MuscleGroup } from "@/lib/data/ejercicios";
 import * as service from "@/lib/workout/service";
 import type { NewExerciseDef } from "@/lib/workout/service";
+import { useLanguage } from "@/lib/i18n";
 
 interface WgerExercise {
   id: string;
@@ -40,6 +41,7 @@ const EQUIPMENT_TABS = [
 ];
 
 export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalProps) {
+  const { t } = useLanguage();
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   const [exercises, setExercises] = useState<Record<string, WgerExercise[]>>({});
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
@@ -164,7 +166,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
                   : "bg-muted text-muted-foreground hover:bg-zinc-700"
               }`}
             >
-              {m.name}
+              {t("muscleGroup." + m.id + ".name")}
             </button>
           ))}
         </div>

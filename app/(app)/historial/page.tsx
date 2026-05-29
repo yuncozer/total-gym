@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useLanguage } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock, Target, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X, Flame, Calendar, Share2 } from "lucide-react";
 import { loadWorkoutHistory, type WorkoutSummary, type WorkoutSet, type ExerciseInWorkout } from "@/lib/workout";
@@ -9,8 +10,6 @@ import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 
 type DateFilter = "all" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year" | "specific_day";
-
-const DAY_LABELS = ["L", "M", "X", "J", "V", "S", "D"];
 
 const getCurrentWeekRange = (): { start: Date; end: Date } => {
   const today = new Date();
@@ -72,8 +71,8 @@ const getHeatmapColor = (count: number, max: number) => {
   return "bg-accent";
 };
 
-const formatDateShort = (date: Date) => {
-  return date.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+const formatDateShort = (date: Date, locale?: string) => {
+  return date.toLocaleDateString(locale === "en" ? "en-US" : "es-ES", { day: "numeric", month: "short" });
 };
 
 const WeekActivityChart = ({
@@ -81,12 +80,17 @@ const WeekActivityChart = ({
   weeklyCount,
   selectedDay,
   onDayClick,
+  t,
+  lang,
 }: {
   workouts: WorkoutSummary[];
   weeklyCount: number;
   selectedDay: number | null;
   onDayClick: (dayIndex: number | null) => void;
+  t: (key: string) => string;
+  lang: string;
 }) => {
+  const DAY_LABELS = lang === "en" ? ["M","T","W","T","F","S","S"] : ["L","M","X","J","V","S","D"];
   const activity = calculateWeekActivity(workouts);
   const maxActivity = Math.max(...activity, 1);
   const { start } = getCurrentWeekRange();
@@ -102,7 +106,7 @@ const WeekActivityChart = ({
   return (
     <div className="mb-6 p-4 bg-card rounded-xl border border">
       <div className="flex items-center justify-between mb-3">
-        <span className="text-sm font-medium text-muted-foreground">Actividad semanal</span>
+        <span className="text-sm font-medium text-muted-foreground">{t("historial.weekActivity")}</span>
         <div className="flex items-center gap-3">
           {selectedDay !== null && (
             <button
@@ -110,12 +114,12 @@ const WeekActivityChart = ({
               className="flex items-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors cursor-pointer"
             >
               <X className="w-3 h-3" />
-              Limpiar
+              {t("historial.clear")}
             </button>
           )}
           <span className="flex items-center gap-1 text-sm text-accent">
             <Flame className="w-4 h-4" />
-            {activity.reduce((a, b) => a + b, 0)} workouts
+            {activity.reduce((a, b) => a + b, 0)} {t("historial.workouts")}
           </span>
         </div>
       </div>
@@ -148,7 +152,7 @@ const WeekActivityChart = ({
                 {DAY_LABELS[i]}
               </span>
               <span className="text-[10px] text-zinc-600">
-                {formatDateShort(date).replace(".", "")}
+                {formatDateShort(date, lang).replace(".", "")}
               </span>
             </div>
           );
@@ -160,6 +164,7 @@ const WeekActivityChart = ({
 
 export default function HistorialPage() {
   const router = useRouter();
+  const { t, lang } = useLanguage();
   const { loading: authLoading, authenticated } = useAuth(true);
   const [workouts, setWorkouts] = useState<WorkoutSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -172,12 +177,12 @@ export default function HistorialPage() {
   const [sharingWorkout, setSharingWorkout] = useState<WorkoutSummary | null>(null);
 
   const DATE_FILTERS: { id: DateFilter; label: string }[] = [
-    { id: "all", label: "Todos" },
-    { id: "this_week", label: "Esta semana" },
-    { id: "last_week", label: "Semana pasada" },
-    { id: "this_month", label: "Este mes" },
-    { id: "last_month", label: "Mes pasado" },
-    { id: "this_year", label: "Este año" },
+    { id: "all", label: t("historial.filterAll") },
+    { id: "this_week", label: t("historial.filterThisWeek") },
+    { id: "last_week", label: t("historial.filterLastWeek") },
+    { id: "this_month", label: t("historial.filterThisMonth") },
+    { id: "last_month", label: t("historial.filterLastMonth") },
+    { id: "this_year", label: t("historial.filterThisYear") },
   ];
 
   const getDateRange = (filter: DateFilter): { start: Date; end: Date } | null => {
@@ -240,12 +245,12 @@ export default function HistorialPage() {
     }
   }, [authenticated, authLoading]);
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string, locale?: string) => {
     try {
       const [year, month, day] = dateStr.split("-").map(Number);
       const date = new Date(year, month - 1, day);
       if (!isNaN(date.getTime())) {
-        return date.toLocaleDateString("es-ES", { weekday: "long", day: "numeric", month: "long" });
+        return date.toLocaleDateString(locale === "en" ? "en-US" : "es-ES", { weekday: "long", day: "numeric", month: "long" });
       }
     } catch (e) {
       console.error("Error formatting date:", e);
@@ -331,7 +336,7 @@ export default function HistorialPage() {
   const groupedWorkouts = filteredWorkouts.reduce((acc, workout) => {
     try {
       const [year, month] = workout.date.split("-");
-      const monthKey = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString("es-ES", { year: "numeric", month: "long" });
+      const monthKey = new Date(parseInt(year), parseInt(month) - 1).toLocaleDateString(lang === "en" ? "en-US" : "es-ES", { year: "numeric", month: "long" });
       if (!acc[monthKey]) acc[monthKey] = [];
       acc[monthKey].push(workout);
     } catch (e) {
@@ -350,9 +355,9 @@ export default function HistorialPage() {
         <div className="max-w-md mx-auto">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
-              MI <span className="text-accent">HISTORIAL</span>
+              {t("historial.title").split(" ")[0]} <span className="text-accent">{t("historial.title").split(" ")[1]}</span>
             </h1>
-            <p className="text-muted-foreground">Tus entrenamientos registrados</p>
+            <p className="text-muted-foreground">{t("historial.subtitle")}</p>
           </div>
 
           {!loading && workouts.length > 0 && weeklyCount > 0 && (
@@ -364,6 +369,8 @@ export default function HistorialPage() {
                 setSelectedDayIndex(dayIndex);
                 if (dayIndex !== null) setShowHistory(true);
               }}
+              t={t}
+              lang={lang}
             />
           )}
 
@@ -374,7 +381,7 @@ export default function HistorialPage() {
                 className="flex items-center justify-center gap-2 w-full py-3 bg-card border border rounded-xl text-muted-foreground hover:text-white hover:border-accent/50 transition-all cursor-pointer"
               >
                 <Filter className="w-4 h-4" />
-                <span className="text-sm font-medium">Filtrar por fecha</span>
+                <span className="text-sm font-medium">{t("historial.filterByDate")}</span>
                 <ChevronDown className={`w-4 h-4 transition-transform ${showFilters ? "rotate-180" : ""}`} />
               </button>
 
@@ -401,7 +408,7 @@ export default function HistorialPage() {
                   {hasActiveFilters && (
                     <button onClick={clearFilters} className="mt-3 flex items-center gap-1 text-sm text-red-500 hover:text-white cursor-pointer">
                       <X className="w-4 h-4" />
-                      Limpiar filtro
+                      {t("historial.clearFilter")}
                     </button>
                   )}
                 </div>
@@ -416,13 +423,13 @@ export default function HistorialPage() {
                   <Dumbbell className="w-10 h-10 text-accent/50" />
                 </div>
               </div>
-              <h3 className="text-lg font-semibold text-white mb-2">Sin entrenamientos aún</h3>
-              <p className="text-icon mb-6">Comienza tu primer workout para ver tu progreso</p>
+              <h3 className="text-lg font-semibold text-white mb-2">{t("historial.noWorkouts")}</h3>
+              <p className="text-icon mb-6">{t("historial.noWorkoutsMsg")}</p>
               <button
                 onClick={() => router.push("/entrenamiento")}
                 className="px-6 py-3 bg-accent text-black font-bold rounded-xl hover:bg-accent-hover transition-colors cursor-pointer"
               >
-                Ir a entrenar
+                {t("historial.goTrain")}
               </button>
             </div>
           )}
@@ -434,7 +441,7 @@ export default function HistorialPage() {
                 className="flex items-center gap-2 text-muted-foreground hover:text-white text-sm mb-4 cursor-pointer"
               >
                 <ChevronUp className="w-4 h-4 rotate-90" />
-                Volver al resumen
+                {t("historial.backToSummary")}
               </button>
               <div className="space-y-8">
                 {Object.entries(groupedWorkouts).map(([month, monthWorkouts]) => (
@@ -452,8 +459,8 @@ export default function HistorialPage() {
                             <button onClick={() => toggleWorkout(workout.id)} className="w-full p-4 text-left cursor-pointer">
                               <div className="flex items-center justify-between mb-2">
                                 <div>
-                                  <span className="font-bold">{workout.name || formatDate(workout.date)}</span>
-                                  {workout.name && <p className="text-xs text-icon mt-0.5">{formatDate(workout.date)}</p>}
+                                  <span className="font-bold">{workout.name || formatDate(workout.date, lang)}</span>
+                                  {workout.name && <p className="text-xs text-icon mt-0.5">{formatDate(workout.date, lang)}</p>}
                                 </div>
                                 {completed ? (
                                   <div className="flex items-center gap-2">
@@ -463,19 +470,19 @@ export default function HistorialPage() {
                                         setSharingWorkout(workout);
                                       }}
                                       className="p-1.5 text-icon hover:text-accent transition-colors cursor-pointer"
-                                      title="Compartir entrenamiento"
+                                      title={t("historial.shareTitle")}
                                     >
                                       <Share2 className="w-4 h-4" />
                                     </div>
                                     <span className="flex items-center gap-1 text-sm text-green-500">
                                       <CheckCircle2 className="w-4 h-4" />
-                                      Completado
+                                      {t("historial.completed")}
                                     </span>
                                   </div>
                                 ) : (
                                   <span className="flex items-center gap-1 text-sm text-accent">
                                     <Clock className="w-4 h-4" />
-                                    Pendiente
+                                    {t("historial.pending")}
                                   </span>
                                 )}
                               </div>
@@ -487,11 +494,11 @@ export default function HistorialPage() {
                               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                                 <span className="flex items-center gap-1">
                                   <Target className="w-4 h-4" />
-                                  {stats.completed}/{stats.total} series
+                                  {stats.completed}/{stats.total} {t("historial.series")}
                                 </span>
                                 <span className="flex items-center gap-1">
                                   <Dumbbell className="w-4 h-4" />
-                                  {stats.uniqueExercises} ejercicios
+                                  {stats.uniqueExercises} {t("historial.exercises")}
                                 </span>
                                 <span className="ml-auto">
                                   {isExpanded ? <ChevronUp className="w-5 h-5 text-icon" /> : <ChevronDown className="w-5 h-5 text-icon" />}
@@ -516,8 +523,8 @@ export default function HistorialPage() {
                                         <div className="flex items-center gap-2">
                                           <span className="text-sm text-icon">
                                             {sets[0]?.is_cardio
-                                              ? `Cardio`
-                                              : `${exerciseCompleted}/${sets.length} series`}
+                                              ? t("historial.cardio")
+                                              : `${exerciseCompleted}/${sets.length} ${t("historial.series")}`}
                                           </span>
                                           {exerciseExpanded ? <ChevronUp className="w-4 h-4 text-icon" /> : <ChevronDown className="w-4 h-4 text-icon" />}
                                         </div>
@@ -530,9 +537,9 @@ export default function HistorialPage() {
                                               <div className="flex items-center gap-2">
                                                 {set.is_completed ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Clock className="w-4 h-4 text-icon" />}
                                                 {set.is_cardio ? (
-                                                  <span className="text-sm text-muted-foreground">Cardio</span>
+                                                  <span className="text-sm text-muted-foreground">{t("historial.cardio")}</span>
                                                 ) : (
-                                                  <span className="text-sm text-muted-foreground">Serie {set.set_number}</span>
+                                                  <span className="text-sm text-muted-foreground">{t("historial.set")} {set.set_number}</span>
                                                 )}
                                               </div>
                                               <div className="flex items-center gap-4">
@@ -565,7 +572,7 @@ export default function HistorialPage() {
                                     </div>
                                   );
                                 })}
-                                {workout.exercises?.length === 0 && <p className="text-center text-icon py-4">Sin ejercicios registrados</p>}
+                                {workout.exercises?.length === 0 && <p className="text-center text-icon py-4">{t("historial.noExercises")}</p>}
                               </div>
                             )}
                           </div>
@@ -584,22 +591,22 @@ export default function HistorialPage() {
                 <div className="w-20 h-20 bg-card rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-dashed border-accent/30">
                   <Target className="w-10 h-10 text-accent/50" />
                 </div>
-                <h3 className="text-lg font-semibold text-white mb-2">¡Esta semana aún no has entrenado!</h3>
+                <h3 className="text-lg font-semibold text-white mb-2">{t("historial.weeklyEmptyTitle")}</h3>
                 <p className="text-icon mb-6 max-w-[280px] mx-auto">
-                  Completa al menos un workout para ver tu progreso aquí
+                  {t("historial.weeklyEmptyMsg")}
                 </p>
                 <button
                   onClick={() => router.push("/entrenamiento")}
                 className="px-6 py-3 bg-accent text-black font-bold rounded-xl hover:bg-accent-hover transition-colors cursor-pointer"
                 >
-                  Ir a entrenar
-                </button>
-              </div>
-              <button
-                onClick={() => setShowHistory(true)}
-                className="text-muted-foreground hover:text-white text-sm underline cursor-pointer"
-              >
-                Ver historial de entrenamientos anteriores
+                {t("historial.goTrain")}
+              </button>
+            </div>
+            <button
+              onClick={() => setShowHistory(true)}
+              className="text-muted-foreground hover:text-white text-sm underline cursor-pointer"
+            >
+              {t("historial.viewOlder")}
               </button>
             </div>
           )}

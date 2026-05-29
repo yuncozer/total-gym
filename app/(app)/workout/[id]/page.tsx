@@ -33,33 +33,35 @@ import { AddExerciseModal } from "@/app/components/AddExerciseModal";
 import { getDailyQuote } from "@/lib/data/quote";
 import { getCardioGroup, CardioGroup } from "@/lib/data/cardio";
 import type { NewExerciseDef } from "@/lib/workout/service";
+import { useLanguage } from "@/lib/i18n";
 
 function WorkoutContent({ workoutId }: { workoutId: string }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const workout = useWorkout();
 
   const MOTIVATIONAL_PHRASES = [
-    "¡Excelente trabajo!",
-    "¡Lo estás logrando!",
-    "¡Sigue así!",
-    "¡Imparable!",
-    "¡Muy bien!",
-    "¡Gran esfuerzo!",
-    "¡Eres fuerte!",
-    "¡Sigue adelante!",
-    "¡Buen ritmo!",
-    "¡No te detengas!",
+    t("workout.phrase.excellent"),
+    t("workout.phrase.achieving"),
+    t("workout.phrase.keepGoing"),
+    t("workout.phrase.unstoppable"),
+    t("workout.phrase.veryGood"),
+    t("workout.phrase.greatEffort"),
+    t("workout.phrase.strong"),
+    t("workout.phrase.keepMoving"),
+    t("workout.phrase.goodPace"),
+    t("workout.phrase.dontStop"),
   ];
 
   const COMPLETED_PHRASES = [
-    "¡Muy Bien!",
-    "¡Buen Trabajo!",
-    "¡Bien Hecho!",
-    "¡Perfecto!",
-    "¡Increíble!",
-    "¡Genial!",
-    "¡Fantástico!",
-    "¡Asombroso!",
+    t("workout.phrase.veryNice"),
+    t("workout.phrase.goodJob"),
+    t("workout.phrase.wellDone"),
+    t("workout.phrase.perfect"),
+    t("workout.phrase.incredible"),
+    t("workout.phrase.great"),
+    t("workout.phrase.fantastic"),
+    t("workout.phrase.amazing"),
   ];
 
   const getRandomPhrase = (phrases: string[]) => {
@@ -170,8 +172,8 @@ const handleCompleteSet = () => {
   const getEquipmentLabel = (equipment: string) => {
     const barraKeywords = ['barbell', 'máquina', 'prensa', 'smith'];
     return barraKeywords.some(k => equipment?.toLowerCase().includes(k))
-      ? "Peso (kg)"
-      : "Peso por lado (kg)";
+      ? t("workout.weightBarbell")
+      : t("workout.weightPerSide");
   };
 
   const handleBack = () => {
@@ -202,14 +204,14 @@ const handleCompleteSet = () => {
               <CheckCircle2 className="w-12 h-12 text-green-500" />
             </div>
             <h1 className="text-4xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
-              ENTRENAMIENTO <span className="text-green-500">COMPLETADO</span>
+              {t("workout.completedTitle").split(' ')[0]} <span className="text-green-500">{t("workout.completedTitle").split(' ')[1]}</span>
             </h1>
-            <p className="text-muted-foreground mb-6">¡Felicitaciones! Has terminado tu rutina de hoy.</p>
+            <p className="text-muted-foreground mb-6">{t("workout.completedMsg")}</p>
             <div className="mb-6">
               <input
                 value={workoutName}
                 onChange={(e) => setWorkoutName(e.target.value.slice(0, 40))}
-                placeholder="Ponle nombre a tu entrenamiento"
+                placeholder={t("workout.namePlaceholder")}
                 maxLength={40}
                 className="w-full px-4 py-3 bg-card border border rounded-xl text-white text-center text-lg placeholder:text-zinc-600 focus:outline-none focus:border-accent transition-colors"
               />
@@ -220,20 +222,20 @@ const handleCompleteSet = () => {
               <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-rajdhani)" }}>&ldquo;{quote}&rdquo;</p>
             </div>
             <div className="bg-card rounded-xl p-4 mb-8">
-              <span className="text-sm text-icon">Series: </span>
+              <span className="text-sm text-icon">{t("workout.seriesCount")} </span>
               <span className="text-sm font-bold text-green-500">{progress.completed}/{progress.total}</span>
             </div>
             <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowPhotoOverlay(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-accent/10 border-2 border-accent hover:bg-accent/20 cursor-pointer font-bold rounded-xl text-accent transition-all duration-300 animate-pulse">
-              <Share2 className="w-5 h-5" /> COMPARTIR
+              <Share2 className="w-5 h-5" /> {t("workout.share")}
             </button>
             <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowSaveTemplate(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border hover:border-accent cursor-pointer font-bold rounded-xl">
-              <Bookmark className="w-5 h-5" /> GUARDAR COMO TEMPLATE
+              <Bookmark className="w-5 h-5" /> {t("workout.saveTemplate")}
             </button>
             <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/historial"); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border hover:border-accent cursor-pointer font-bold rounded-xl">
-              <History className="w-5 h-5" /> VER HISTORIAL
+              <History className="w-5 h-5" /> {t("workout.viewHistory")}
             </button>
             <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/"); }} className="flex items-center justify-center gap-2 w-full py-4 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl">
-              <Play className="w-5 h-5" /> IR AL INICIO
+              <Play className="w-5 h-5" /> {t("workout.goHome")}
             </button>
           </div>
         </main>
@@ -265,7 +267,7 @@ const handleCompleteSet = () => {
                 <main className="pt-24 pb-12 px-4">
           <div className="max-w-md mx-auto">
             <button onClick={handleBack} className="flex items-center gap-2 text-muted-foreground hover:text-white cursor-pointer mb-6">
-              <ArrowLeft className="w-4 h-4" /> Volver
+              <ArrowLeft className="w-4 h-4" /> {t("workout.back")}
             </button>
             <div className="bg-card rounded-xl p-6 border border">
               <div className="flex items-center justify-between mb-6">
@@ -277,7 +279,7 @@ const handleCompleteSet = () => {
                     {(set?.duration_minutes ?? 0) > 0 && `${set.duration_minutes} min`}
                   </span>
                 ) : (
-                  <span className="text-sm text-icon">{selectedExercise.sets.length} series</span>
+                  <span className="text-sm text-icon">{selectedExercise.sets.length} {t("workout.series")}</span>
                 )}
               </div>
 
@@ -325,7 +327,7 @@ const handleCompleteSet = () => {
 
               {!isCardio && (
                 <div className="text-center mb-6">
-                  <span className="text-sm text-icon">SERIE </span>
+                  <span className="text-sm text-icon">{t("workout.setLabel")} </span>
                   <span className="text-4xl font-bold text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
                     {currentSetIndex + 1}
                   </span>
@@ -336,7 +338,7 @@ const handleCompleteSet = () => {
                 <div className="space-y-4 mb-4">
                   {getCardioGroup(selectedExercise.exerciseId) === CardioGroup.A && (
                     <div>
-                      <label className="block text-sm text-icon mb-2">DISTANCIA (KM)</label>
+                      <label className="block text-sm text-icon mb-2">{t("workout.distanceLabel")}</label>
                       <input
                         type="number"
                         value={set?.distance_km ?? ""}
@@ -345,24 +347,24 @@ const handleCompleteSet = () => {
                         inputMode="decimal"
                         placeholder={(() => {
                           const last = getLastCardio(selectedExercise.exerciseId);
-                          return last.distance_km > 0 ? `Último: ${last.distance_km} km` : "0";
+                          return last.distance_km > 0 ? `${t("workout.last")} ${last.distance_km} km` : "0";
                         })()}
                         className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
                       />
                     </div>
                   )}
                   <div>
-                    <label className="block text-sm text-icon mb-2">DURACIÓN (MIN)</label>
-                    <input
-                      type="number"
-                      value={set?.duration_minutes ?? ""}
-                      onChange={(e) => updateSet('duration_minutes', parseFloat(e.target.value) || 0)}
-                      disabled={set?.is_completed}
-                      inputMode="decimal"
-                      placeholder={(() => {
-                        const last = getLastCardio(selectedExercise.exerciseId);
-                        return last.duration_minutes > 0 ? `Último: ${last.duration_minutes} min` : "0";
-                      })()}
+                    <label className="block text-sm text-icon mb-2">{t("workout.durationLabel")}</label>
+                      <input
+                        type="number"
+                        value={set?.duration_minutes ?? ""}
+                        onChange={(e) => updateSet('duration_minutes', parseFloat(e.target.value) || 0)}
+                        disabled={set?.is_completed}
+                        inputMode="decimal"
+                        placeholder={(() => {
+                          const last = getLastCardio(selectedExercise.exerciseId);
+                          return last.duration_minutes > 0 ? `${t("workout.last")} ${last.duration_minutes} min` : "0";
+                        })()}
                       className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
                     />
                   </div>
@@ -370,7 +372,7 @@ const handleCompleteSet = () => {
               ) : (
                 <div className="space-y-4 mb-4">
                   <div>
-                    <label className="block text-sm text-icon mb-2">REPETICIONES</label>
+                    <label className="block text-sm text-icon mb-2">{t("workout.repsLabel")}</label>
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
@@ -409,7 +411,7 @@ const handleCompleteSet = () => {
                       disabled={set.is_completed}
                       placeholder={(() => {
                         const lastW = getLastWeight(selectedExercise.exerciseId);
-                        return lastW > 0 ? `Último: ${lastW} kg` : undefined;
+                        return lastW > 0 ? `${t("workout.last")} ${lastW} kg` : undefined;
                       })()}
                       className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
                     />
@@ -423,7 +425,7 @@ const handleCompleteSet = () => {
                   onClick={handleAddExtraSet}
                   className="flex items-center justify-center gap-2 w-full py-3 mb-4 border border-accent text-accent hover:bg-accent/10 cursor-pointer rounded-xl"
                 >
-                  <Plus className="w-4 h-4" />Agregar serie extra
+                  <Plus className="w-4 h-4" />{t("workout.addExtraSet")}
                 </button>
               )}
 
@@ -439,7 +441,7 @@ const handleCompleteSet = () => {
                     {isLastSet && <Check className="w-4 h-4 text-black" />}
                   </div>
                   <span className={`font-medium ${isLastSet ? "text-accent" : "text-muted-foreground"}`}>
-                    Marcar como última serie
+                    {t("workout.markLastSet")}
                   </span>
                 </button>
               )}
@@ -450,7 +452,7 @@ const handleCompleteSet = () => {
                   disabled={saving || !canCompleteSet}
                   className="flex items-center justify-center gap-3 w-full py-5 bg-green-500 hover:bg-green-600 disabled:bg-zinc-700 disabled:cursor-not-allowed cursor-pointer text-black font-bold rounded-xl mt-4"
                 >
-                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : isCardio ? <><Check className="w-5 h-5" /> REGISTRAR</> : <><Check className="w-5 h-5" /> SERIE COMPLETADA</>}
+                  {saving ? <Loader2 className="w-5 h-5 animate-spin" /> : isCardio ? <><Check className="w-5 h-5" /> {t("workout.register")}</> : <><Check className="w-5 h-5" /> {t("workout.setCompleted")}</>}
                 </button>
               )}
 
@@ -459,7 +461,7 @@ const handleCompleteSet = () => {
                   <span className="font-bold text-lg">
                     {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
                   </span>
-                  <div className="text-sm text-green-500/70 mt-1">Registrado</div>
+                  <div className="text-sm text-green-500/70 mt-1">{t("workout.registered")}</div>
                 </div>
               )}
 
@@ -470,11 +472,11 @@ const handleCompleteSet = () => {
                       <span className="text-green-500 font-bold text-lg">
                         {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
                       </span>
-                      <div className="text-sm text-green-500/70 mt-1">Serie completada</div>
+                      <div className="text-sm text-green-500/70 mt-1">{t("workout.setComplete")}</div>
                     </div>
                   )}
                   <div className="text-center mb-3">
-                    <span className="text-sm text-icon">Descanso entre series</span>
+                    <span className="text-sm text-icon">{t("workout.restLabel")}</span>
                     <div className="text-6xl font-bold text-accent mt-2" style={{ fontFamily: "var(--font-oswald)", textShadow: "0 0 20px rgba(234, 179, 8, 0.4)" }}>
                       {Math.floor(timer.segundos / 60).toString().padStart(2, '0')}:{(timer.segundos % 60).toString().padStart(2, '0')}
                     </div>
@@ -484,13 +486,13 @@ const handleCompleteSet = () => {
                       onClick={undoSetComplete}
                       className="flex items-center justify-center gap-2 w-full py-2.5 border border-zinc-600 text-icon hover:text-white hover:border-zinc-500 rounded-xl transition-colors cursor-pointer text-sm"
                     >
-                      EDITAR SERIE
+                      {t("workout.editSet")}
                     </button>
                     <button
                       onClick={handleNextSet}
                       className="flex items-center justify-center gap-2 w-full py-3 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl"
                     >
-                      <Play className="w-4 h-4" /> COMENZAR SIGUIENTE SERIE
+                      <Play className="w-4 h-4" /> {t("workout.startNextSet")}
                     </button>
                   </div>
                 </div>
@@ -501,7 +503,7 @@ const handleCompleteSet = () => {
                   <span className="font-bold text-lg">
                     {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
                   </span>
-                  <div className="text-sm text-green-500/70 mt-1">Serie completada</div>
+                  <div className="text-sm text-green-500/70 mt-1">{t("workout.setComplete")}</div>
                 </div>
               )}
 
@@ -509,7 +511,7 @@ const handleCompleteSet = () => {
                 <div className="text-center py-4">
                   <div className="flex items-center justify-center gap-2 text-green-500 mb-4">
                     <span className="text-2xl">🏆</span>
-                    <span className="font-bold">¡Ejercicio completado!</span>
+                    <span className="font-bold">{t("workout.exerciseComplete")}</span>
                   </div>
                   <button
                     onClick={() => {
@@ -517,7 +519,7 @@ const handleCompleteSet = () => {
                     }}
                     className="text-accent font-bold cursor-pointer"
                   >
-                    Elegir otro
+                    {t("workout.pickAnother")}
                   </button>
                 </div>
               )}
@@ -562,13 +564,13 @@ const handleCompleteSet = () => {
             <main className="pt-24 pb-12 px-4">
         <div className="max-w-md mx-auto">
           <h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "var(--font-oswald)" }}>
-            TU <span className="text-accent">ENTRENAMIENTO</span>
+            {t("workout.title").split(' ')[0]} <span className="text-accent">{t("workout.title").split(' ').slice(1).join(' ')}</span>
           </h1>
-          <p className="text-muted-foreground mb-8">Elige un ejercicio</p>
+          <p className="text-muted-foreground mb-8">{t("workout.subtitle")}</p>
 
           <div className="bg-card rounded-xl p-4 mb-6">
             <div className="flex justify-between mb-2">
-              <span className="text-sm text-icon">Progreso</span>
+              <span className="text-sm text-icon">{t("workout.progress")}</span>
               <span className="text-sm font-bold text-accent">{progress.completed}/{progress.total}</span>
             </div>
             <div className="h-2 bg-muted rounded-full">
@@ -616,10 +618,10 @@ const handleCompleteSet = () => {
                               {(firstSet?.distance_km ?? 0) > 0 && `${firstSet.distance_km} km`}
                               {(firstSet?.distance_km ?? 0) > 0 && (firstSet?.duration_minutes ?? 0) > 0 && " · "}
                               {(firstSet?.duration_minutes ?? 0) > 0 && `${firstSet.duration_minutes} min`}
-                              {(firstSet?.distance_km ?? 0) <= 0 && (firstSet?.duration_minutes ?? 0) <= 0 && "Cardio"}
+                              {(firstSet?.distance_km ?? 0) <= 0 && (firstSet?.duration_minutes ?? 0) <= 0 && t("train.cardio")}
                             </p>
                           ) : (
-                            <p className="text-sm text-icon">{total} series</p>
+                            <p className="text-sm text-icon">{total} {t("workout.series")}</p>
                           )}
                         </div>
                       </div>
@@ -636,7 +638,7 @@ const handleCompleteSet = () => {
                     }}
                     disabled={saving}
                     className="absolute top-1 right-1 p-2 text-icon hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
-                    title="Eliminar ejercicio"
+                    title={t("workout.deleteTooltip")}
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -646,30 +648,30 @@ const handleCompleteSet = () => {
           </div>
 
           <div className="mt-8 flex justify-between text-sm text-icon">
-            <span>{progress.completed} completadas</span>
-            <span>{progress.total - progress.completed} restantes</span>
+            <span>{progress.completed} {t("workout.completed")}</span>
+            <span>{progress.total - progress.completed} {t("workout.remaining")}</span>
           </div>
 
           <button
             onClick={() => setShowAddExercise(true)}
             className="flex items-center justify-center gap-2 w-full py-3 mt-6 border border-accent/30 text-accent hover:bg-accent/10 rounded-xl transition-colors cursor-pointer text-sm"
           >
-            <Plus className="w-4 h-4" /> Agregar ejercicio
+            <Plus className="w-4 h-4" /> {t("workout.addExercise")}
           </button>
 
           <button
             onClick={() => setShowCancelConfirm(true)}
             className="flex items-center justify-center gap-2 w-full py-3 mt-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl transition-colors cursor-pointer text-sm"
           >
-            <XCircle className="w-4 h-4" /> Cancelar entrenamiento
+            <XCircle className="w-4 h-4" /> {t("workout.cancelWorkout")}
           </button>
         </div>
 
         <ConfirmModal
           isOpen={showCancelConfirm}
-          title="¿CANCELAR ENTRENAMIENTO?"
-          message="El entrenamiento se cancelará y no se guardará ningún progreso. ¿Estás seguro?"
-          confirmText="CANCELAR ENTRENAMIENTO"
+          title={t("workout.cancelConfirmTitle")}
+          message={t("workout.cancelConfirmMsg")}
+          confirmText={t("workout.cancelConfirmBtn")}
           onConfirm={async () => {
             setShowCancelConfirm(false);
             setIsDeletingWorkout(true);
@@ -681,11 +683,11 @@ const handleCompleteSet = () => {
 
         <ConfirmModal
           isOpen={!!deleteConfirmExercise}
-          title={exercises.length === 1 ? "¿CANCELAR ENTRENAMIENTO?" : "¿ELIMINAR EJERCICIO?"}
+          title={exercises.length === 1 ? t("workout.cancelConfirmTitle") : t("workout.deleteExerciseTitle")}
           message={exercises.length === 1
-            ? "Es el único ejercicio del entrenamiento. Si lo eliminas, el entrenamiento se cancelará y se borrará por completo."
-            : `¿Estás seguro de eliminar "${deleteConfirmExercise?.name}" del entrenamiento? Esta acción no se puede deshacer.`}
-          confirmText={exercises.length === 1 ? "CANCELAR Y BORRAR" : "ELIMINAR"}
+            ? t("workout.deleteExerciseLastMsg")
+            : `${t("workout.deleteExerciseMsg")} "${deleteConfirmExercise?.name}" del entrenamiento? Esta acción no se puede deshacer.`}
+          confirmText={exercises.length === 1 ? t("workout.deleteAndCancel") : t("workout.deleteConfirm")}
           onConfirm={async () => {
             if (!deleteConfirmExercise) return;
             if (exercises.length === 1) {

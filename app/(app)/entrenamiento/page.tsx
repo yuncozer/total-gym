@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, Fragment as ReactFragment } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useLanguage } from "@/lib/i18n";
 import type { Session } from "@supabase/supabase-js";
 import {
   Dumbbell,
@@ -31,14 +32,6 @@ import type { WorkoutTemplate } from "@/lib/workout/types";
 
 const DEFAULT_SETS = 3;
 
-const EQUIPMENT_TABS = [
-  { id: "all", label: "Todos" },
-  { id: "barbell", label: "Barra" },
-  { id: "dumbbell", label: "Mancuernas" },
-  { id: "body weight", label: "Peso corporal" },
-  { id: "personalizados", label: "Personalizados" },
-  { id: "other", label: "Otros" },
-];
 
 interface ResumenEjercicio {
   id: string;
@@ -55,6 +48,15 @@ interface ResumenEjercicio {
 
 export default function EntrenamientoPage() {
   const router = useRouter();
+  const { t } = useLanguage();
+  const EQUIPMENT_TABS = [
+    { id: "all", label: t("train.tabAll") },
+    { id: "barbell", label: t("train.tabBarbell") },
+    { id: "dumbbell", label: t("train.tabDumbbell") },
+    { id: "body weight", label: t("train.tabBodyweight") },
+    { id: "personalizados", label: t("train.tabCustom") },
+    { id: "other", label: t("train.tabOther") },
+  ];
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
   const [muscleGroups] = useState<MuscleGroup[]>(muscleGroupsData);
   const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
@@ -519,7 +521,7 @@ export default function EntrenamientoPage() {
     console.log("[guardarYRedirigir] session:", session?.user?.id);
     if (!session?.user) {
       console.log("[guardarYRedirigir] no session, showing modal");
-      setError("Debes iniciar sesión para guardar el entrenamiento");
+      setError(t("train.loginRequired"));
       sessionStorage.setItem("pending_workout_summary", JSON.stringify(resumen));
       setSaving(false);
       openRegisterModal();
@@ -585,7 +587,7 @@ export default function EntrenamientoPage() {
       pendingWorkoutId.current = workout.id;
       setShowIntroVideo(true);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Error al guardar el entrenamiento";
+      const errorMessage = err instanceof Error ? err.message : t("train.saveError");
       setError(errorMessage);
       setSaving(false);
     }
@@ -612,10 +614,10 @@ export default function EntrenamientoPage() {
                 className="text-3xl font-bold mb-2"
                 style={{ fontFamily: "var(--font-oswald)" }}
               >
-                RESUMEN DE <span className="text-accent">ENTRENAMIENTO</span>
+                {(() => { const a = t("train.summaryTitle").split(' '); const b = a.pop(); return <>{a.join(' ')} <span className="text-accent">{b}</span></> })()}
               </h1>
               <p className="text-muted-foreground">
-                Configura el número de series por ejercicio
+                {t("train.summarySubtitle")}
               </p>
             </div>
 
@@ -636,8 +638,8 @@ export default function EntrenamientoPage() {
                     </div>
                     {ej.is_cardio ? (
                       <div className="ml-4 text-right">
-                        <span className="text-sm text-accent font-bold">Cardio</span>
-                        <p className="text-xs text-icon">1 serie</p>
+                        <span className="text-sm text-accent font-bold">{t("train.cardio")}</span>
+                        <p className="text-xs text-icon">{t("train.oneSet")}</p>
                       </div>
                     ) : (
                       <div className="flex items-center gap-2 ml-4">
@@ -650,7 +652,7 @@ export default function EntrenamientoPage() {
                         </button>
                         <div className="text-center">
                           <span className="block font-bold text-lg">{ej.sets.length}</span>
-                          <span className="text-xs text-icon">series</span>
+                          <span className="text-xs text-icon">{t("train.sets")}</span>
                         </div>
                         <button
                           onClick={() => agregarSet(ej.id)}
@@ -675,12 +677,12 @@ export default function EntrenamientoPage() {
                 {saving ? (
                   <>
                     <Loader2 className="w-5 h-5 animate-spin" />
-                    GUARDANDO...
+                    {t("train.saving")}
                   </>
                 ) : (
                   <>
                     <Play className="w-5 h-5" />
-                    INICIAR ENTRENAMIENTO
+                    {t("train.start")}
                   </>
                 )}
               </button>
@@ -690,7 +692,7 @@ export default function EntrenamientoPage() {
                 className="flex items-center justify-center gap-2 w-full py-3 border border text-muted-foreground hover:text-white rounded-xl transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Volver a ejercicios
+                {t("train.back")}
               </button>
             </div>
           </div>
@@ -725,15 +727,15 @@ export default function EntrenamientoPage() {
               style={{ fontFamily: "var(--font-oswald)" }}
             >
               {step === "muscles" ? (
-                <>¿QUE VAS A <span className="text-accent">ENTRENAR</span> HOY?</>
+                <>{(() => { const a = t("train.title").split(' '); return <>{a.slice(0,-2).join(' ')} <span className="text-accent">{a.slice(-2,-1)[0]}</span> {a.slice(-1)[0]}</> })()}</>
               ) : (
-                <>ELIGE TUS <span className="text-accent">EJERCICIOS</span></>
+                <>{(() => { const a = t("train.titleExercises").split(' '); const b = a.pop(); return <>{a.join(' ')} <span className="text-accent">{b}</span></> })()}</>
               )}
             </h1>
             <p className="text-muted-foreground">
               {step === "muscles"
-                ? "Selecciona los grupos musculares que vas a trabajar"
-                : "Selecciona los ejercicios para cada grupo"
+                ? t("train.selectMuscles")
+                : t("train.selectExercises")
               }
             </p>
             {step === "exercises" && (
@@ -742,7 +744,7 @@ export default function EntrenamientoPage() {
                 className="mt-4 flex items-center gap-2 mx-auto px-4 py-2 bg-muted hover:bg-zinc-700 text-muted-foreground hover:text-white rounded-lg transition-colors cursor-pointer"
               >
                 <ArrowLeft className="w-4 h-4" />
-                Cambiar grupos musculares ({selectedMuscles.length})
+                {t("train.changeMuscles")} ({selectedMuscles.length})
               </button>
             )}
           </div>
@@ -779,10 +781,10 @@ export default function EntrenamientoPage() {
                       className="font-bold text-lg"
                       style={{ fontFamily: "var(--font-oswald)" }}
                     >
-                      {muscle.name}
+                      {t("muscleGroup." + muscle.id + ".name")}
                     </h3>
                     <p className={`text-xs mt-2 ${selectedMuscles.includes(muscle.id) ? "text-black/70" : "text-muted-foreground"}`}>
-                      {muscle.description}
+                      {t("muscleGroup." + muscle.id + ".desc")}
                     </p>
                   </button>
                 ))}
@@ -794,7 +796,7 @@ export default function EntrenamientoPage() {
                   className="group flex items-center justify-center gap-2 font-bold px-6 py-3 mb-4 border border hover:border-accent text-muted-foreground hover:text-white rounded-xl transition-all cursor-pointer mx-auto"
                 >
                   <Bookmark className="w-4 h-4" />
-                  CARGAR RUTINA GUARDADA
+                  {t("train.loadTemplate")}
                 </button>
 
                 <button
@@ -813,13 +815,13 @@ export default function EntrenamientoPage() {
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Dumbbell className="w-5 h-5" />
-                  ELEGIR EJERCICIOS
+                  {t("train.pickExercises")}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
 
                 {selectedMuscles.length === 0 && (
                   <p className="text-icon mt-4 text-sm">
-                    Selecciona al menos un grupo muscular para continuar
+                    {t("train.minSelection")}
                   </p>
                 )}
               </div>
@@ -850,7 +852,7 @@ export default function EntrenamientoPage() {
                             )}
                           </div>
                           <h3 className="font-bold text-xl text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                            {muscle?.name}
+                            {muscle && t("muscleGroup." + muscle.id + ".name")}
                           </h3>
                           <span className="text-sm text-icon ml-auto">
                             {selected.length}/{filteredExercises.length}
@@ -880,14 +882,14 @@ export default function EntrenamientoPage() {
                           className="flex items-center gap-2 text-sm text-icon hover:text-accent transition-colors mb-4 cursor-pointer"
                         >
                           <Plus className="w-4 h-4" />
-                          Nuevo ejercicio
+                          {t("train.newExercise")}
                         </button>
 
                         <div className="relative mb-4">
                           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-icon" />
                           <input
                             type="text"
-                            placeholder="Buscar ejercicio..."
+                            placeholder={t("train.searchPlaceholder")}
                             value={searchQueries[muscleId] || ""}
                             onChange={(e) => handleSearchChange(muscleId, e.target.value)}
                             className="w-full pl-10 pr-10 py-2 bg-background border border rounded-xl text-sm text-white placeholder:text-icon focus:outline-none focus:border-accent/50 transition-colors"
@@ -908,7 +910,7 @@ export default function EntrenamientoPage() {
                           {isLoading ? (
                             <div className="flex items-center justify-center py-8">
                               <Loader2 className="w-6 h-6 animate-spin text-accent" />
-                              <span className="ml-2 text-icon">Cargando ejercicios...</span>
+                              <span className="ml-2 text-icon">{t("train.loading")}</span>
                             </div>
                           ) : filteredExercises.length > 0 ? (
                             (() => {
@@ -920,7 +922,7 @@ export default function EntrenamientoPage() {
                                 <>
                                   <div className="sticky -top-2 z-10 pt-2">
                                     <div className="text-xs text-accent font-bold mb-2 uppercase tracking-wider bg-card py-2">
-                                      Recientes
+                                      {t("train.recent")}
                                     </div>
                                   </div>
                                   {recent.map((recentEx) => {
@@ -942,7 +944,7 @@ export default function EntrenamientoPage() {
                                     <>
                                       <div className="sticky top-0 z-10 pt-2">
                                         <div className="text-xs text-accent font-bold mb-2 uppercase tracking-wider bg-card py-2">
-                                          Personalizados
+                                          {t("train.tabCustom")}
                                         </div>
                                       </div>
                                       {customExs.map((exercise) => {
@@ -959,7 +961,7 @@ export default function EntrenamientoPage() {
                                               onClick={(e) => { e.stopPropagation(); handleDeleteCustomExercise(exercise.id); }}
                                               disabled={!!deletingCustomId}
                                               className="absolute top-2 right-2 p-1.5 bg-red-500/20 text-red-500 rounded-lg opacity-60 hover:opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity cursor-pointer disabled:opacity-50 disabled:cursor-wait"
-                                              title="Eliminar ejercicio"
+                                              title={t("train.deleteCustomTitle")}
                                             >
                                               {isDeletingCustom ? (
                                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -977,7 +979,7 @@ export default function EntrenamientoPage() {
                                     <>
                                       <div className="sticky top-0 z-10 pt-2">
                                         <div className="text-xs text-icon font-medium mb-2 uppercase tracking-wider bg-card py-2">
-                                          Todos los ejercicios
+                                          {t("train.allExercises")}
                                         </div>
                                       </div>
                                       {wgerExs.slice(recent.length).map((exercise) => (
@@ -995,7 +997,7 @@ export default function EntrenamientoPage() {
                               ) : (
                                 <>
                                   <div className="text-xs text-icon font-medium mb-2 uppercase tracking-wider">
-                                    {searchQueries[muscleId] ? "Resultados" : "Ejercicios"}
+                                    {searchQueries[muscleId] ? t("train.results") : t("train.exercises")}
                                   </div>
                                   {filteredExercises.map((exercise) => (
                                     <ExerciseCard
@@ -1012,10 +1014,10 @@ export default function EntrenamientoPage() {
                           ) : (
                             <div className="text-center py-8 text-icon">
                               {searchQueries[muscleId]
-                                ? `No se encontraron ejercicios para "${searchQueries[muscleId]}"`
+                                ? `${t("train.noResults")} "${searchQueries[muscleId]}"`
                                 : currentEquipment === "personalizados"
-                                  ? "No has creado ejercicios personalizados"
-                                  : "No hay ejercicios con este equipo"
+                                  ? t("train.noCustom")
+                                  : t("train.noEquipment")
                               }
                             </div>
                           )}
@@ -1039,7 +1041,7 @@ export default function EntrenamientoPage() {
                   `}
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Anterior
+                  {t("train.previous")}
                 </button>
 
                 <div className="flex items-center gap-2">
@@ -1078,17 +1080,15 @@ export default function EntrenamientoPage() {
                     }
                   `}
                 >
-                  {selectedMuscles[currentMuscleIndex + 1] ? (
-                    <>
-                      {muscleGroups.find(m => m.id === selectedMuscles[currentMuscleIndex + 1])?.name || "Siguiente"}
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  ) : (
-                    <>
-                      Siguiente
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
+                  {(() => {
+                    const nextId = selectedMuscles[currentMuscleIndex + 1];
+                    const nextMuscle = nextId ? muscleGroups.find(m => m.id === nextId) : null;
+                    return nextMuscle ? (
+                      <>{t("muscleGroup." + nextMuscle.id + ".name")} <ArrowRight className="w-4 h-4" /></>
+                    ) : (
+                      <>{t("train.next")} <ArrowRight className="w-4 h-4" /></>
+                    );
+                  })()}
                 </button>
               </div>
 
@@ -1101,7 +1101,7 @@ export default function EntrenamientoPage() {
 
               <div className="text-center">
                 <div className="mb-4 text-muted-foreground">
-                  {Object.values(selectedExercises).flat().length} ejercicios seleccionados
+                  {Object.values(selectedExercises).flat().length} {t("train.selected")}
                 </div>
                 <button
                   onClick={handleConfirmar}
@@ -1116,7 +1116,7 @@ export default function EntrenamientoPage() {
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <UserCheck className="w-5 h-5" />
-                  CONFIRMAR ENTRENAMIENTO
+                  {t("train.confirm")}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>

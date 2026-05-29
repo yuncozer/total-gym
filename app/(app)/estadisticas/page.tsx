@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/useAuth";
 import { useEffect, useState, useRef } from "react";
 import { Flame, Dumbbell, Clock, Target, Award, Activity, BarChart3 } from "lucide-react";
 import type { UserStats } from "@/lib/workout/service";
+import { useLanguage } from "@/lib/i18n";
 import { ErrorBanner } from "@/app/components/ErrorBanner";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 
@@ -69,8 +70,6 @@ function formatNumber(n: number): string {
   return n.toLocaleString();
 }
 
-const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
-
 function Sparkline({ data, trend }: { data: number[]; trend: "up" | "down" | "flat" }) {
   if (data.length < 2) return null;
   const max = Math.max(...data);
@@ -111,6 +110,7 @@ function Sparkline({ data, trend }: { data: number[]; trend: "up" | "down" | "fl
 }
 
 function CircularProgress({ value, size = 72 }: { value: number; size?: number }) {
+  const { t } = useLanguage();
   const strokeWidth = 6;
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -119,10 +119,10 @@ function CircularProgress({ value, size = 72 }: { value: number; size?: number }
 
   let color: string;
   let label: string;
-  if (value >= 80) { color = "#22c55e"; label = "¡Racha imparable!"; }
-  else if (value >= 60) { color = "#eab308"; label = "¡Buen ritmo!"; }
-  else if (value >= 40) { color = "#f97316"; label = "Vas mejorando"; }
-  else { color = "#6b7280"; label = "¡Cada día cuenta!"; }
+  if (value >= 80) { color = "#22c55e"; label = t("estadisticas.streakImparable"); }
+  else if (value >= 60) { color = "#eab308"; label = t("estadisticas.streakGood"); }
+  else if (value >= 40) { color = "#f97316"; label = t("estadisticas.streakImproving"); }
+  else { color = "#6b7280"; label = t("estadisticas.streakDaily"); }
 
   return (
     <div className="flex items-center gap-4">
@@ -225,6 +225,10 @@ export default function EstadisticasPage() {
   const [stats, setStats] = useState<UserStats | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { t, lang } = useLanguage();
+  const monthNames = lang === "en"
+    ? ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"]
+    : ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 
   useEffect(() => {
     if (!authenticated) return;
@@ -236,7 +240,7 @@ export default function EstadisticasPage() {
         setDataLoading(false);
       })
       .catch(() => {
-        setError("Error al cargar estadísticas");
+        setError(t("estadisticas.error"));
         setDataLoading(false);
       });
   }, [authenticated]);
@@ -248,7 +252,7 @@ export default function EstadisticasPage() {
   if (error || !stats) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <ErrorBanner message={error || "Error al cargar"} />
+        <ErrorBanner message={error || t("estadisticas.genericError")} />
       </div>
     );
   }
@@ -281,12 +285,12 @@ export default function EstadisticasPage() {
       <main className="max-w-lg mx-auto px-4 pt-24 pb-8 space-y-4">
         <div className="flex items-center gap-2 px-1">
           <BarChart3 className="w-5 h-5 text-accent" />
-          <h1 className="text-lg font-bold">Estadísticas</h1>
+          <h1 className="text-lg font-bold">{t("estadisticas.title")}</h1>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <HeroCard
             icon={<Target className="w-4 h-4" />}
-            label="Entrenos totales"
+            label={t("estadisticas.totalWorkouts")}
             value={stats.totalWorkouts}
             gradient
             badge={<TrendBadge value={stats.workoutsChangeWeek} suffix="" />}
@@ -305,7 +309,7 @@ export default function EstadisticasPage() {
 
           <HeroCard
             icon={<Dumbbell className="w-4 h-4" />}
-            label="Volumen (kg)"
+            label={t("estadisticas.volume")}
             value={stats.totalVolume}
             gradient
             badge={<TrendBadge value={stats.volumeChangeWeek} suffix="%" />}
@@ -328,7 +332,7 @@ export default function EstadisticasPage() {
                 <Flame className={`w-4 h-4 ${stats.streak >= 5 ? "text-orange-500" : ""}`} />
               </div>
             }
-            label="Racha actual"
+            label={t("estadisticas.streak")}
             value={stats.streak}
             gradient
             badge={streakText ? (
@@ -346,7 +350,7 @@ export default function EstadisticasPage() {
 
           <HeroCard
             icon={<Clock className="w-4 h-4" />}
-            label="Horas entrenadas"
+            label={t("estadisticas.hours")}
             value={stats.totalHours}
             gradient
             badge={<TrendBadge value={stats.hoursChangeWeek} suffix="%" />}
@@ -366,7 +370,7 @@ export default function EstadisticasPage() {
 
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">Volumen Semanal</h2>
+            <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider">{t("estadisticas.weeklyVolume")}</h2>
             {volumeChange !== null && volumeChange > 0 && (
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-500 bg-green-500/15 px-2 py-0.5 rounded-full">
                 ▲ {volumeChange}%
@@ -379,7 +383,7 @@ export default function EstadisticasPage() {
             </div>
           ) : (
             <div className="h-14 flex items-center justify-center">
-              <p className="text-xs text-icon">Necesitas más datos para ver la tendencia</p>
+              <p className="text-xs text-icon">{t("estadisticas.needsMoreData")}</p>
             </div>
           )}
           {weeklyVolume.length > 0 && (
@@ -394,7 +398,7 @@ export default function EstadisticasPage() {
         </div>
 
         <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-5">
-          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">Consistencia</h2>
+          <h2 className="text-sm font-bold text-muted-foreground uppercase tracking-wider mb-4">{t("estadisticas.consistency")}</h2>
           <CircularProgress value={stats.consistency30d} />
         </div>
 
@@ -406,12 +410,12 @@ export default function EstadisticasPage() {
                   <Activity className="w-5 h-5 text-accent" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs text-muted-foreground uppercase tracking-wider">Ejercicio Favorito</p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("estadisticas.favExercise")}</p>
                   <p className="text-base font-bold truncate">{stats.topExercise.name}</p>
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-lg font-bold text-accent">{stats.topExercise.count}</p>
-                  <p className="text-[10px] text-icon uppercase">entrenos</p>
+                  <p className="text-[10px] text-icon uppercase">{t("estadisticas.workoutsCount")}</p>
                 </div>
               </div>
             </div>
@@ -429,10 +433,10 @@ export default function EstadisticasPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <p className="text-xs text-muted-foreground uppercase tracking-wider">Mejor Marca</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wider">{t("estadisticas.bestRecord")}</p>
                     {stats.bestRecord.daysAgo <= 7 && (
                       <span className="inline-flex items-center gap-1 text-[10px] font-bold text-orange-500 bg-orange-500/15 px-1.5 py-0.5 rounded-full">
-                        ¡NUEVA!
+                        {t("estadisticas.new")}
                       </span>
                     )}
                   </div>
@@ -441,7 +445,7 @@ export default function EstadisticasPage() {
                 <div className="text-right shrink-0">
                   <p className="text-lg font-bold text-orange-500">{stats.bestRecord.weight}kg</p>
                   <p className="text-[10px] text-icon uppercase">
-                    {stats.bestRecord.daysAgo === 0 ? "hoy" : `hace ${stats.bestRecord.daysAgo}d`}
+                    {stats.bestRecord.daysAgo === 0 ? t("estadisticas.today") : `${t("estadisticas.daysAgo")} ${stats.bestRecord.daysAgo}${t("estadisticas.days")}`}
                   </p>
                 </div>
               </div>

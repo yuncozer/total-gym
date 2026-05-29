@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Plus, Loader2, Check, X } from "lucide-react";
 import * as service from "@/lib/workout/service";
 import { muscleGroupsData } from "@/lib/data/ejercicios";
+import { useLanguage } from "@/lib/i18n";
 
 const EQUIPMENT_OPTIONS = [
   { id: "peso_corporal", label: "Peso corporal" },
@@ -23,6 +24,7 @@ interface CreateCustomExerciseModalProps {
 }
 
 export function CreateCustomExerciseModal({ preselectedMuscle, onClose, onCreated }: CreateCustomExerciseModalProps) {
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [muscleGroup, setMuscleGroup] = useState(preselectedMuscle || muscleGroupsData[0].id);
   const [equipment, setEquipment] = useState("peso_corporal");
@@ -101,7 +103,7 @@ export function CreateCustomExerciseModal({ preselectedMuscle, onClose, onCreate
                   className="w-full px-4 py-3 bg-background border border rounded-xl text-white focus:outline-none focus:border-accent transition-colors cursor-pointer"
                 >
                   {muscleGroupsData.map((mg) => (
-                    <option key={mg.id} value={mg.id}>{mg.name}</option>
+                    <option key={mg.id} value={mg.id}>{t("muscleGroup." + mg.id + ".name")}</option>
                   ))}
                 </select>
               </div>

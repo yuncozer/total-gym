@@ -3,33 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Flame, Zap, ArrowRight, ChevronDown, Play } from "lucide-react";
-
-const carouselSlides = [
-  {
-    image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
-    title: "REGISTRA CADA SERIE",
-    description: "Control total de repeticiones, peso y descanso. Tu progreso queda registrado.",
-    highlight: "NUNCA MÁS PIERDAS DE VISTA TU EVOLUCIÓN"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80",
-    title: "EVOLUCIONA CON DATOS",
-    description: "Mira cuánto levantaste ayer, la semana pasada, el mes pasado. Supera cada récord.",
-    highlight: "TUS NÚMEROS NO MIENTEN"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&q=80",
-    title: "DESCANSO OPTIMIZADO",
-    description: "Cronómetro automático entre series. Enfócate en entrenar, no en contar tiempo.",
-    highlight: "CADA SEGUNDO CUENTA"
-  },
-  {
-    image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80",
-    title: "TU GYMBRO DIGITAL",
-    description: "Un compañero que te exige más. Disciplina y seguimiento sin excepciones.",
-    highlight: "DISCIPLINA = RESULTADOS"
-  }
-];
+import { useLanguage } from "@/lib/i18n";
 
 interface GuestCarouselProps {
   onAuth: () => void;
@@ -37,7 +11,35 @@ interface GuestCarouselProps {
 
 export function GuestCarousel({ onAuth }: GuestCarouselProps) {
   const router = useRouter();
+  const { t } = useLanguage();
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const carouselSlides = [
+    {
+      title: t("carousel.slide1.title"),
+      description: t("carousel.slide1.desc"),
+      highlight: t("carousel.slide1.highlight"),
+      image: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&q=80",
+    },
+    {
+      title: t("carousel.slide2.title"),
+      description: t("carousel.slide2.desc"),
+      highlight: t("carousel.slide2.highlight"),
+      image: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=800&q=80",
+    },
+    {
+      title: t("carousel.slide3.title"),
+      description: t("carousel.slide3.desc"),
+      highlight: t("carousel.slide3.highlight"),
+      image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=800&q=80",
+    },
+    {
+      title: t("carousel.slide4.title"),
+      description: t("carousel.slide4.desc"),
+      highlight: t("carousel.slide4.highlight"),
+      image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80",
+    },
+  ];
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -95,7 +97,7 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Play className="w-5 h-5" />
-                  PRUEBA AHORA
+                  {t("carousel.tryNow")}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button
@@ -104,7 +106,7 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Zap className="w-5 h-5" />
-                  CREAR CUENTA
+                  {t("carousel.createAccount")}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
