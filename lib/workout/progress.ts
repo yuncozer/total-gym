@@ -33,6 +33,7 @@ export function findFirstIncompleteSet(exercise: ExerciseInWorkout): number {
 
 export function canAddExtraSet(exercise: ExerciseInWorkout, setIndex: number): boolean {
   const set = exercise.sets[setIndex];
+  if (!set || set.is_cardio) return false;
   const isLastSet = setIndex === exercise.sets.length - 1;
-  return isLastSet && set && set.reps > 0 && set.weight_kg > 0 && !set.is_completed;
+  return isLastSet && (set.reps ?? 0) > 0 && (set.weight_kg ?? 0) > 0 && !set.is_completed;
 }

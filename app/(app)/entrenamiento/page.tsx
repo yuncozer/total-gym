@@ -25,6 +25,7 @@ import { TemplateSelector } from "@/app/components/TemplateSelector";
 import { CreateCustomExerciseModal } from "@/app/components/CreateCustomExerciseModal";
 import * as service from "@/lib/workout/service";
 import { muscleGroupsData, MuscleGroup } from "@/lib/data/ejercicios";
+import { isCardioExercise, isExcludedCardio, getDefaultCardioSets, CardioGroup, getCardioGroup } from "@/lib/data/cardio";
 import type { WorkoutTemplate } from "@/lib/workout/types";
 
 const DEFAULT_SETS = 3;
@@ -45,6 +46,9 @@ interface ResumenEjercicio {
   description: string;
   equipment: string;
   imageUrl?: string;
+  is_cardio?: boolean;
+  distance_km?: number;
+  duration_minutes?: number;
   sets: { reps: number; peso: number }[];
 }
 
@@ -329,11 +333,13 @@ export default function EntrenamientoPage() {
     }
 
     const recentIds = new Set(recent.map(r => r.id));
-    const filteredWithoutRecent = filtered.filter(ex => !recentIds.has(ex.id));
+    let filteredWithoutRecent = filtered.filter(ex => !recentIds.has(ex.id));
+
+    filteredWithoutRecent = filteredWithoutRecent.filter(ex => !isExcludedCardio(ex.id));
 
     const sortedRecent = recent.filter(ex => {
       return filtered.some(f => f.id === ex.id);
-    });
+    }).filter(ex => !isExcludedCardio(ex.id));
 
     return [...sortedRecent, ...filteredWithoutRecent].sort((a, b) => {
       const aIsRecent = recentIds.has(a.id);
@@ -366,7 +372,9 @@ export default function EntrenamientoPage() {
         const customGroup = customExercises[muscleId] || [];
         const exerciseData = muscleExercises.find(e => e.id === exerciseId) || customGroup.find(e => e.id === exerciseId);
         if (exerciseData) {
-          const defaultSets = Array.from({ length: DEFAULT_SETS }, () => ({
+          const isCardio = isCardioExercise(exerciseData.id);
+          const setsCount = isCardio ? getDefaultCardioSets(exerciseData.id) : DEFAULT_SETS;
+          const defaultSets = Array.from({ length: setsCount }, () => ({
             reps: 0,
             peso: 0
           }));
@@ -377,7 +385,10 @@ export default function EntrenamientoPage() {
             description: exerciseData.description,
             equipment: exerciseData.equipment,
             imageUrl: exerciseData.imageUrl || undefined,
-            sets: defaultSets
+            is_cardio: isCardio || undefined,
+            distance_km: isCardio ? 0 : undefined,
+            duration_minutes: isCardio ? 0 : undefined,
+            sets: isCardio ? [] : defaultSets
           });
         }
       });
@@ -410,14 +421,20 @@ export default function EntrenamientoPage() {
   };
 
   const handleSelectTemplate = async (template: WorkoutTemplate) => {
-    const exerciseList: ResumenEjercicio[] = template.exercises.map(ex => ({
-      id: ex.exerciseId,
-      uuid: "",
-      nombre: ex.name,
-      description: "",
-      equipment: ex.equipment,
-      sets: Array.from({ length: Math.max(ex.sets, 1) }, () => ({ reps: 0, peso: 0 })),
-    }));
+    const exerciseList: ResumenEjercicio[] = template.exercises.map(ex => {
+      const isCardio = isCardioExercise(ex.exerciseId);
+      return {
+        id: ex.exerciseId,
+        uuid: "",
+        nombre: ex.name,
+        description: "",
+        equipment: ex.equipment,
+        is_cardio: isCardio || undefined,
+        distance_km: isCardio ? 0 : undefined,
+        duration_minutes: isCardio ? 0 : undefined,
+        sets: isCardio ? [] : Array.from({ length: Math.max(ex.sets, 1) }, () => ({ reps: 0, peso: 0 })),
+      };
+    });
     setResumen(exerciseList);
     setShowTemplateSelector(false);
     setStep("summary");
@@ -511,18 +528,38 @@ export default function EntrenamientoPage() {
 
       if (workoutError) throw workoutError;
 
-      const setsToInsert = resumen.flatMap(ej =>
-        ej.sets.map((_, index) => ({
-          workout_id: workout.id,
-          exercise_id: ej.id,
-          exercise_name: ej.nombre,
-          set_number: index + 1,
-          reps: 0,
-          weight_kg: 0,
-          is_completed: false,
-          image_url: ej.imageUrl || null,
-        }))
-      );
+      const setsToInsert: Array<Record<string, unknown>> = [];
+      resumen.forEach(ej => {
+        if (ej.is_cardio) {
+          setsToInsert.push({
+            workout_id: workout.id,
+            exercise_id: ej.id,
+            exercise_name: ej.nombre,
+            set_number: 1,
+            reps: null,
+            weight_kg: null,
+            is_cardio: true,
+            distance_km: ej.distance_km ?? 0,
+            duration_minutes: ej.duration_minutes ?? 0,
+            is_completed: false,
+            image_url: ej.imageUrl || null,
+          });
+        } else {
+          ej.sets.forEach((_, index) => {
+            setsToInsert.push({
+              workout_id: workout.id,
+              exercise_id: ej.id,
+              exercise_name: ej.nombre,
+              set_number: index + 1,
+              reps: 0,
+              weight_kg: 0,
+              is_cardio: false,
+              is_completed: false,
+              image_url: ej.imageUrl || null,
+            });
+          });
+        }
+      });
 
       const { error: setsError } = await supabase
         .from("workout_sets")
@@ -570,25 +607,32 @@ export default function EntrenamientoPage() {
                       <h3 className="font-bold text-lg">{ej.nombre}</h3>
                       <p className="text-sm text-icon mt-1 line-clamp-2">{ej.description}</p>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      <button
-                        onClick={() => eliminarSet(ej.id, ej.sets.length - 1)}
-                        disabled={ej.sets.length <= 1}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-background border border text-icon hover:text-red-500 hover:border-red-500 disabled:opacity-30 disabled:cursor-not-allowed"
-                      >
-                        -
-                      </button>
-                      <div className="text-center">
-                        <span className="block font-bold text-lg">{ej.sets.length}</span>
-                        <span className="text-xs text-icon">series</span>
+                    {ej.is_cardio ? (
+                      <div className="ml-4 text-right">
+                        <span className="text-sm text-accent font-bold">Cardio</span>
+                        <p className="text-xs text-icon">1 serie</p>
                       </div>
-                      <button
-                        onClick={() => agregarSet(ej.id)}
-                        className="w-8 h-8 flex items-center justify-center rounded-lg bg-background border border text-icon hover:text-accent hover:border-accent cursor-pointer"
-                      >
-                        +
-                      </button>
-                    </div>
+                    ) : (
+                      <div className="flex items-center gap-2 ml-4">
+                        <button
+                          onClick={() => eliminarSet(ej.id, ej.sets.length - 1)}
+                          disabled={ej.sets.length <= 1}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-background border border text-icon hover:text-red-500 hover:border-red-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                        >
+                          -
+                        </button>
+                        <div className="text-center">
+                          <span className="block font-bold text-lg">{ej.sets.length}</span>
+                          <span className="text-xs text-icon">series</span>
+                        </div>
+                        <button
+                          onClick={() => agregarSet(ej.id)}
+                          className="w-8 h-8 flex items-center justify-center rounded-lg bg-background border border text-icon hover:text-accent hover:border-accent cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
