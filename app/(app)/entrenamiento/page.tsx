@@ -598,9 +598,8 @@ export default function EntrenamientoPage() {
   };
 
   const handleVideoComplete = () => {
-    setShowIntroVideo(false);
     if (pendingWorkoutId.current) {
-      router.push(`/workout/${pendingWorkoutId.current}`);
+      router.replace(`/workout/${pendingWorkoutId.current}`);
     }
   };
   if (step === "summary") {
