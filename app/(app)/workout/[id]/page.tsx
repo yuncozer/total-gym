@@ -341,7 +341,7 @@ const handleCompleteSet = () => {
                       <label className="block text-sm text-icon mb-2">{t("workout.distanceLabel")}</label>
                       <input
                         type="number"
-                        value={set?.distance_km ?? ""}
+                        value={set?.distance_km || ""}
                         onChange={(e) => updateSet('distance_km', parseFloat(e.target.value) || 0)}
                         disabled={set?.is_completed}
                         inputMode="decimal"
@@ -357,7 +357,7 @@ const handleCompleteSet = () => {
                     <label className="block text-sm text-icon mb-2">{t("workout.durationLabel")}</label>
                       <input
                         type="number"
-                        value={set?.duration_minutes ?? ""}
+                        value={set?.duration_minutes || ""}
                         onChange={(e) => updateSet('duration_minutes', parseFloat(e.target.value) || 0)}
                         disabled={set?.is_completed}
                         inputMode="decimal"
@@ -384,7 +384,7 @@ const handleCompleteSet = () => {
                       </button>
                       <input
                         type="number"
-                        value={set.reps ?? ""}
+                        value={set.reps || ""}
                         onChange={(e) => updateSet('reps', parseInt(e.target.value) || 0)}
                         disabled={set.is_completed}
                         inputMode="numeric"
@@ -406,7 +406,7 @@ const handleCompleteSet = () => {
                     </label>
                     <input
                       type="number"
-                      value={set.weight_kg ?? ""}
+                        value={set.weight_kg || ""}
                       onChange={(e) => updateSet('weight_kg', parseFloat(e.target.value) || 0)}
                       disabled={set.is_completed}
                       placeholder={(() => {

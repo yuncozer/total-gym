@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import { X } from "lucide-react";
 
 interface Props {
@@ -9,11 +8,8 @@ interface Props {
 }
 
 export default function WorkoutIntroVideo({ videoSrc, onComplete }: Props) {
-  const [show, setShow] = useState(true);
-
   const handleClose = () => {
-    setShow(false);
-    setTimeout(onComplete, 300);
+    onComplete();
   };
 
   const onVideoEnded = () => {
@@ -22,7 +18,7 @@ export default function WorkoutIntroVideo({ videoSrc, onComplete }: Props) {
 
   return (
     <div
-      className={`fixed inset-0 z-50 flex items-center justify-center bg-black transition-opacity duration-300 ${show ? "opacity-100" : "opacity-0 pointer-events-none"}`}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black"
     >
       <video
         src={videoSrc}
