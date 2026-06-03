@@ -19,7 +19,6 @@ export function usePushNotifications() {
   const registerServiceWorker = async () => {
     try {
       const registration = await navigator.serviceWorker.register("/sw.js");
-      console.log("Service Worker registered:", registration);
     } catch (error) {
       console.error("Service Worker registration failed:", error);
     }
@@ -27,18 +26,14 @@ export function usePushNotifications() {
 
   const subscribe = async () => {
     if (!supported || loading) {
-      console.log("subscribe: not supported or loading", { supported, loading });
       return null;
     }
     setLoading(true);
 
     try {
-      console.log("subscribe: getting service worker ready...");
       const registration = await navigator.serviceWorker.ready;
-      console.log("subscribe: service worker ready, getting existing subscription...");
       
       const existingSub = await registration.pushManager.getSubscription();
-      console.log("subscribe: existing subscription:", existingSub);
       
       if (existingSub) {
         setSubscription(existingSub);
@@ -46,15 +41,11 @@ export function usePushNotifications() {
         return existingSub;
       }
 
-      console.log("subscribe: no existing sub, creating new subscription with vapid key...");
-      console.log("subscribe: VAPID_KEY:", VAPID_PUBLIC_KEY);
-      
       const newSub = await registration.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
 
-      console.log("subscribe: new subscription created:", newSub);
       setSubscription(newSub);
       setLoading(false);
       return newSub;
@@ -102,14 +93,7 @@ export async function saveSubscription(subscription: PushSubscription) {
     const p256dh = keys?.p256dh || (subscription as any).getKey?.('p256dh');
     const auth = keys?.auth || (subscription as any).getKey?.('auth');
     
-    console.log("Full subscription object:", subAny);
-    console.log("Keys from subAny.keys:", subAny.keys);
-    console.log("Keys from subAny.options?.keys:", subAny.options?.keys);
-    console.log("Keys with getKey:", subscription.getKey ? {
-      p256dh: subscription.getKey('p256dh'),
-      auth: subscription.getKey('auth')
-    } : 'not available');
-    
+
     // Convertir ArrayBuffer a base64 si es necesario
     const arrayBufferToBase64 = (buffer: ArrayBuffer | undefined) => {
       if (!buffer) return '';
@@ -129,8 +113,6 @@ export async function saveSubscription(subscription: PushSubscription) {
       },
     };
     
-    console.log("Saving subscription with payload:", JSON.stringify(payload));
-
     const response = await fetch("/api/push/subscribe", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -144,7 +126,6 @@ export async function saveSubscription(subscription: PushSubscription) {
       throw new Error(data.error || `Error ${response.status}: Failed to save subscription`);
     }
 
-    console.log("Subscription saved successfully:", data);
     return data;
   } catch (error) {
     console.error("saveSubscription error:", error);

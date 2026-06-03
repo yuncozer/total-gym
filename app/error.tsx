@@ -1,5 +1,7 @@
 "use client";
 
+import { useLanguage } from "@/lib/i18n";
+
 export default function ErrorPage({
   error,
   reset,
@@ -7,6 +9,7 @@ export default function ErrorPage({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useLanguage();
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4">
       <div className="text-center max-w-sm">
@@ -17,15 +20,15 @@ export default function ErrorPage({
             <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
         </div>
-        <h1 className="text-xl font-bold mb-2">Algo salió mal</h1>
+        <h1 className="text-xl font-bold mb-2">{t("error.title")}</h1>
         <p className="text-sm text-muted-foreground mb-6">
-          Ocurrió un error inesperado. Puede ser un problema de conexión o un error temporal.
+          {t("error.description")}
         </p>
         <button
           onClick={reset}
           className="px-6 py-3 bg-accent text-black font-semibold rounded-xl hover:bg-accent-hover transition-colors cursor-pointer"
         >
-          Intentar de nuevo
+          {t("error.retry")}
         </button>
       </div>
     </div>

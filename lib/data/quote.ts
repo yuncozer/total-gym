@@ -30,6 +30,7 @@ const motivationalQuotes = [
   "Perseverancia vence talento.",
   "Tu tiempo es ahora.",
   "El dolor es temporal, el orgullo es eterno.",
+  "Puedes tener excusas o resultados, pero no ambos.",
 ];
 
 export function getDailyQuote(): string {
