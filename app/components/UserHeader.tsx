@@ -108,9 +108,12 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
           )}
         </div>
 
-        <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
-          TOTAL<span className="text-accent">GYM</span>
-        </span>
+        <div className="flex flex-col items-center leading-none">
+          <span className="text-xl font-bold tracking-wider uppercase" style={{ fontFamily: "var(--font-oswald)" }}>
+            TOTAL<span className="text-accent">GYM</span>
+          </span>
+          <span className="text-[9px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">Beta Version</span>
+        </div>
 
         <div className="flex items-center gap-3 w-[140px] justify-end" ref={dropdownRef}>
           {user ? (

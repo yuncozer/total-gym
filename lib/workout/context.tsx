@@ -555,7 +555,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.2);
     } catch (e) {
-      console.log("Audio not supported");
+      // Audio not supported
     }
   }, []);
 

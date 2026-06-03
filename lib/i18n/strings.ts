@@ -433,6 +433,13 @@ export const strings = {
   "muscleGroup.pantorrillas.desc": { es: "Gemelos y sóleo", en: "Gastrocnemius and soleus" },
   "muscleGroup.cardio.name": { es: "CARDIO", en: "CARDIO" },
   "muscleGroup.cardio.desc": { es: "Sistema cardiovascular", en: "Cardiovascular system" },
+
+  // --- Error pages ---
+  "error.title": { es: "Algo salió mal", en: "Something went wrong" },
+  "error.description": { es: "Ocurrió un error inesperado. Puede ser un problema de conexión o un error temporal.", en: "An unexpected error occurred. It could be a connection issue or a temporary error." },
+  "error.retry": { es: "Intentar de nuevo", en: "Try again" },
+  "error.app.description": { es: "No pudimos cargar esta sección. Revisa tu conexión e inténtalo de nuevo.", en: "We couldn't load this section. Check your connection and try again." },
+  "error.app.reload": { es: "Recargar", en: "Reload" },
 } as const;
 
 export type StringKey = keyof typeof strings;

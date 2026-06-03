@@ -45,19 +45,13 @@ export function NotificationButton({ userId }: NotificationButtonProps) {
     setSuccess(false);
 
     try {
-      console.log("Starting subscription process...");
-      
       const sub = await subscribe();
-      console.log("Got subscription:", sub);
-      console.log("Subscription keys:", sub ? (sub as any).keys : null);
 
       if (!sub) {
         throw new Error("No se pudo obtener la suscripción del navegador");
       }
 
-      console.log("Saving subscription to backend...");
       await saveSubscription(sub);
-      console.log("Subscription saved successfully!");
       
       setEnabled(true);
       setSuccess(true);

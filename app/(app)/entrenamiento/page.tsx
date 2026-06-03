@@ -86,7 +86,6 @@ export default function EntrenamientoPage() {
     setRegisterModalKey(prev => prev + 1);
   };
 
-  console.log("[Entrenamiento] showRegisterModal state:", showRegisterModal);
   useEffect(() => {
     async function initSupabase() {
       const { createBrowserClient } = await import("@supabase/ssr");
@@ -224,7 +223,6 @@ export default function EntrenamientoPage() {
       if (workoutsError) throw workoutsError;
 
       if (!workouts || workouts.length === 0) {
-        console.log("No workouts found for user");
         return;
       }
 
@@ -239,10 +237,7 @@ export default function EntrenamientoPage() {
 
       if (error) throw error;
 
-      console.log("Workout sets fetched:", data?.length);
-
       if (!data || data.length === 0) {
-        console.log("No workout sets found");
         return;
       }
 
@@ -268,9 +263,6 @@ export default function EntrenamientoPage() {
         .slice(0, 5)
         .map(([id, info]) => ({ id, name: info.name, lastWeight: info.lastWeight }));
 
-      console.log("Top exercises:", sorted);
-      console.log("Muscle exercises passed:", muscleExercises.length);
-
       const recentMatches = sorted
         .map(s => {
           const exercise = muscleExercises.find(e => e.id === s.id || e.uuid === s.id);
@@ -280,8 +272,6 @@ export default function EntrenamientoPage() {
           return null;
         })
         .filter(Boolean) as (WgerExercise & { lastWeight: number })[];
-
-      console.log("Matched recent exercises:", recentMatches.length);
 
       setRecentExercises(prev => ({ ...prev, [muscleGroupId]: recentMatches }));
     } catch (err) {
@@ -518,9 +508,7 @@ export default function EntrenamientoPage() {
     setError(null);
 
     const { data: { session } } = await supabase.auth.getSession();
-    console.log("[guardarYRedirigir] session:", session?.user?.id);
     if (!session?.user) {
-      console.log("[guardarYRedirigir] no session, showing modal");
       setError(t("train.loginRequired"));
       sessionStorage.setItem("pending_workout_summary", JSON.stringify(resumen));
       setSaving(false);

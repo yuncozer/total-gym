@@ -40,18 +40,10 @@ export async function signInWithGoogle(redirectTo = "/entrenamiento"): Promise<{
   const isLocalhost = typeof window !== "undefined" && 
                       (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
   
-  console.log("=== signInWithGoogle DEBUG ===");
-  console.log("hostname:", typeof window !== "undefined" ? window.location.hostname : "no window");
-  console.log("isLocalhost:", isLocalhost);
-  console.log("NEXT_PUBLIC_APP_URL:", process.env.NEXT_PUBLIC_APP_URL);
-  
   const baseUrl = isLocalhost 
     ? window.location.origin 
     : (process.env.NEXT_PUBLIC_APP_URL || window.location.origin);
-    
-  console.log("baseUrl:", baseUrl);
-  console.log("redirectTo:", `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`);
-  console.log("================================");
+
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
