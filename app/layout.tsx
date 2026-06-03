@@ -5,6 +5,9 @@ import { OfflineBanner } from "@/app/components/OfflineBanner";
 import { Analytics } from "@vercel/analytics/next";
 import { ToastProvider } from "@/app/components/ToastProvider";
 import { Providers } from "@/app/components/Providers";
+import { SplashScreen } from "@/app/components/SplashScreen";
+import { InstallPrompt } from "@/app/components/InstallPrompt";
+import { SWRegister } from "@/app/components/SWRegister";
 
 const oswald = Oswald({
   variable: "--font-oswald",
@@ -103,6 +106,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: "#eab308",
 };
 
 export default function RootLayout({
@@ -122,11 +126,93 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body className={`${oswald.variable} ${rajdhani.variable} ${barlowCondensed.variable} min-h-screen antialiased`}>
+        <style>{`
+          #splash-screen {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: #0a0a0a;
+            transition: opacity 0.5s ease-out;
+          }
+          #splash-screen.splash-hidden {
+            opacity: 0;
+            pointer-events: none;
+          }
+          #splash-screen .splash-logo {
+            width: 100px;
+            height: 100px;
+            margin-bottom: 20px;
+            animation: splash-fade-in 0.6s ease-out forwards;
+          }
+          #splash-screen .splash-title {
+            font-family: var(--font-oswald), Impact, sans-serif;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 6px;
+            color: #eab308;
+            animation: splash-fade-in 0.6s ease-out 0.2s both;
+          }
+          #splash-screen .splash-subtitle {
+            font-family: var(--font-rajdhani), sans-serif;
+            font-size: 14px;
+            letter-spacing: 3px;
+            color: #a1a1aa;
+            margin-top: 8px;
+            animation: splash-fade-in 0.6s ease-out 0.3s both;
+          }
+          #splash-screen .splash-loader {
+            margin-top: 48px;
+            width: 120px;
+            height: 3px;
+            background: #27272a;
+            border-radius: 2px;
+            overflow: hidden;
+            animation: splash-fade-in 0.6s ease-out 0.4s both;
+          }
+          #splash-screen .splash-loader-bar {
+            height: 100%;
+            width: 35%;
+            background: #eab308;
+            border-radius: 2px;
+            animation: splash-loading 1.2s ease-in-out infinite;
+          }
+          @keyframes splash-loading {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(385%); }
+          }
+          @keyframes splash-fade-in {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+          }
+        `}</style>
+        <div id="splash-screen">
+          <img
+            className="splash-logo"
+            src="/logo.png"
+            alt="TOTAL GYM"
+            width="100"
+            height="100"
+          />
+          <h1 className="splash-title">TOTAL GYM</h1>
+          <p className="splash-subtitle">ENTRENA COMO UN CAMPEÓN</p>
+          <div className="splash-loader">
+            <div className="splash-loader-bar" />
+          </div>
+        </div>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <InstallPrompt />
+        </Providers>
+        <SplashScreen />
+        <SWRegister />
         <OfflineBanner />
         <ToastProvider />
         <Analytics />

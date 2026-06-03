@@ -10,6 +10,7 @@ import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
 import { NotificationButton } from "@/app/components/NotificationButton";
+import { useInstallPrompt } from "@/lib/use-install-prompt";
 import { useLanguage, strings, type StringKey, type Lang } from "@/lib/i18n";
 import type { Session } from "@supabase/supabase-js";
 import { getDailyQuote } from "@/lib/data/quote";
@@ -98,6 +99,7 @@ export default function Home() {
   const [loadingStats, setLoadingStats] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
 
+  const { canInstall, installed, install } = useInstallPrompt();
   const { t, lang } = useLanguage();
   const quote = getDailyQuote();
   const dateStr = getFormattedDate(lang);
@@ -498,6 +500,7 @@ export default function Home() {
           </div>
         </section>
 
+        {!installed && (
         <section className="py-28 bg-background relative overflow-hidden">
           <div className="absolute inset-0">
             <div className="absolute inset-0 bg-gradient-to-br from-background via-card to-background" />
@@ -530,10 +533,10 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
-              <div className="group relative">
+              <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
+              <div className="group relative flex">
                 <div className="absolute -inset-0.5 bg-gradient-to-br from-accent to-accent-hover rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500" />
-                <div className="relative bg-card border border rounded-2xl p-8 hover:border-accent transition-all duration-300">
+                <div className="relative flex flex-col bg-card border border rounded-2xl p-8 hover:border-accent transition-all duration-300 w-full">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-2xl" />
 
                   <div className="flex items-center gap-4 mb-8">
@@ -548,30 +551,57 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="space-y-0">
-                    <div className="flex items-center gap-4 py-3 border-b border/50">
-                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
-                      <span className="text-muted-foreground">{t("home.pwa.step1")}</span>
+                  {canInstall ? (
+                    <div className="flex flex-col items-center justify-center flex-1 text-center">
+                      <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-full px-5 py-2 mb-5">
+                        <span className="w-2 h-2 bg-accent rounded-full animate-pulse" />
+                        <span className="text-accent text-sm font-bold uppercase tracking-wider" style={{ fontFamily: "var(--font-oswald)" }}>
+                          {t("home.pwa.oneClick")}
+                        </span>
+                      </div>
+                      <p className="text-muted-foreground text-base leading-relaxed mb-6">
+                        {t("home.pwa.bannerCta")}
+                      </p>
+                      <button
+                        onClick={install}
+                        className="inline-flex items-center gap-2 bg-accent hover:bg-accent-hover text-black font-bold px-8 py-4 rounded-xl text-lg transition-all hover:scale-105 cursor-pointer"
+                        style={{ fontFamily: "var(--font-oswald)" }}
+                      >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                        </svg>
+                        {t("home.pwa.installBtn")}
+                      </button>
+                      <p className="text-zinc-600 text-xs mt-4">
+                        {t("home.pwa.fallback")}
+                      </p>
                     </div>
-                    <div className="flex items-center gap-4 py-3 border-b border/50">
-                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">2</span>
-                      <span className="text-muted-foreground">{t("home.pwa.step2Android")}</span>
+                  ) : (
+                    <div className="space-y-0 flex-1 flex flex-col justify-center">
+                      <div className="flex items-center gap-4 py-3 border-b border/50">
+                        <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
+                        <span className="text-muted-foreground">{t("home.pwa.step1")}</span>
+                      </div>
+                      <div className="flex items-center gap-4 py-3 border-b border/50">
+                        <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">2</span>
+                        <span className="text-muted-foreground">{t("home.pwa.step2Android")}</span>
+                      </div>
+                      <div className="flex items-center gap-4 py-3 border-b border/50">
+                        <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">3</span>
+                        <span className="text-muted-foreground"><span className="text-white font-bold">{t("home.pwa.step3Android")}</span></span>
+                      </div>
+                      <div className="flex items-center gap-4 py-3">
+                      <span className="w-8 h-8 bg-green-500 text-black font-bold rounded-lg flex items-center justify-center text-sm">✓</span>
+                      <span className="text-green-500 font-bold">{t("home.pwa.done")}</span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-4 py-3 border-b border/50">
-                      <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">3</span>
-                      <span className="text-muted-foreground"><span className="text-white font-bold">{t("home.pwa.step3Android")}</span></span>
-                    </div>
-                    <div className="flex items-center gap-4 py-3">
-                    <span className="w-8 h-8 bg-green-500 text-black font-bold rounded-lg flex items-center justify-center text-sm">✓</span>
-                    <span className="text-green-500 font-bold">{t("home.pwa.done")}</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
 
-              <div className="group relative">
+              <div className="group relative flex">
                 <div className="absolute -inset-0.5 bg-gradient-to-br from-accent to-accent-hover rounded-2xl blur opacity-20 group-hover:opacity-40 transition-all duration-500" />
-                <div className="relative bg-card border border rounded-2xl p-8 hover:border-accent transition-all duration-300">
+                <div className="relative flex flex-col bg-card border border rounded-2xl p-8 hover:border-accent transition-all duration-300 w-full">
                   <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-bl from-accent/10 to-transparent rounded-bl-2xl" />
 
                   <div className="flex items-center gap-4 mb-8">
@@ -586,7 +616,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="space-y-0">
+                  <div className="space-y-0 flex-1 flex flex-col justify-center">
                     <div className="flex items-center gap-4 py-3 border-b border/50">
                       <span className="w-8 h-8 bg-accent text-black font-bold rounded-lg flex items-center justify-center text-sm">1</span>
                       <span className="text-muted-foreground">{t("home.pwa.step1iOS")}</span>
@@ -637,6 +667,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
       </main>
 
       {user && !loadingStats && stats && !stats.todayWorkout && (
