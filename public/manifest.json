@@ -1,12 +1,12 @@
 {
-  "name": "TOTALGYM",
+  "name": "TOTAL GYM - Tu entrenador personal",
   "short_name": "TotalGym",
-  "description": "Tu app de entrenamiento personal",
+  "description": "Crea rutinas, registra series y pesos, sigue tu progreso. Tu compañero de gimnasio.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#0a0a0a",
-  "theme_color": "#0a0a0a",
+  "theme_color": "#eab308",
   "icons": [
     {
       "src": "/icon-192.png",
@@ -27,7 +27,8 @@
       "purpose": "maskable"
     }
   ],
-  "categories": ["fitness", "health"],
+  "categories": ["fitness", "health", "lifestyle"],
   "lang": "es",
-  "dir": "ltr"
+  "dir": "ltr",
+  "prefer_related_applications": false
 }
