@@ -69,7 +69,7 @@ export default function EntrenamientoPage() {
   const [loadingExercises, setLoadingExercises] = useState<Record<string, boolean>>({});
   const [resumen, setResumen] = useState<ResumenEjercicio[]>([]);
   const [selectedEquipment, setSelectedEquipment] = useState<Record<string, string>>({});
-  const [modalImage, setModalImage] = useState<string | null>(null);
+  const [modalImage, setModalImage] = useState<{ url: string; description: string } | null>(null);
   const [searchQueries, setSearchQueries] = useState<Record<string, string>>({});
   const [showRegisterModal, setShowRegisterModal] = useState(false);
   const [registerModalKey, setRegisterModalKey] = useState(0);
@@ -362,8 +362,8 @@ export default function EntrenamientoPage() {
     setSearchQueries(prev => ({ ...prev, [muscleId]: value }));
   };
 
-  const handleImageClick = (imageUrl: string) => {
-    setModalImage(imageUrl);
+  const handleImageClick = (imageUrl: string, description?: string) => {
+    setModalImage({ url: imageUrl, description: description || "" });
   };
 
   const isExerciseSelected = (muscleId: string, exerciseId: string): boolean => {
@@ -708,7 +708,20 @@ export default function EntrenamientoPage() {
       
       <main className="pt-24 pb-12 px-4">
         <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
+          <div className="text-center mb-8">
+            <div className="flex items-center justify-center gap-2 mb-6">
+              <div className="flex items-center gap-1">
+                {["muscles", "exercises", "summary"].map((s, i) => {
+                  const stepIndex = ["muscles", "exercises", "summary"].indexOf(step);
+                  const isActive = i === stepIndex;
+                  const isPast = i < stepIndex;
+                  return (
+                    <div key={s} className={`h-1.5 rounded-full transition-all duration-500 ${isActive ? "w-10 bg-accent" : isPast ? "w-4 bg-accent/50" : "w-4 bg-zinc-700"}`} />
+                  );
+                })}
+              </div>
+            </div>
+
             <h1
               className="text-3xl md:text-4xl font-bold mb-4"
               style={{ fontFamily: "var(--font-oswald)" }}
@@ -722,13 +735,15 @@ export default function EntrenamientoPage() {
             <p className="text-muted-foreground">
               {step === "muscles"
                 ? t("train.selectMuscles")
-                : t("train.selectExercises")
+                : step === "exercises"
+                  ? t("train.selectExercises")
+                  : t("train.summary")
               }
             </p>
             {step === "exercises" && (
               <button
                 onClick={() => setStep("muscles")}
-                className="mt-4 flex items-center gap-2 mx-auto px-4 py-2 bg-muted hover:bg-zinc-700 text-muted-foreground hover:text-white rounded-lg transition-colors cursor-pointer"
+                    className="mt-4 flex items-center gap-2 mx-auto px-4 py-2 bg-muted hover:bg-zinc-700 active:bg-zinc-600 text-muted-foreground hover:text-white active:text-white rounded-lg transition-all duration-300 cursor-pointer active:scale-95"
               >
                 <ArrowLeft className="w-4 h-4" />
                 {t("train.changeMuscles")} ({selectedMuscles.length})
@@ -738,41 +753,49 @@ export default function EntrenamientoPage() {
 
           {step === "muscles" ? (
             <>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-10">
-                {muscleGroups.map((muscle) => (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-10 animate-step-slide-in">
+                {muscleGroups.map((muscle, idx) => (
                   <button
                     key={muscle.id}
                     onClick={() => toggleMuscle(muscle.id)}
+                    style={{ animationDelay: (idx * 40) + "ms" }}
                     className={`
-                      relative p-6 rounded-2xl border-2 transition-all duration-300 cursor-pointer
+                      group relative h-44 rounded-2xl overflow-hidden border-2 transition-all duration-500 cursor-pointer text-left active:scale-[0.98]
                       ${selectedMuscles.includes(muscle.id)
-                        ? "bg-accent border-accent text-black scale-105"
-                        : "bg-card border hover:border-accent/50 hover:bg-muted"
+                        ? "border-accent border-[3px] scale-[1.04] animate-pulse-glow"
+                        : "border hover:border-accent/50 active:border-accent/30 hover:scale-[1.02]"
                       }
                     `}
                   >
-                    {selectedMuscles.includes(muscle.id) && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-black rounded-full flex items-center justify-center">
-                        <Check className="w-4 h-4 text-accent" />
-                      </div>
-                    )}
-                    <div className="relative w-24 h-24 mb-3 mx-auto rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 transition-transform duration-700 group-hover:scale-110 group-active:scale-105">
                       <Image
                         src={muscle.image}
                         alt={muscle.name}
                         fill
-                        className={`object-${muscle.id === "antebrazos" ? "cover" : "contain"}`}
+                        className={`object-${muscle.id === "antebrazos" ? "cover" : "cover"}`}
+                        sizes="(max-width: 640px) 50vw, 25vw"
                       />
                     </div>
-                    <h3
-                      className="font-bold text-lg"
-                      style={{ fontFamily: "var(--font-oswald)" }}
-                    >
-                      {t("muscleGroup." + muscle.id + ".name")}
-                    </h3>
-                    <p className={`text-xs mt-2 ${selectedMuscles.includes(muscle.id) ? "text-black/70" : "text-muted-foreground"}`}>
-                      {t("muscleGroup." + muscle.id + ".desc")}
-                    </p>
+                    
+                    <div className={`absolute inset-0 transition-opacity duration-300 ${selectedMuscles.includes(muscle.id) ? "bg-gradient-to-t from-black/90 via-black/50 to-black/30" : "bg-gradient-to-t from-black/80 via-black/40 to-black/10 group-hover:from-black/70 group-active:from-black/60"}`} />
+
+                    <div className="absolute inset-0 p-4 flex flex-col justify-end">
+                      {selectedMuscles.includes(muscle.id) && (
+                        <div className="absolute top-3 right-3 w-8 h-8 bg-accent rounded-full flex items-center justify-center animate-bounce-check shadow-[0_0_12px_rgba(234,179,8,0.5)]">
+                          <Check className="w-5 h-5 text-black" />
+                        </div>
+                      )}
+                      
+                      <h3
+                        className="font-bold text-lg text-white drop-shadow-lg"
+                        style={{ fontFamily: "var(--font-oswald)" }}
+                      >
+                        {t("muscleGroup." + muscle.id + ".name")}
+                      </h3>
+                      <p className="text-xs text-zinc-300 mt-1 drop-shadow-md">
+                        {t("muscleGroup." + muscle.id + ".desc")}
+                      </p>
+                    </div>
                   </button>
                 ))}
               </div>
@@ -814,7 +837,7 @@ export default function EntrenamientoPage() {
               </div>
             </>
           ) : (
-            <>
+            <div className="animate-step-slide-in" key={step}>
               <div className="space-y-8 mb-10">
                 {selectedMuscles.slice(currentMuscleIndex, currentMuscleIndex + 1).map(muscleId => {
                   const muscle = muscleGroups.find(m => m.id === muscleId);
@@ -1087,7 +1110,8 @@ export default function EntrenamientoPage() {
 
               {modalImage && (
                 <ImageModal
-                  imageUrl={modalImage}
+                  imageUrl={modalImage.url}
+                  exerciseDescription={modalImage.description}
                   onClose={() => setModalImage(null)}
                 />
               )}
@@ -1113,7 +1137,7 @@ export default function EntrenamientoPage() {
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </div>
-            </>
+            </div>
           )}
         </div>
       </main>
