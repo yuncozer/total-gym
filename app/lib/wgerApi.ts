@@ -261,6 +261,55 @@ export function cleanExerciseName(name: string): string {
     [/\bCv\b/gi, "CV"],
     [/\bUc\b/gi, "UC"],
     [/\bMP\b/gi, "MP"],
+
+    // --- Muscle groups / body parts ---
+    [/\bLegs?\b/gi, "Piernas"],
+    [/\bChest\b/gi, "Pecho"],
+    [/\bBack\b/gi, "Espalda"],
+    [/\bShoulder(?:s)?\b/gi, "Hombros"],
+    [/\bArms?\b/gi, "Brazos"],
+    [/\bBicep(?:s)?\b/gi, "Bíceps"],
+    [/\bTricep(?:s)?\b/gi, "Tríceps"],
+    [/\bGlutes?\b/gi, "Glúteos"],
+    [/\bHamstring(?:s)?\b/gi, "Isquiotibiales"],
+    [/\bQuads?\b/gi, "Cuádriceps"],
+    [/\bCalf\b/gi, "Pantorrilla"],
+    [/\bForearm(?:s)?\b/gi, "Antebrazos"],
+    [/\bNeck\b/gi, "Cuello"],
+    [/\bHips?\b/gi, "Cadera"],
+
+    // --- Common exercise movements ---
+    [/\bCurl\b/gi, "Curl"],
+    [/\bCrunch\b/gi, "Crunch"],
+    [/\bFront\b/gi, "Frontal"],
+    [/\bRear\b/gi, "Posterior"],
+    [/\bWide\b/gi, "Ancho"],
+    [/\bClose\b/gi, "Cerrado"],
+    [/\bNarrow\b/gi, "Angosto"],
+    [/\bOverhead\b/gi, "Overhead"],
+    [/\bUpright\b/gi, "Vertical"],
+    [/\bSnatch\b/gi, "Arrancada"],
+    [/\bClean\b/gi, "Cargada"],
+    [/\bJerk\b/gi, "Envión"],
+
+    // --- Exercise variants ---
+    [/\bRomanian\b/gi, "Rumano"],
+    [/\bSumo\b/gi, "Sumo"],
+    [/\bConcentration\b/gi, "Concentración"],
+    [/\bPreacher\b/gi, "Predicador"],
+    [/\bPullover\b/gi, "Pullover"],
+    [/\bBent\b/gi, "Inclinado"],
+    [/\bThrust\b/gi, "Empuje"],
+    [/\bBridge(?:s)?\b/gi, "Puente"],
+
+    // --- Triceps-specific ---
+    [/\bPushdown(?:s)?\b/gi, "Empuje"],
+    [/\bKickback(?:s)?\b/gi, "Patada"],
+
+    // --- Equipment / accessories ---
+    [/\bRope\b/gi, "Cuerda"],
+    [/\bHandle(?:s)?\b/gi, "Asas"],
+    [/\bPlate(?:s)?\b/gi, "Discos"],
   ];
   
   let result = name;
