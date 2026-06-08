@@ -332,9 +332,9 @@ export default function EntrenamientoPage() {
           );
 
     if (search.trim()) {
-      const lowerSearch = search.toLowerCase();
+      const normalizedSearch = search.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
       filtered = filtered.filter(ex =>
-        ex.name.toLowerCase().includes(lowerSearch)
+        ex.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().includes(normalizedSearch)
       );
     }
 
@@ -761,7 +761,7 @@ export default function EntrenamientoPage() {
                         src={muscle.image}
                         alt={muscle.name}
                         fill
-                        className="object-contain"
+                        className={`object-${muscle.id === "antebrazos" ? "cover" : "contain"}`}
                       />
                     </div>
                     <h3
@@ -902,7 +902,13 @@ export default function EntrenamientoPage() {
                           ) : filteredExercises.length > 0 ? (
                             (() => {
                               const customExs = filteredExercises.filter(e => e.id.startsWith("custom_"));
-                              const wgerExs = filteredExercises.filter(e => !e.id.startsWith("custom_"));
+                              const wgerExs = filteredExercises
+                                .filter(e => !e.id.startsWith("custom_"))
+                                .sort((a, b) => {
+                                  const aImg = a.imageUrl || (a.images?.length ?? 0) > 0;
+                                  const bImg = b.imageUrl || (b.images?.length ?? 0) > 0;
+                                  return aImg === bImg ? 0 : aImg ? -1 : 1;
+                                });
                               const showRecent = recent.length > 0 && !searchQueries[muscleId];
 
                               return showRecent ? (

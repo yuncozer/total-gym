@@ -216,6 +216,10 @@ export default function RootLayout({
         <OfflineBanner />
         <ToastProvider />
         <Analytics />
+        <footer className="border-t border-zinc-800 py-3 px-4 text-center text-[10px] text-zinc-600">
+          Exercise images by <a href="https://wger.de" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-400">wger.de</a> contributors under{" "}
+          <a href="https://creativecommons.org/licenses/by-sa/4.0/" target="_blank" rel="noopener noreferrer" className="underline hover:text-zinc-400">CC-BY-SA 4.0</a>
+        </footer>
       </body>
     </html>
   );

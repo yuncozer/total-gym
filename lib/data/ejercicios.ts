@@ -61,6 +61,16 @@ export const muscleGroupsData: MuscleGroup[] = [
     wgerSecondaryMuscleIds: [2, 4]
   },
   {
+    id: "antebrazos",
+    name: "ANTEBRAZOS",
+    description: "Flexores y extensores de muñeca, braquiorradial",
+    icon: "🤲",
+    image: "/images/exercises/antebrazo.png",
+    wgerCategoryId: 99,
+    wgerMuscleIds: [],
+    wgerSecondaryMuscleIds: []
+  },
+  {
     id: "piernas",
     name: "PIERNAS",
     description: "Cuádriceps, isquiotibiales y gemelos",
@@ -95,7 +105,7 @@ export const muscleGroupsData: MuscleGroup[] = [
     name: "PANTORRILLAS",
     description: "Gemelos y sóleo",
     icon: "🦶",
-    image: "/images/exercises/Pantorrillas.png",
+    image: "/images/exercises/pantorrillas.png",
     wgerCategoryId: 14,
     wgerMuscleIds: [7, 15],
     wgerSecondaryMuscleIds: []

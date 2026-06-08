@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
-import { fetchExercisesByCategory, type Exercise } from "@/app/lib/wgerApi";
+import type { Exercise } from "@/app/lib/wgerApi";
 import { muscleGroupsData } from "@/lib/data/ejercicios";
+import { createClient } from "@supabase/supabase-js";
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!
+);
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -14,26 +20,42 @@ export async function GET(request: NextRequest) {
 
     if (muscleGroupId) {
       const muscleGroup = muscleGroupsData.find(m => m.id === muscleGroupId);
-      
+
       if (muscleGroup) {
         let equipmentIds: number[] | undefined;
-        
+
         if (equipmentCategory && equipmentCategory !== "all") {
           equipmentIds = getEquipmentIdsByCategory(equipmentCategory);
         }
-        
-        exercises = await fetchExercisesByCategory(
-          muscleGroup.wgerCategoryId,
-          equipmentIds,
-          limit
-        );
 
-        if (muscleGroup.wgerMuscleIds.length > 0) {
-          exercises = filterByMuscles(exercises, muscleGroup.wgerMuscleIds, muscleGroup.wgerSecondaryMuscleIds);
+        const { data: localData } = await supabase
+          .from("exercises")
+          .select("*")
+          .eq("muscle_group_id", muscleGroup.id)
+          .eq("is_active", true);
+
+        if (localData && localData.length > 0) {
+          exercises = localData.map(mapRowToExercise);
+
+          if (equipmentIds) {
+            exercises = exercises.filter((ex) =>
+              ex.equipmentIds.some((id) => equipmentIds!.includes(id))
+            );
+          }
+
+          exercises = exercises.slice(0, limit);
         }
       }
     } else {
-      exercises = await fetchExercisesByCategory(0, undefined, limit);
+      const { data: localData } = await supabase
+        .from("exercises")
+        .select("*")
+        .eq("is_active", true)
+        .limit(limit);
+
+      if (localData && localData.length > 0) {
+        exercises = localData.map(mapRowToExercise);
+      }
     }
 
     return NextResponse.json(
@@ -49,12 +71,33 @@ export async function GET(request: NextRequest) {
       }
     );
   } catch (error) {
-    console.error("Error fetching exercises from WGER:", error);
+    console.error("Error fetching exercises:", error);
     return NextResponse.json(
       { success: false, error: "Failed to fetch exercises" },
       { status: 500 }
     );
   }
+}
+
+function mapRowToExercise(row: any): Exercise {
+  return {
+    id: row.id.toString(),
+    uuid: row.uuid ?? "",
+    name: row.name,
+    description: row.description ?? "",
+    category: row.category ?? "",
+    categoryId: row.category_id,
+    muscles: row.muscles ?? [],
+    muscleIds: row.muscle_ids ?? [],
+    secondaryMuscles: row.secondary_muscles ?? [],
+    secondaryMuscleIds: row.secondary_muscle_ids ?? [],
+    equipment: row.equipment ?? "",
+    equipmentIds: row.equipment_ids ?? [],
+    equipmentCategory: row.equipment_category ?? "",
+    imageUrl: row.image_url,
+    images: row.images ?? [],
+    variationGroup: row.variation_group,
+  };
 }
 
 function getEquipmentIdsByCategory(category: string): number[] {
@@ -70,14 +113,3 @@ function getEquipmentIdsByCategory(category: string): number[] {
   }
 }
 
-function filterByMuscles(
-  exercises: Exercise[],
-  primaryMuscleIds: number[],
-  secondaryMuscleIds: number[]
-): Exercise[] {
-  return exercises.filter(ex => {
-    const hasPrimaryMuscle = ex.muscleIds.some(id => primaryMuscleIds.includes(id));
-    const hasSecondaryMuscle = ex.secondaryMuscleIds.some(id => secondaryMuscleIds.includes(id));
-    return hasPrimaryMuscle || hasSecondaryMuscle;
-  });
-}

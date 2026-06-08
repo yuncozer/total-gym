@@ -444,6 +444,8 @@ export const strings = {
   "muscleGroup.abdomen.desc": { es: "Rectos, oblicuos y transverso", en: "Rectus, obliques and transversus" },
   "muscleGroup.pantorrillas.name": { es: "PANTORRILLAS", en: "CALVES" },
   "muscleGroup.pantorrillas.desc": { es: "Gemelos y sóleo", en: "Gastrocnemius and soleus" },
+  "muscleGroup.antebrazos.name": { es: "ANTEBRAZOS", en: "FOREARMS" },
+  "muscleGroup.antebrazos.desc": { es: "Músculos del antebrazo y muñeca", en: "Forearm and wrist muscles" },
   "muscleGroup.cardio.name": { es: "CARDIO", en: "CARDIO" },
   "muscleGroup.cardio.desc": { es: "Sistema cardiovascular", en: "Cardiovascular system" },
 
