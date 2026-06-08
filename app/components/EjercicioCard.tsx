@@ -26,7 +26,7 @@ export interface ExerciseCardProps {
   exercise: WgerExercise;
   selected: boolean;
   onSelect: () => void;
-  onImageClick: (imageUrl: string) => void;
+  onImageClick: (imageUrl: string, description?: string) => void;
   lastWeight?: number;
 }
 
@@ -61,7 +61,7 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (exercise.imageUrl) {
-      onImageClick(exercise.imageUrl);
+      onImageClick(exercise.imageUrl, exercise.description);
     }
   };
 
@@ -71,34 +71,34 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
     <button
       onClick={onSelect}
       className={`
-        w-full p-3 rounded-xl border-2 transition-all text-left cursor-pointer
+        group w-full p-3 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer
         ${selected
-          ? "border-accent bg-accent/10"
-          : "border hover:border-accent/50 bg-background"
+          ? "border-accent bg-accent/10 shadow-[0_0_15px_rgba(234,179,8,0.08)]"
+          : "border hover:border-accent/50 bg-background hover:bg-muted/50"
         }
       `}
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 flex-1 min-w-0">
           <div className={`
-            w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0
+            w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 transition-all duration-300
             ${selected 
-              ? "border-accent bg-accent" 
-              : "border"
+              ? "border-accent bg-accent scale-110" 
+              : "border group-hover:border-accent/50"
             }
           `}>
             {selected && (
-              <Check className="w-3 h-3 text-black" />
+              <Check className="w-3 h-3 text-black animate-bounce-check" />
             )}
           </div>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
-              <h4 className="font-bold text-base leading-tight">
+              <h4 className={`font-bold text-base leading-tight transition-colors duration-300 ${selected ? "text-accent" : "text-white"}`}>
                 {exercise.name}
               </h4>
               {lastWeight && lastWeight > 0 && (
-                <span className="text-xs text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full whitespace-nowrap">
+                <span className="text-xs text-green-500 bg-green-500/10 px-2 py-0.5 rounded-full whitespace-nowrap border border-green-500/20 animate-badge-pop">
                   Último: {lastWeight} kg
                 </span>
               )}
@@ -116,13 +116,12 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
               </p>
             )}
             
-            <div className="flex items-center gap-1 mt-2">
-              <Dumbbell className="w-3 h-3 text-cyan-500" />
-              <span className="text-xs text-cyan-500 font-medium">
-                Equipamiento:
-              </span>
-              <span className="text-xs text-cyan-600">
-                {translatedEquipment}
+            <div className="flex items-center gap-1.5 mt-2">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
+                <Dumbbell className="w-3 h-3 text-cyan-400" />
+                <span className="text-[11px] text-cyan-400 font-medium">
+                  {translatedEquipment}
+                </span>
               </span>
             </div>
           </div>
@@ -130,18 +129,18 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
 
         {exercise.imageUrl && (
           <div 
-            className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-card group cursor-pointer"
+            className="relative w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-card group/img cursor-pointer ring-1 ring-white/10 hover:ring-accent/30 transition-all duration-300"
             onClick={handleImageClick}
           >
             <Image
               src={exercise.imageUrl}
               alt={exercise.name}
               fill
-              className="object-cover transition-transform group-hover:scale-110"
-              sizes="64px"
+              className="object-cover transition-all duration-500 group-hover/img:scale-125 group-hover/img:rotate-1"
+              sizes="80px"
             />
-            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-              <Maximize2 className="w-5 h-5 text-white" />
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover/img:opacity-100 transition-all duration-300 flex items-center justify-center backdrop-blur-[1px]">
+              <Maximize2 className="w-5 h-5 text-white scale-90 group-hover/img:scale-100 transition-transform" />
             </div>
           </div>
         )}
@@ -152,17 +151,19 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
 
 interface ImageModalProps {
   imageUrl: string;
+  exerciseName?: string;
+  exerciseDescription?: string;
   onClose: () => void;
 }
 
-export function ImageModal({ imageUrl, onClose }: ImageModalProps) {
+export function ImageModal({ imageUrl, exerciseName, exerciseDescription, onClose }: ImageModalProps) {
   return (
     <div 
       className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <button 
-        className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center text-white transition-colors"
+        className="absolute top-4 right-4 z-10 w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-full flex items-center justify-center text-white transition-colors"
         onClick={onClose}
       >
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -171,17 +172,27 @@ export function ImageModal({ imageUrl, onClose }: ImageModalProps) {
       </button>
       
       <div 
-        className="relative w-full max-w-3xl aspect-[4/3] bg-card rounded-2xl overflow-hidden"
+        className="relative w-full max-w-3xl max-h-[90vh] flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
-        <Image
-          src={imageUrl}
-          alt="Exercise"
-          fill
-          className="object-contain"
-          sizes="(max-width: 768px) 100vw, 768px"
-          priority
-        />
+        <div className="relative w-full aspect-[4/3] bg-card rounded-2xl overflow-hidden flex-shrink-0">
+          <Image
+            src={imageUrl}
+            alt={exerciseName || "Exercise"}
+            fill
+            className="object-contain"
+            sizes="(max-width: 768px) 100vw, 768px"
+            priority
+          />
+        </div>
+        
+        {exerciseDescription && (
+          <div className="mt-3 px-1 animate-fade-in-up" style={{ animationDelay: "100ms" }}>
+            <p className="text-sm text-zinc-400 leading-relaxed line-clamp-4">
+              {exerciseDescription}
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
