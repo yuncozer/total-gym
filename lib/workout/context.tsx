@@ -29,6 +29,7 @@ interface WorkoutContextValue {
   deselectExercise: () => void;
   removeExercise: (exerciseId: string) => Promise<void>;
   addExercises: (newExercises: NewExerciseDef[]) => Promise<void>;
+  reorderExercises: (reordered: ExerciseInWorkout[]) => Promise<void>;
   goToSet: (index: number) => void;
   updateSet: (field: "reps" | "weight_kg" | "distance_km" | "duration_minutes", value: number) => void;
   completeSet: () => Promise<void>;
@@ -541,6 +542,11 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     await saveSets(updated);
   }, [exercises, selectedExercise, saveSets]);
 
+  const reorderExercises = useCallback(async (reordered: ExerciseInWorkout[]) => {
+    setExercises(reordered);
+    await saveSets(reordered);
+  }, [saveSets]);
+
   const playNotificationSound = useCallback(() => {
     try {
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
@@ -586,6 +592,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     deselectExercise,
     removeExercise,
     addExercises,
+    reorderExercises,
     goToSet,
     updateSet,
     completeSet,

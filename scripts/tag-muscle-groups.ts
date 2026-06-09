@@ -18,17 +18,19 @@ const supabase = createClient(
 );
 
 function classifyArm(name: string): string {
-  const lower = name.toLowerCase();
+  const lower = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   // Triceps indicators
   if (/tr[ie]ceps|press fr[ae]nc[ée]s|extensi[oó]n.*tr[ie]c|rompecr[áa]neo|skull.*crusher|tr[ie]cep.*empuje|patada.*tr[ie]c|fondos|dips|jm press|tate press/.test(lower)) return "triceps";
   // Biceps indicators
   if (/b[íi]ceps|curl|martillo|b[íi]cep.*concentrado|bayesian|zottman|predicador/.test(lower)) return "biceps";
+  // Push-up / chest variants miscategorized as arms
+  if (/flexion|plancha/.test(lower)) return "pecho";
   // Default
   return "biceps";
 }
 
 function classifyLeg(name: string): string {
-  const lower = name.toLowerCase();
+  const lower = name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
   // Gluteos indicators
   if (/gl[úu]te[oó]|hip thrust|empuje de cadera|cadera empuje|abducci[oó]n|patada.*gl[úu]te|clamshell|clam|fire hydrant|puente de gl[úu]teo|glute bridge|cadera puente|gl[úu]teos drive|patada trasera|p[ée]ndulo|arabesque|piernas swings/.test(lower)) return "gluteos";
   // Default to piernas
@@ -44,10 +46,9 @@ async function main() {
   if (error) { console.error(error); return; }
   if (!exercises) return;
 
-  let updated = 0;
-  for (const ex of exercises) {
-    if (ex.muscle_group_id) continue;
+  const toUpdate: Record<string, number[]> = {};
 
+  for (const ex of exercises) {
     let groupId: string | null = null;
 
     switch (ex.category_id) {
@@ -63,29 +64,27 @@ async function main() {
     }
 
     if (groupId) {
-      const { error: upErr } = await supabase
-        .from("exercises")
-        .update({ muscle_group_id: groupId })
-        .eq("id", ex.id);
-      if (upErr) console.error(`Error updating ${ex.id}:`, upErr);
-      else updated++;
+      if (!toUpdate[groupId]) toUpdate[groupId] = [];
+      toUpdate[groupId].push(ex.id);
     }
   }
 
-  console.log(`Tagged ${updated} exercises with muscle_group_id`);
-
-  // Summary
-  const { data: summary } = await supabase
-    .from("exercises")
-    .select("muscle_group_id, count")
-    .eq("is_active", true)
-    .not("muscle_group_id", "is", null);
-  const counts: Record<string, number> = {};
-  for (const s of summary || []) {
-    const g = (s as any).muscle_group_id;
-    counts[g] = (counts[g] || 0) + 1;
+  let totalUpdated = 0;
+  for (const [groupId, ids] of Object.entries(toUpdate)) {
+    if (ids.length === 0) continue;
+    const { error: upErr } = await supabase
+      .from("exercises")
+      .update({ muscle_group_id: groupId })
+      .in("id", ids);
+    if (upErr) {
+      console.error(`Error updating group "${groupId}":`, upErr);
+    } else {
+      totalUpdated += ids.length;
+      console.log(`${groupId}: ${ids.length} exercises`);
+    }
   }
-  console.log("Tag distribution:", counts);
+
+  console.log(`\nTotal: ${totalUpdated} exercises tagged`);
 }
 
-main();
+main().catch(console.error);

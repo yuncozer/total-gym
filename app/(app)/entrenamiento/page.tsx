@@ -43,6 +43,7 @@ interface ResumenEjercicio {
   is_cardio?: boolean;
   distance_km?: number;
   duration_minutes?: number;
+  muscleGroup?: string;
   sets: { reps: number; peso: number }[];
 }
 
@@ -394,6 +395,7 @@ export default function EntrenamientoPage() {
             is_cardio: isCardio || undefined,
             distance_km: isCardio ? 0 : undefined,
             duration_minutes: isCardio ? 0 : undefined,
+            muscleGroup: muscleId,
             sets: isCardio ? [] : defaultSets
           });
         }
@@ -458,6 +460,7 @@ export default function EntrenamientoPage() {
 
     const muscleIds = new Set<string>();
     const selectedExByMuscle: Record<string, string[]> = {};
+    const exerciseMuscleMap = new Map<string, string>();
 
     for (const ex of template.exercises) {
       let found = false;
@@ -466,6 +469,7 @@ export default function EntrenamientoPage() {
           muscleIds.add(muscleId);
           if (!selectedExByMuscle[muscleId]) selectedExByMuscle[muscleId] = [];
           selectedExByMuscle[muscleId].push(ex.exerciseId);
+          exerciseMuscleMap.set(ex.exerciseId, muscleId);
           found = true;
           break;
         }
@@ -476,11 +480,17 @@ export default function EntrenamientoPage() {
             muscleIds.add(muscleId);
             if (!selectedExByMuscle[muscleId]) selectedExByMuscle[muscleId] = [];
             selectedExByMuscle[muscleId].push(ex.exerciseId);
+            exerciseMuscleMap.set(ex.exerciseId, muscleId);
             break;
           }
         }
       }
     }
+
+    setResumen(prev => prev.map(ej => ({
+      ...ej,
+      muscleGroup: exerciseMuscleMap.get(ej.id) || ej.muscleGroup
+    })));
 
     if (muscleIds.size > 0) {
       setSelectedMuscles(Array.from(muscleIds));
@@ -533,7 +543,7 @@ export default function EntrenamientoPage() {
       if (workoutError) throw workoutError;
 
       const setsToInsert: Array<Record<string, unknown>> = [];
-      resumen.forEach(ej => {
+      resumen.forEach((ej, ejIndex) => {
         if (ej.is_cardio) {
           setsToInsert.push({
             workout_id: workout.id,
@@ -547,6 +557,8 @@ export default function EntrenamientoPage() {
             duration_minutes: ej.duration_minutes ?? 0,
             is_completed: false,
             image_url: ej.imageUrl || null,
+            exercise_order: ejIndex,
+            muscle_group: ej.muscleGroup || null,
           });
         } else {
           ej.sets.forEach((_, index) => {
@@ -560,6 +572,8 @@ export default function EntrenamientoPage() {
               is_cardio: false,
               is_completed: false,
               image_url: ej.imageUrl || null,
+              exercise_order: ejIndex,
+              muscle_group: ej.muscleGroup || null,
             });
           });
         }
@@ -926,13 +940,9 @@ export default function EntrenamientoPage() {
                             (() => {
                               const customExs = filteredExercises.filter(e => e.id.startsWith("custom_"));
                               const wgerExs = filteredExercises
-                                .filter(e => !e.id.startsWith("custom_"))
-                                .sort((a, b) => {
-                                  const aImg = a.imageUrl || (a.images?.length ?? 0) > 0;
-                                  const bImg = b.imageUrl || (b.images?.length ?? 0) > 0;
-                                  return aImg === bImg ? 0 : aImg ? -1 : 1;
-                                });
+                                .filter(e => !e.id.startsWith("custom_"));
                               const showRecent = recent.length > 0 && !searchQueries[muscleId];
+                              const recentIds = new Set(recent.map(r => r.id));
 
                               return showRecent ? (
                                 <>
@@ -991,14 +1001,14 @@ export default function EntrenamientoPage() {
                                     </>
                                   )}
 
-                                  {wgerExs.length > recent.length && (
+                                  {wgerExs.some(ex => !recentIds.has(ex.id)) && (
                                     <>
                                       <div className="sticky top-0 z-10 pt-2">
                                         <div className="text-xs text-icon font-medium mb-2 uppercase tracking-wider bg-card py-2">
                                           {t("train.allExercises")}
                                         </div>
                                       </div>
-                                      {wgerExs.slice(recent.length).map((exercise) => (
+                                      {wgerExs.filter(ex => !recentIds.has(ex.id)).map((exercise) => (
                                         <ExerciseCard
                                           key={`normal-${exercise.id}`}
                                           exercise={exercise}

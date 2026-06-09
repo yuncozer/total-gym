@@ -8,6 +8,7 @@ export interface NewExerciseDef {
   imageUrl?: string;
   setsCount: number;
   isCardio?: boolean;
+  muscleGroup?: string;
 }
 
 const FETCH_TIMEOUT = 15000;
@@ -124,6 +125,7 @@ export function buildExercisesFromNewDefs(
       name: def.name,
       equipment: def.equipment,
       imageUrl: def.imageUrl,
+      muscleGroup: def.muscleGroup,
       sets: Array.from({ length: def.setsCount }, (_, i) => ({
         exercise_id: def.exerciseId,
         exercise_name: def.name,
@@ -134,6 +136,7 @@ export function buildExercisesFromNewDefs(
         distance_km: isCardio ? 0 : null,
         duration_minutes: isCardio ? 0 : null,
         is_completed: false,
+        muscle_group: def.muscleGroup,
       } as WorkoutSet)),
     };
   });
