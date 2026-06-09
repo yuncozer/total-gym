@@ -31,17 +31,16 @@ interface AddExerciseModalProps {
   onAddExercises: (exercises: NewExerciseDef[]) => Promise<void>;
 }
 
-const EQUIPMENT_TABS = [
-  { id: "all", label: "Todos" },
-  { id: "barbell", label: "Barra" },
-  { id: "dumbbell", label: "Mancuernas" },
-  { id: "body weight", label: "Peso corporal" },
-  { id: "personalizados", label: "Personalizados" },
-  { id: "other", label: "Otros" },
-];
-
 export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalProps) {
   const { t } = useLanguage();
+  const EQUIPMENT_TABS = [
+    { id: "all", label: t("train.tabAll") },
+    { id: "barbell", label: t("train.tabBarbell") },
+    { id: "dumbbell", label: t("train.tabDumbbell") },
+    { id: "body weight", label: t("train.tabBodyweight") },
+    { id: "personalizados", label: t("train.tabCustom") },
+    { id: "other", label: t("train.tabOther") },
+  ];
   const [selectedMuscle, setSelectedMuscle] = useState<string | null>(null);
   const [exercises, setExercises] = useState<Record<string, WgerExercise[]>>({});
   const [customExercises, setCustomExercises] = useState<CustomExercise[]>([]);
@@ -57,7 +56,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
     service.loadCustomExercises().then((custom) => {
       setCustomExercises(Array.isArray(custom) ? custom : []);
     }).catch(() => {
-      toast.error("No se pudieron cargar los ejercicios personalizados");
+      toast.error(t("train.noCustom"));
     });
   }, []);
 
@@ -144,13 +143,35 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
     return filtered;
   };
 
+  const translateEquipment = (eq: string) => {
+    if (!eq || eq === "none (bodyweight exercise)") return t("equipment.bodyweight");
+    const map: Record<string, string> = {
+      barbell: t("equipment.barbell"),
+      "sz-bar": t("equipment.sz-bar"),
+      dumbbell: t("equipment.dumbbell"),
+      kettlebell: t("equipment.kettlebell"),
+      cable: t("equipment.cable"),
+      machine: t("equipment.machine"),
+      bench: t("equipment.bench"),
+      "incline bench": t("equipment.incline-bench"),
+      "swiss ball": t("equipment.swiss-ball"),
+      "gym mat": t("equipment.gym-mat"),
+      "pull-up bar": t("equipment.pull-up-bar"),
+      "resistance band": t("equipment.resistance-band"),
+    };
+    return eq.split(",").map(part => {
+      const trimmed = part.trim().toLowerCase();
+      return map[trimmed] || trimmed;
+    }).join(", ");
+  };
+
   const filteredExercises = getFilteredExercises();
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center">
       <div className="bg-card border border rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col animate-slide-up">
         <div className="flex items-center justify-between p-4 border-b border">
-          <h2 className="text-lg font-bold text-white">Agregar ejercicio</h2>
+          <h2 className="text-lg font-bold text-white">{t("train.newExercise")}</h2>
           <button onClick={onClose} className="p-1 text-icon hover:text-white transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
@@ -180,7 +201,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
                 type="text"
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Buscar ejercicio..."
+                placeholder={t("train.searchPlaceholder")}
                 className="w-full bg-muted text-white text-sm rounded-xl pl-9 pr-4 py-2 border border focus:border-accent outline-none"
               />
             </div>
@@ -205,7 +226,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
         <div className="flex-1 overflow-y-auto p-3">
           {!selectedMuscle ? (
             <div className="flex items-center justify-center py-12 text-icon text-sm">
-              Selecciona un grupo muscular
+              {t("train.selectMuscles")}
             </div>
           ) : loading ? (
             <div className="flex items-center justify-center py-12">
@@ -213,7 +234,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
             </div>
           ) : filteredExercises.length === 0 ? (
             <div className="flex items-center justify-center py-12 text-icon text-sm">
-              No hay ejercicios para este filtro
+              {selectedEquipment === "personalizados" ? t("train.noCustom") : t("train.noEquipment")}
             </div>
           ) : (
             <div className="space-y-1.5">
@@ -233,7 +254,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
                       <button
                         onClick={(e) => { e.stopPropagation(); setExerciseImage(ex.imageUrl!); }}
                         className="relative block shrink-0"
-                        title="Ver imagen"
+                        title={t("train.imageView")}
                       >
                         <Image
                           src={ex.imageUrl}
@@ -249,7 +270,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-white text-sm font-medium truncate">{ex.name}</p>
-                      <p className="text-icon text-[10px] truncate">{ex.equipment}</p>
+                      <p className="text-icon text-[10px] truncate">{translateEquipment(ex.equipment)}</p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <div className="flex items-center gap-1">
@@ -308,7 +329,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
           </button>
           <Image
             src={exerciseImage}
-            alt="Ejercicio"
+            alt={t("train.imageView")}
             width={600}
             height={450}
             className="max-w-full max-h-[90vh] object-contain rounded-xl"

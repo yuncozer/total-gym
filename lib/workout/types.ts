@@ -11,6 +11,7 @@ export interface WorkoutSet {
   is_cardio?: boolean;
   distance_km?: number | null;
   duration_minutes?: number | null;
+  description?: string;
   is_completed: boolean;
   exercise_order?: number;
   muscle_group?: string;
@@ -19,6 +20,7 @@ export interface WorkoutSet {
 export interface ExerciseInWorkout {
   exerciseId: string;
   name: string;
+  description?: string;
   equipment: string;
   imageUrl?: string;
   muscleGroup?: string;

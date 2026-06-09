@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import { Check, Maximize2, Dumbbell } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 export interface WgerExercise {
   id: string;
@@ -30,42 +31,38 @@ export interface ExerciseCardProps {
   lastWeight?: number;
 }
 
-function translateEquipment(equipment: string): string {
-  if (!equipment) return "Peso corporal";
-  
-  const translations: [RegExp, string][] = [
-    [/\bBarbell\b/gi, "Barra"],
-    [/\bSZ-Bar\b/gi, "Barra EZ"],
-    [/\bDumbbell\b/gi, "Mancuernas"],
-    [/\bKettlebell\b/gi, "Pesa rusa"],
-    [/\bCable\b/gi, "Polea"],
-    [/\bMachine\b/gi, "Máquina"],
-    [/\bBench\b/gi, "Banco"],
-    [/\bIncline bench\b/gi, "Banco inclinado"],
-    [/\bSwiss Ball\b/gi, "Balón suizo"],
-    [/\bGym mat\b/gi, "Mat de gym"],
-    [/\bPull-up bar\b/gi, "Barra fija"],
-    [/\bResistance band\b/gi, "Banda elástica"],
-    [/\bnone \(bodyweight exercise\)/gi, "Peso corporal"],
-  ];
-  
-  let result = equipment;
-  for (const [pattern, replacement] of translations) {
-    result = result.replace(pattern, replacement);
-  }
-  
-  return result;
-}
-
 export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastWeight }: ExerciseCardProps) {
+  const { t } = useLanguage();
+
+  const translatedEquipment = (() => {
+    const eq = exercise.equipment;
+    if (!eq || eq === "none (bodyweight exercise)") return t("equipment.bodyweight");
+    const map: Record<string, string> = {
+      barbell: t("equipment.barbell"),
+      "sz-bar": t("equipment.sz-bar"),
+      dumbbell: t("equipment.dumbbell"),
+      kettlebell: t("equipment.kettlebell"),
+      cable: t("equipment.cable"),
+      machine: t("equipment.machine"),
+      bench: t("equipment.bench"),
+      "incline bench": t("equipment.incline-bench"),
+      "swiss ball": t("equipment.swiss-ball"),
+      "gym mat": t("equipment.gym-mat"),
+      "pull-up bar": t("equipment.pull-up-bar"),
+      "resistance band": t("equipment.resistance-band"),
+    };
+    return eq.split(",").map(part => {
+      const trimmed = part.trim().toLowerCase();
+      return map[trimmed] || trimmed;
+    }).join(", ");
+  })();
+
   const handleImageClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (exercise.imageUrl) {
       onImageClick(exercise.imageUrl, exercise.description);
     }
   };
-
-  const translatedEquipment = translateEquipment(exercise.equipment);
 
   return (
     <button
@@ -117,9 +114,9 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
             )}
             
             <div className="flex items-center gap-1.5 mt-2">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-cyan-500/10 border border-cyan-500/20">
-                <Dumbbell className="w-3 h-3 text-cyan-400" />
-                <span className="text-[11px] text-cyan-400 font-medium">
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-accent-secondary/10 border border-accent-secondary/20">
+                <Dumbbell className="w-3 h-3 text-accent-secondary" />
+                <span className="text-[11px] text-accent-secondary font-medium">
                   {translatedEquipment}
                 </span>
               </span>
@@ -149,7 +146,29 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
   );
 }
 
-interface ImageModalProps {
+export function ExerciseCardSkeleton() {
+  return (
+    <div className="w-full p-3 rounded-xl border-2 border animate-pulse bg-card">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="w-5 h-5 rounded-full bg-zinc-700 flex-shrink-0" />
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center gap-2">
+              <div className="h-5 bg-zinc-700 rounded w-48" />
+              <div className="h-4 bg-zinc-700 rounded-full w-20" />
+            </div>
+            <div className="h-3 bg-zinc-700 rounded w-36" />
+            <div className="h-3 bg-zinc-700 rounded w-full max-w-64" />
+            <div className="w-20 h-5 bg-zinc-700 rounded-md" />
+          </div>
+        </div>
+        <div className="w-20 h-20 rounded-xl bg-zinc-700 flex-shrink-0" />
+      </div>
+    </div>
+  );
+}
+
+export interface ImageModalProps {
   imageUrl: string;
   exerciseName?: string;
   exerciseDescription?: string;
