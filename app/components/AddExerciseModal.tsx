@@ -99,6 +99,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
       equipment: "equipment" in exercise ? exercise.equipment : (exercise as CustomExercise).equipment,
       imageUrl: "imageUrl" in exercise ? exercise.imageUrl ?? undefined : (exercise as CustomExercise).image_url ?? undefined,
       setsCount: count,
+      muscleGroup: selectedMuscle || undefined,
     }]);
     setAdding(false);
     setAddedIds(prev => new Set(prev).add(id));

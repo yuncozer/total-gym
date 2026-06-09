@@ -30,10 +30,12 @@ import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 import { SaveTemplateModal } from "@/app/components/SaveTemplateModal";
 import { AddExerciseModal } from "@/app/components/AddExerciseModal";
+import { DraggableExerciseList, GripVertical } from "@/app/components/DraggableExerciseList";
 import { getDailyQuote } from "@/lib/data/quote";
 import { getCardioGroup, CardioGroup } from "@/lib/data/cardio";
 import type { NewExerciseDef } from "@/lib/workout/service";
 import { useLanguage } from "@/lib/i18n";
+import { muscleGroupsData } from "@/lib/data/ejercicios";
 
 function WorkoutContent({ workoutId }: { workoutId: string }) {
   const router = useRouter();
@@ -100,6 +102,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     getLastCardio,
     removeExercise,
     addExercises,
+    reorderExercises,
   } = workout;
 
   const [phraseSeed, setPhraseSeed] = useState(0);
@@ -581,71 +584,134 @@ const handleCompleteSet = () => {
             </div>
           </div>
 
-          <div className="space-y-3">
-            {exercises.map((exercise) => {
-              const completados = getSetsCompletados(exercise);
-              const total = getTotalSets(exercise);
-              const isComplete = completados === total;
+          {(() => {
+            const groups = new Map<string, { label: string; exercises: ExerciseInWorkout[] }>();
+            const groupOrder: string[] = [];
 
-              const firstSet = exercise.sets[0];
-              const isCardioEx = firstSet?.is_cardio;
+            for (const ex of exercises) {
+              const g = ex.muscleGroup || "otros";
+              if (!groups.has(g)) {
+                const muscle = muscleGroupsData.find(m => m.id === g);
+                groupOrder.push(g);
+                groups.set(g, {
+                  label: muscle ? g.toUpperCase() : "Otros",
+                  exercises: [],
+                });
+              }
+              groups.get(g)!.exercises.push(ex);
+            }
 
-              return (
-                <div key={exercise.exerciseId} className="relative">
-                  <button
-                    type="button"
-                    onClick={() => selectExercise(exercise)}
-                    className={`w-full p-5 pr-14 rounded-xl border-2 text-left cursor-pointer ${isComplete
-                      ? "bg-green-500/10 border-green-500/30"
-                      : "bg-card border hover:border-accent"
-                      }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        {isComplete ? (
-                          <div className="w-10 h-10 bg-green-500 rounded-full flex justify-center items-center">
-                            <Check className="w-5 h-5 text-black" />
-                          </div>
-                        ) : (
-                          <div className="w-10 h-10 bg-muted rounded-full flex justify-center items-center">
-                            <Target className="w-5 h-5 text-icon" />
-                          </div>
-                        )}
-                        <div>
-                          <h3 className="font-bold text-lg">{exercise.name}</h3>
-                          {isCardioEx ? (
-                            <p className="text-sm text-icon">
-                              {(firstSet?.distance_km ?? 0) > 0 && `${firstSet.distance_km} km`}
-                              {(firstSet?.distance_km ?? 0) > 0 && (firstSet?.duration_minutes ?? 0) > 0 && " · "}
-                              {(firstSet?.duration_minutes ?? 0) > 0 && `${firstSet.duration_minutes} min`}
-                              {(firstSet?.distance_km ?? 0) <= 0 && (firstSet?.duration_minutes ?? 0) <= 0 && t("train.cardio")}
-                            </p>
-                          ) : (
-                            <p className="text-sm text-icon">{total} {t("workout.series")}</p>
+            const groupedList = groupOrder.flatMap(g => groups.get(g)!.exercises);
+
+            return (
+              <DraggableExerciseList
+                exercises={groupedList}
+                onReorder={reorderExercises}
+              >
+                {(exercise, index, dragHandleProps) => {
+                  const prevExercise = index > 0 ? groupedList[index - 1] : null;
+                  const currentGroup = exercise.muscleGroup || "otros";
+                  const prevGroup = prevExercise ? (prevExercise.muscleGroup || "otros") : null;
+                  const showHeader = currentGroup !== prevGroup;
+                  const muscle = muscleGroupsData.find(m => m.id === exercise.muscleGroup);
+
+                  const completados = getSetsCompletados(exercise);
+                  const total = getTotalSets(exercise);
+                  const isComplete = completados === total;
+                  const firstSet = exercise.sets[0];
+                  const isCardioEx = firstSet?.is_cardio;
+
+                  return (
+                    <>
+                      {showHeader && (
+                        <div className="flex items-center gap-3 pt-2 pb-1">
+                          {muscle?.image && (
+                            <div className="relative w-7 h-7 rounded overflow-hidden shrink-0">
+                              <Image
+                                src={muscle.image}
+                                alt={muscle.name}
+                                fill
+                                className="object-cover"
+                              />
+                            </div>
                           )}
+                          <h3
+                            className="text-xs font-bold text-accent uppercase tracking-widest"
+                            style={{ fontFamily: "var(--font-oswald)" }}
+                          >
+                            {muscle ? t("muscleGroup." + muscle.id + ".name") : "Otros"}
+                          </h3>
                         </div>
+                      )}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => selectExercise(exercise)}
+                          className={`w-full p-5 pr-14 rounded-xl border-2 text-left cursor-pointer ${isComplete
+                            ? "bg-green-500/10 border-green-500/30"
+                            : "bg-card border hover:border-accent"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <div
+                                className="p-1.5 -ml-1.5 text-icon hover:text-white active:text-accent touch-manipulation cursor-grab active:cursor-grabbing shrink-0 rounded-lg hover:bg-zinc-800 active:bg-zinc-700"
+                                {...dragHandleProps.listeners}
+                                {...dragHandleProps.attributes}
+                                aria-label="Reordenar ejercicio"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <GripVertical className="w-5 h-5 pointer-events-none" />
+                              </div>
+                              <div className="flex items-center gap-3 min-w-0">
+                                {isComplete ? (
+                                  <div className="w-10 h-10 bg-green-500 rounded-full flex justify-center items-center shrink-0">
+                                    <Check className="w-5 h-5 text-black" />
+                                  </div>
+                                ) : (
+                                  <div className="w-10 h-10 bg-muted rounded-full flex justify-center items-center shrink-0">
+                                    <Target className="w-5 h-5 text-icon" />
+                                  </div>
+                                )}
+                                <div className="min-w-0">
+                                  <h3 className="font-bold text-lg truncate">{exercise.name}</h3>
+                                  {isCardioEx ? (
+                                    <p className="text-sm text-icon truncate">
+                                      {(firstSet?.distance_km ?? 0) > 0 && `${firstSet.distance_km} km`}
+                                      {(firstSet?.distance_km ?? 0) > 0 && (firstSet?.duration_minutes ?? 0) > 0 && " · "}
+                                      {(firstSet?.duration_minutes ?? 0) > 0 && `${firstSet.duration_minutes} min`}
+                                      {(firstSet?.distance_km ?? 0) <= 0 && (firstSet?.duration_minutes ?? 0) <= 0 && t("train.cardio")}
+                                    </p>
+                                  ) : (
+                                    <p className="text-sm text-icon">{total} {t("workout.series")}</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <span className={`text-lg font-bold shrink-0 ${isComplete ? "text-green-500" : "text-accent"}`}>
+                              {completados}/{total}
+                            </span>
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setDeleteConfirmExercise(exercise);
+                          }}
+                          disabled={saving}
+                          className="absolute top-1 right-1 p-2 text-icon hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
+                          title={t("workout.deleteTooltip")}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                      <span className={`text-lg font-bold ${isComplete ? "text-green-500" : "text-accent"}`}>
-                        {completados}/{total}
-                      </span>
-                    </div>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setDeleteConfirmExercise(exercise);
-                    }}
-                    disabled={saving}
-                    className="absolute top-1 right-1 p-2 text-icon hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed disabled:pointer-events-none"
-                    title={t("workout.deleteTooltip")}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
+                    </>
+                  );
+                }}
+              </DraggableExerciseList>
+            );
+          })()}
 
           <div className="mt-8 flex justify-between text-sm text-icon">
             <span>{progress.completed} {t("workout.completed")}</span>

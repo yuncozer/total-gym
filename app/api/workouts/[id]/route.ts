@@ -49,12 +49,12 @@ export async function GET(
       .from("workout_sets")
       .select("*")
       .eq("workout_id", workoutId)
-      .order("exercise_id", { ascending: true })
+      .order("exercise_order", { ascending: true })
       .order("set_number", { ascending: true });
 
     if (setsError) throw setsError;
 
-    const grouped: Record<string, { exerciseId: string; name: string; equipment: string; imageUrl?: string; sets: unknown[] }> = {};
+    const grouped: Record<string, { exerciseId: string; name: string; equipment: string; imageUrl?: string; muscleGroup?: string; sets: unknown[] }> = {};
     
     (sets || []).forEach(set => {
       if (!grouped[set.exercise_id]) {
@@ -63,6 +63,7 @@ export async function GET(
           name: set.exercise_name,
           equipment: "",
           imageUrl: set.image_url || undefined,
+          muscleGroup: set.muscle_group || undefined,
           sets: []
         };
       }

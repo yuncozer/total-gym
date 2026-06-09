@@ -188,7 +188,7 @@ export const strings = {
   "workout.setLabel": { es: "SERIE", en: "SET" },
   "workout.repsLabel": { es: "REPETICIONES", en: "REPS" },
   "workout.weightBarbell": { es: "Peso (kg)", en: "Weight (kg)" },
-  "workout.weightPerSide": { es: "Peso por lado (kg)", en: "Weight per side (kg)" },
+  "workout.weightPerSide": { es: "PESO TOTAL LEVANTADO (KG)", en: "TOTAL WEIGHT LIFTED (KG)" },
   "workout.distanceLabel": { es: "DISTANCIA (KM)", en: "DISTANCE (KM)" },
   "workout.durationLabel": { es: "DURACIÓN (MIN)", en: "DURATION (MIN)" },
   "workout.last": { es: "Último:", en: "Last:" },

@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
 
     if (workoutError) throw workoutError;
 
-    const setsToInsert = exercises.flatMap((ej: { id: string; name: string; imageUrl?: string; is_cardio?: boolean; sets: Array<{ reps: number; peso: number }> }) =>
+    const setsToInsert = exercises.flatMap((ej: { id: string; name: string; imageUrl?: string; is_cardio?: boolean; muscle_group?: string; sets: Array<{ reps: number; peso: number }> }, ejIndex: number) =>
       ej.sets.map((_, index) => ({
         workout_id: workout.id,
         exercise_id: ej.id,
@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
         duration_minutes: ej.is_cardio ? 0 : null,
         is_completed: false,
         image_url: ej.imageUrl || null,
+        exercise_order: ejIndex,
+        muscle_group: ej.muscle_group || null,
       }))
     );
 
@@ -119,10 +121,9 @@ export async function GET(request: NextRequest) {
       (workouts || []).map(async (workout) => {
         const { data: sets } = await supabase
           .from("workout_sets")
-          .select("id, exercise_id, exercise_name, image_url, set_number, reps, weight_kg, is_cardio, distance_km, duration_minutes, is_completed")
-          .eq("workout_id", workout.id);
+          .select("id, exercise_id, exercise_name, image_url, muscle_group, set_number, reps, weight_kg, is_cardio, distance_km, duration_minutes, is_completed")
 
-        const grouped: Record<string, { exerciseId: string; name: string; equipment: string; imageUrl?: string; sets: unknown[] }> = {};
+        const grouped: Record<string, { exerciseId: string; name: string; equipment: string; imageUrl?: string; muscleGroup?: string; sets: unknown[] }> = {};
         
         (sets || []).forEach(set => {
           if (!grouped[set.exercise_id]) {
@@ -131,6 +132,7 @@ export async function GET(request: NextRequest) {
               name: set.exercise_name,
               equipment: "",
               imageUrl: set.image_url || undefined,
+              muscleGroup: set.muscle_group || undefined,
               sets: []
             };
           }
