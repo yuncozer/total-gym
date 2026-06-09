@@ -1,4 +1,18 @@
 export const strings = {
+  // --- Equipment ---
+  "equipment.barbell": { es: "Barra", en: "Barbell" },
+  "equipment.sz-bar": { es: "Barra EZ", en: "EZ-Bar" },
+  "equipment.dumbbell": { es: "Mancuernas", en: "Dumbbell" },
+  "equipment.kettlebell": { es: "Pesa rusa", en: "Kettlebell" },
+  "equipment.cable": { es: "Polea", en: "Cable" },
+  "equipment.machine": { es: "Máquina", en: "Machine" },
+  "equipment.bench": { es: "Banco", en: "Bench" },
+  "equipment.incline-bench": { es: "Banco inclinado", en: "Incline bench" },
+  "equipment.swiss-ball": { es: "Balón suizo", en: "Swiss Ball" },
+  "equipment.gym-mat": { es: "Mat de gym", en: "Gym mat" },
+  "equipment.pull-up-bar": { es: "Barra fija", en: "Pull-up bar" },
+  "equipment.resistance-band": { es: "Banda elástica", en: "Resistance band" },
+  "equipment.bodyweight": { es: "Peso corporal", en: "Body weight" },
   // --- Header ---
   "header.back": { es: "IR A INICIO", en: "GO HOME" },
   "header.login": { es: "LOGIN", en: "LOGIN" },
@@ -142,7 +156,7 @@ export const strings = {
   "train.selectMuscles": { es: "Selecciona los grupos musculares que vas a trabajar", en: "Select the muscle groups you'll work" },
   "train.selectExercises": { es: "Selecciona los ejercicios para cada grupo", en: "Select the exercises for each group" },
   "train.changeMuscles": { es: "Cambiar grupos musculares", en: "Change muscle groups" },
-  "train.loadTemplate": { es: "CARGAR RUTINA GUARDADA", en: "LOAD SAVED ROUTINE" },
+  "train.loadTemplate": { es: "CARGAR RUTINA GUARDADA PREVIAMENTE", en: "LOAD PREVIOUSLY SAVED ROUTINE" },
   "train.pickExercises": { es: "ELEGIR EJERCICIOS", en: "PICK EXERCISES" },
   "train.minSelection": { es: "Selecciona al menos un grupo muscular para continuar", en: "Select at least one muscle group to continue" },
   "train.tabAll": { es: "Todos", en: "All" },
@@ -178,6 +192,7 @@ export const strings = {
   "train.cardioLabel": { es: "Cardio", en: "Cardio" },
   "train.oneSet": { es: "1 serie", en: "1 set" },
   "train.deleteCustomTitle": { es: "Eliminar ejercicio", en: "Delete exercise" },
+  "train.imageView": { es: "Ver imagen", en: "View image" },
 
   // --- Workout page ---
   "workout.title": { es: "TU ENTRENAMIENTO", en: "YOUR WORKOUT" },
@@ -216,6 +231,9 @@ export const strings = {
   "workout.deleteAndCancel": { es: "CANCELAR Y BORRAR", en: "CANCEL AND DELETE" },
   "workout.deleteConfirm": { es: "ELIMINAR", en: "REMOVE" },
   "workout.deleteTooltip": { es: "Eliminar ejercicio", en: "Remove exercise" },
+  "workout.imageView": { es: "Ver ejercicio", en: "View exercise" },
+  "workout.nextExercise": { es: "SIGUIENTE EJERCICIO", en: "NEXT EXERCISE" },
+  "workout.startNext": { es: "EMPEZAR SIGUIENTE", en: "START NEXT" },
 
   // --- Workout: Completed state ---
   "workout.completedTitle": { es: "ENTRENAMIENTO COMPLETADO", en: "WORKOUT COMPLETED" },

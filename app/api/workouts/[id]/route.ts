@@ -54,13 +54,14 @@ export async function GET(
 
     if (setsError) throw setsError;
 
-    const grouped: Record<string, { exerciseId: string; name: string; equipment: string; imageUrl?: string; muscleGroup?: string; sets: unknown[] }> = {};
+    const grouped: Record<string, { exerciseId: string; name: string; description?: string; equipment: string; imageUrl?: string; muscleGroup?: string; sets: unknown[] }> = {};
     
     (sets || []).forEach(set => {
       if (!grouped[set.exercise_id]) {
         grouped[set.exercise_id] = {
           exerciseId: set.exercise_id,
           name: set.exercise_name,
+          description: set.description || undefined,
           equipment: "",
           imageUrl: set.image_url || undefined,
           muscleGroup: set.muscle_group || undefined,

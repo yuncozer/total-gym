@@ -18,8 +18,9 @@ import {
   Bookmark,
   Trash2,
   X,
-  Maximize2,
+  ZoomIn,
   XCircle,
+  FileText,
 } from "lucide-react";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
@@ -30,6 +31,7 @@ import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 import { SaveTemplateModal } from "@/app/components/SaveTemplateModal";
 import { AddExerciseModal } from "@/app/components/AddExerciseModal";
+import { ImageModal } from "@/app/components/EjercicioCard";
 import { DraggableExerciseList, GripVertical } from "@/app/components/DraggableExerciseList";
 import { getDailyQuote } from "@/lib/data/quote";
 import { getCardioGroup, CardioGroup } from "@/lib/data/cardio";
@@ -118,6 +120,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [modalSubPhrase, setModalSubPhrase] = useState("");
   const [pendingAction, setPendingAction] = useState<"completeSet" | "addExtraSet" | null>(null);
   const [exerciseImage, setExerciseImage] = useState<string | null>(null);
+  const [listImageModal, setListImageModal] = useState<{ url: string; name: string; description?: string } | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showAddExercise, setShowAddExercise] = useState(false);
 
@@ -130,6 +133,15 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
       setPhraseSeed(prev => prev + 1);
     }
   }, [selectedExercise, currentSetIndex]);
+
+  useEffect(() => {
+    if (selectedExercise) {
+      document.documentElement.classList.add("workout-mode");
+    } else {
+      document.documentElement.classList.remove("workout-mode");
+    }
+    return () => document.documentElement.classList.remove("workout-mode");
+  }, [selectedExercise]);
 
 const handleCompleteSet = () => {
     if (!selectedExercise || !canCompleteSet) return;
@@ -266,8 +278,8 @@ const handleCompleteSet = () => {
     const isCardio = set?.is_cardio;
 
     return (
-      <div className="min-h-screen bg-background text-white">
-                <main className="pt-24 pb-12 px-4">
+      <div className="min-h-screen bg-background text-white py-8">
+                <main className="pb-12 px-4">
           <div className="max-w-md mx-auto">
             <button onClick={handleBack} className="flex items-center gap-2 text-muted-foreground hover:text-white cursor-pointer mb-6">
               <ArrowLeft className="w-4 h-4" /> {t("workout.back")}
@@ -287,44 +299,74 @@ const handleCompleteSet = () => {
               </div>
 
               {!isCardio && (
-                <div className="flex items-center justify-center gap-2 mb-6">
-                  {selectedExercise.sets.map((_, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => goToSet(idx)}
-                      disabled={idx > currentSetIndex && !selectedExercise.sets[idx].is_completed}
-                      className={`w-10 h-10 rounded-full text-sm font-bold cursor-pointer ${idx === currentSetIndex
-                        ? "bg-accent text-black"
-                        : selectedExercise.sets[idx].is_completed
-                          ? "bg-green-500 text-black"
-                          : "bg-muted text-icon"
+                <div className="space-y-1.5 mb-6">
+                  {selectedExercise.sets.map((s, idx) => {
+                    const isCurrent = idx === currentSetIndex;
+                    const isPast = idx < currentSetIndex || s.is_completed;
+                    const isFuture = idx > currentSetIndex && !s.is_completed;
+                    if (isCurrent) return null;
+                    return (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => goToSet(idx)}
+                        disabled={isFuture}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all cursor-pointer ${
+                          isPast
+                            ? "bg-green-500/5 border border-green-500/10 hover:bg-green-500/10"
+                            : "bg-muted/30 border border hover:bg-muted/60 opacity-40"
                         }`}
-                    >
-                      {idx + 1}
-                    </button>
-                  ))}
+                      >
+                        <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                          isPast ? "bg-green-500 text-black" : "bg-zinc-700 text-icon"
+                        }`}>
+                          {isPast ? <Check className="w-3.5 h-3.5" /> : idx + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <span className="text-xs font-medium text-muted-foreground">{t("workout.setLabel")} {idx + 1}</span>
+                          {isPast && (
+                            <p className="text-xs text-icon truncate">
+                              {s.reps || 0} reps × {s.weight_kg || 0} kg
+                            </p>
+                          )}
+                        </div>
+                        {isPast && (
+                          <span className="text-[10px] text-green-500/60 font-medium">{t("workout.completed")}</span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
               )}
 
               {selectedExercise.imageUrl && (
-                <div className="flex justify-center mb-4">
+                <div className="flex flex-col items-center mb-4">
                   <button
                     onClick={() => setExerciseImage(selectedExercise.imageUrl!)}
-                    className="relative block"
-                    title="Ver ejercicio"
+                    className="relative block rounded-lg border border-transparent hover:border-accent-secondary/30 transition-all active:scale-95"
+                    title={t("workout.imageView")}
                   >
                     <Image
                       src={selectedExercise.imageUrl}
                       alt={selectedExercise.name}
                       width={80}
                       height={60}
-                      className="rounded-lg object-cover opacity-60"
+                      className="rounded-lg object-cover"
                     />
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <Maximize2 className="w-5 h-5 text-white drop-shadow-lg" />
+                    <div className="absolute top-1 right-1">
+                      <div className="bg-black/50 rounded-full p-1 backdrop-blur-sm">
+                        <ZoomIn className="w-3.5 h-3.5 text-white" />
+                      </div>
                     </div>
                   </button>
+                  {selectedExercise.description && (
+                    <div className="flex items-start gap-1.5 mt-1.5 max-w-[200px] animate-fade-in-up" style={{ animationDelay: "200ms" }}>
+                      <FileText className="w-3 h-3 mt-[2px] shrink-0 text-zinc-500" />
+                      <p className="text-[10px] text-zinc-500 line-clamp-1 leading-relaxed">
+                        {selectedExercise.description}
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -469,9 +511,9 @@ const handleCompleteSet = () => {
               )}
 
               {!isCardio && timer.descansando && (
-                <div className="mt-4 p-4 bg-card rounded-xl border border">
+                <div className="mt-4 p-4 bg-card rounded-xl border">
                   {set.is_completed && (
-                    <div className="text-center mb-3 pb-3 border-b border">
+                    <div className="text-center mb-3 pb-3">
                       <span className="text-green-500 font-bold text-lg">
                         {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
                       </span>
@@ -480,11 +522,11 @@ const handleCompleteSet = () => {
                   )}
                   <div className="text-center mb-3">
                     <span className="text-sm text-icon">{t("workout.restLabel")}</span>
-                    <div className="text-6xl font-bold text-accent mt-2" style={{ fontFamily: "var(--font-oswald)", textShadow: "0 0 20px rgba(234, 179, 8, 0.4)" }}>
+                    <div className="text-8xl font-bold text-accent mt-2 workout-timer" style={{ fontFamily: "var(--font-oswald)", textShadow: "0 0 20px rgba(234, 179, 8, 0.4)" }}>
                       {Math.floor(timer.segundos / 60).toString().padStart(2, '0')}:{(timer.segundos % 60).toString().padStart(2, '0')}
                     </div>
                   </div>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col gap-4">
                     <button
                       onClick={undoSetComplete}
                       className="flex items-center justify-center gap-2 w-full py-2.5 border border-zinc-600 text-icon hover:text-white hover:border-zinc-500 rounded-xl transition-colors cursor-pointer text-sm"
@@ -512,18 +554,52 @@ const handleCompleteSet = () => {
 
               {isExerciseComplete && (
                 <div className="text-center py-4">
-                  <div className="flex items-center justify-center gap-2 text-green-500 mb-4">
-                    <span className="text-2xl">🏆</span>
-                    <span className="font-bold">{t("workout.exerciseComplete")}</span>
-                  </div>
-                  <button
-                    onClick={() => {
-                      deselectExercise();
-                    }}
-                    className="text-accent font-bold cursor-pointer"
-                  >
-                    {t("workout.pickAnother")}
-                  </button>
+                  {(() => {
+                    const currentIdx = exercises.findIndex(e => e.exerciseId === selectedExercise.exerciseId);
+                    const nextExercise = currentIdx >= 0 && currentIdx < exercises.length - 1 ? exercises[currentIdx + 1] : null;
+                    return nextExercise ? (
+                      <>
+                        <div className="flex items-center justify-center gap-2 text-green-500 mb-4">
+                          <CheckCircle2 className="w-6 h-6" />
+                          <span className="font-bold">{t("workout.exerciseComplete")}</span>
+                        </div>
+                        <div className="bg-card rounded-xl p-4 border text-left mb-4">
+                          <p className="text-xs text-icon mb-2 uppercase tracking-wider">{t("workout.nextExercise")}</p>
+                          <div className="flex items-center gap-3">
+                            {nextExercise.imageUrl && (
+                              <Image src={nextExercise.imageUrl} alt={nextExercise.name} width={48} height={48} className="rounded-lg object-cover w-12 h-12" />
+                            )}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white font-bold truncate">{nextExercise.name}</p>
+                              <p className="text-xs text-icon">{nextExercise.sets.length} {t("workout.series")}</p>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => selectExercise(nextExercise)}
+                          className="w-full py-3 bg-accent hover:bg-accent-hover text-black font-bold rounded-xl cursor-pointer mb-2"
+                        >
+                          {t("workout.startNext")}
+                        </button>
+                        <button
+                          onClick={() => { deselectExercise(); }}
+                          className="text-sm text-muted-foreground hover:text-white cursor-pointer"
+                        >
+                          {t("workout.pickAnother")}
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex items-center justify-center gap-2 text-green-500 mb-4">
+                          <CheckCircle2 className="w-6 h-6" />
+                          <span className="font-bold">{t("workout.exerciseComplete")}</span>
+                        </div>
+                        <button onClick={() => { deselectExercise(); }} className="text-accent font-bold cursor-pointer">
+                          {t("workout.pickAnother")}
+                        </button>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>
@@ -538,25 +614,12 @@ const handleCompleteSet = () => {
         />
 
         {exerciseImage && (
-          <div
-            className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
-            onClick={() => setExerciseImage(null)}
-          >
-            <button
-              onClick={() => setExerciseImage(null)}
-              className="absolute top-4 right-4 p-2 text-white/60 hover:text-white cursor-pointer z-10"
-            >
-              <X className="w-6 h-6" />
-            </button>
-            <Image
-              src={exerciseImage}
-              alt="Ejercicio"
-              width={600}
-              height={450}
-              className="max-w-full max-h-[90vh] object-contain rounded-xl"
-              onClick={(e) => e.stopPropagation()}
-            />
-          </div>
+          <ImageModal
+            imageUrl={exerciseImage}
+            exerciseName={selectedExercise?.name}
+            exerciseDescription={selectedExercise?.description}
+            onClose={() => setExerciseImage(null)}
+          />
         )}
       </div>
     );
@@ -644,9 +707,15 @@ const handleCompleteSet = () => {
                         </div>
                       )}
                       <div className="relative">
-                        <button
-                          type="button"
-                          onClick={() => selectExercise(exercise)}
+                        <div
+                          role="button"
+                          tabIndex={0}
+                          onKeyDown={(e) => { if (e.key === 'Enter') selectExercise(exercise); }}
+                          onClick={(e) => {
+                            const target = e.target as HTMLElement;
+                            if (target.closest('[data-avatar]') || target.closest('[data-drag]')) return;
+                            selectExercise(exercise);
+                          }}
                           className={`w-full p-5 pr-14 rounded-xl border-2 text-left cursor-pointer ${isComplete
                             ? "bg-green-500/10 border-green-500/30"
                             : "bg-card border hover:border-accent"
@@ -655,6 +724,7 @@ const handleCompleteSet = () => {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center gap-1.5 min-w-0">
                               <div
+                                data-drag
                                 className="p-1.5 -ml-1.5 text-icon hover:text-white active:text-accent touch-manipulation cursor-grab active:cursor-grabbing shrink-0 rounded-lg hover:bg-zinc-800 active:bg-zinc-700"
                                 {...dragHandleProps.listeners}
                                 {...dragHandleProps.attributes}
@@ -664,15 +734,41 @@ const handleCompleteSet = () => {
                                 <GripVertical className="w-5 h-5 pointer-events-none" />
                               </div>
                               <div className="flex items-center gap-3 min-w-0">
-                                {isComplete ? (
-                                  <div className="w-10 h-10 bg-green-500 rounded-full flex justify-center items-center shrink-0">
-                                    <Check className="w-5 h-5 text-black" />
-                                  </div>
-                                ) : (
-                                  <div className="w-10 h-10 bg-muted rounded-full flex justify-center items-center shrink-0">
-                                    <Target className="w-5 h-5 text-icon" />
-                                  </div>
-                                )}
+                                <div className="w-10 h-10 shrink-0">
+                                  {exercise.imageUrl ? (
+                                    <div
+                                      onClick={() => setListImageModal({
+                                        url: exercise.imageUrl!,
+                                        name: exercise.name,
+                                        description: exercise.description,
+                                      })}
+                                      data-avatar
+                                      role="button"
+                                      tabIndex={0}
+                                      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setListImageModal({ url: exercise.imageUrl!, name: exercise.name, description: exercise.description }); }}
+                                      className={`w-10 h-10 block rounded-lg overflow-hidden cursor-zoom-in active:scale-90 transition-transform relative ${isComplete ? "ring-2 ring-green-500" : "hover:ring-1 hover:ring-accent-secondary/50"}`}
+                                    >
+                                      <Image
+                                        src={exercise.imageUrl}
+                                        alt={exercise.name}
+                                        width={40}
+                                        height={40}
+                                        className="object-cover w-10 h-10"
+                                      />
+                                      <div className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5">
+                                        <ZoomIn className="w-2.5 h-2.5 text-white" />
+                                      </div>
+                                    </div>
+                                  ) : isComplete ? (
+                                    <div className="w-10 h-10 bg-green-500 rounded-full flex justify-center items-center">
+                                      <Check className="w-5 h-5 text-black" />
+                                    </div>
+                                  ) : (
+                                    <div className="w-10 h-10 bg-muted rounded-full flex justify-center items-center">
+                                      <Target className="w-5 h-5 text-icon" />
+                                    </div>
+                                  )}
+                                </div>
                                 <div className="min-w-0">
                                   <h3 className="font-bold text-lg truncate">{exercise.name}</h3>
                                   {isCardioEx ? (
@@ -692,7 +788,7 @@ const handleCompleteSet = () => {
                               {completados}/{total}
                             </span>
                           </div>
-                        </button>
+                        </div>
                         <button
                           type="button"
                           onClick={(e) => {
@@ -775,6 +871,15 @@ const handleCompleteSet = () => {
             onAddExercises={async (exercises) => {
               await addExercises(exercises);
             }}
+          />
+        )}
+
+        {listImageModal && (
+          <ImageModal
+            imageUrl={listImageModal.url}
+            exerciseName={listImageModal.name}
+            exerciseDescription={listImageModal.description}
+            onClose={() => setListImageModal(null)}
           />
         )}
       </main>
