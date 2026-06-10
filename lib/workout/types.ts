@@ -12,6 +12,7 @@ export interface WorkoutSet {
   distance_km?: number | null;
   duration_minutes?: number | null;
   description?: string;
+  image_url?: string;
   is_completed: boolean;
   exercise_order?: number;
   muscle_group?: string;
