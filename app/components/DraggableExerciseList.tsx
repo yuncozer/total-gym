@@ -6,6 +6,7 @@ import {
   closestCenter,
   PointerSensor,
   TouchSensor,
+  KeyboardSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -14,6 +15,7 @@ import {
   SortableContext,
   useSortable,
   verticalListSortingStrategy,
+  sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { GripVertical } from "lucide-react";
@@ -70,8 +72,9 @@ export function DraggableExerciseList({
   children,
 }: DraggableExerciseListProps) {
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
-  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 8 } });
-  const sensors = useSensors(pointerSensor, touchSensor);
+  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 0, tolerance: 5 } });
+  const keyboardSensor = useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates });
+  const sensors = useSensors(pointerSensor, touchSensor, keyboardSensor);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;

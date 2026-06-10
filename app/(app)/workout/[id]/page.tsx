@@ -725,7 +725,7 @@ const handleCompleteSet = () => {
                             <div className="flex items-center gap-1.5 min-w-0">
                               <div
                                 data-drag
-                                className="p-1.5 -ml-1.5 text-icon hover:text-white active:text-accent touch-manipulation cursor-grab active:cursor-grabbing shrink-0 rounded-lg hover:bg-zinc-800 active:bg-zinc-700"
+                                className="p-1.5 -ml-1.5 text-icon hover:text-white active:text-accent touch-action-none cursor-grab active:cursor-grabbing shrink-0 rounded-lg hover:bg-zinc-800 active:bg-zinc-700"
                                 {...dragHandleProps.listeners}
                                 {...dragHandleProps.attributes}
                                 aria-label="Reordenar ejercicio"

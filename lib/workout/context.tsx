@@ -289,6 +289,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
       await service.saveSets(workoutId, ejs);
     } catch (err) {
       console.error("Error saving sets:", err);
+      throw err;
     } finally {
       setSaving(false);
     }
@@ -470,7 +471,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     saveTimerToStorage(now, true, selectedExercise.exerciseId);
   }, [selectedExercise, currentSetIndex, exercises, saveSets, setTimer, saveTimerToStorage]);
 
-  const undoSetComplete = useCallback(() => {
+  const undoSetComplete = useCallback(async () => {
     if (!selectedExercise) return;
 
     const set = selectedExercise.sets[currentSetIndex];
@@ -493,7 +494,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     setIsLastSet(false);
     setTimer({ segundos: 0, activo: false, descansando: false });
     clearTimerStorage();
-    saveSets(updatedExercises);
+    await saveSets(updatedExercises);
   }, [selectedExercise, currentSetIndex, exercises, saveSets]);
 
   const setAsLastSet = useCallback((value: boolean) => {
@@ -543,8 +544,12 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
   }, [exercises, selectedExercise, saveSets]);
 
   const reorderExercises = useCallback(async (reordered: ExerciseInWorkout[]) => {
-    setExercises(reordered);
-    await saveSets(reordered);
+    try {
+      await saveSets(reordered);
+      setExercises(reordered);
+    } catch {
+      // save failed — state stays unchanged, toast already shown by fetchAPI
+    }
   }, [saveSets]);
 
   const playNotificationSound = useCallback(() => {
