@@ -729,7 +729,6 @@ const handleCompleteSet = () => {
                                 {...dragHandleProps.listeners}
                                 {...dragHandleProps.attributes}
                                 aria-label="Reordenar ejercicio"
-                                onClick={(e) => e.stopPropagation()}
                               >
                                 <GripVertical className="w-5 h-5 pointer-events-none" />
                               </div>

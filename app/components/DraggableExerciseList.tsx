@@ -5,7 +5,6 @@ import {
   DndContext,
   closestCenter,
   PointerSensor,
-  TouchSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
@@ -47,6 +46,7 @@ function SortableItem({ id, disabled, children }: SortableItemProps) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
+    touchAction: 'none' as const,
   };
 
   return (
@@ -72,9 +72,8 @@ export function DraggableExerciseList({
   children,
 }: DraggableExerciseListProps) {
   const pointerSensor = useSensor(PointerSensor, { activationConstraint: { distance: 8 } });
-  const touchSensor = useSensor(TouchSensor, { activationConstraint: { delay: 0, tolerance: 5 } });
   const keyboardSensor = useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates });
-  const sensors = useSensors(pointerSensor, touchSensor, keyboardSensor);
+  const sensors = useSensors(pointerSensor, keyboardSensor);
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
