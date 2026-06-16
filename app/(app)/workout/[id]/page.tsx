@@ -32,6 +32,8 @@ import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 import { SaveTemplateModal } from "@/app/components/SaveTemplateModal";
 import { AddExerciseModal } from "@/app/components/AddExerciseModal";
 import { ImageModal } from "@/app/components/EjercicioCard";
+import { TimerCircle } from "@/app/components/TimerCircle";
+import { PRCelebration } from "@/app/components/PRCelebration";
 import { DraggableExerciseList, GripVertical } from "@/app/components/DraggableExerciseList";
 import { getDailyQuote } from "@/lib/data/quote";
 import { getCardioGroup, CardioGroup } from "@/lib/data/cardio";
@@ -123,6 +125,11 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [listImageModal, setListImageModal] = useState<{ url: string; name: string; description?: string } | null>(null);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showAddExercise, setShowAddExercise] = useState(false);
+  const [prCelebration, setPrCelebration] = useState<{
+    exerciseName: string;
+    weight: number;
+    reps: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -162,15 +169,30 @@ const handleCompleteSet = () => {
 
   const handleMotivationalComplete = () => {
     setShowMotivationalModal(false);
-    
+
     if (pendingAction === "addExtraSet" && selectedExercise) {
       const originalSetsCount = selectedExercise.sets.length;
       addExtraSet();
       extraSetIndexRef.current = originalSetsCount;
     } else if (pendingAction === "completeSet") {
+      if (navigator.vibrate) navigator.vibrate(15);
+
+      const set = selectedExercise?.sets[currentSetIndex];
+      const weight = set?.weight_kg ?? 0;
+      const reps = set?.reps ?? 0;
+      const lastWeight = getLastWeight(selectedExercise?.exerciseId ?? "");
+
+      if (weight > 0 && weight > lastWeight) {
+        setPrCelebration({
+          exerciseName: selectedExercise?.name ?? "",
+          weight,
+          reps,
+        });
+      }
+
       completeSet();
     }
-    
+
     setPendingAction(null);
   };
 
@@ -511,33 +533,39 @@ const handleCompleteSet = () => {
               )}
 
               {!isCardio && timer.descansando && (
-                <div className="mt-4 p-4 bg-card rounded-xl border">
+                <div className="mt-4 bg-card rounded-2xl border p-6 text-center">
                   {set.is_completed && (
-                    <div className="text-center mb-3 pb-3">
+                    <div className="mb-4 pb-4 border-b border">
                       <span className="text-green-500 font-bold text-lg">
                         {getRandomPhrase(COMPLETED_PHRASES)} {getRandomPhrase(MOTIVATIONAL_PHRASES)}
                       </span>
                       <div className="text-sm text-green-500/70 mt-1">{t("workout.setComplete")}</div>
                     </div>
                   )}
-                  <div className="text-center mb-3">
-                    <span className="text-sm text-icon">{t("workout.restLabel")}</span>
-                    <div className="text-8xl font-bold text-accent mt-2 workout-timer" style={{ fontFamily: "var(--font-oswald)", textShadow: "0 0 20px rgba(234, 179, 8, 0.4)" }}>
-                      {Math.floor(timer.segundos / 60).toString().padStart(2, '0')}:{(timer.segundos % 60).toString().padStart(2, '0')}
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-4">
-                    <button
-                      onClick={undoSetComplete}
-                      className="flex items-center justify-center gap-2 w-full py-2.5 border border-zinc-600 text-icon hover:text-white hover:border-zinc-500 rounded-xl transition-colors cursor-pointer text-sm"
-                    >
-                      {t("workout.editSet")}
-                    </button>
+                  <button
+                    onClick={handleNextSet}
+                    className="mx-auto mb-4 cursor-pointer active:scale-95 transition-transform"
+                  >
+                    <TimerCircle
+                      seconds={timer.segundos}
+                      maxSeconds={180}
+                      isResting={true}
+                      size={220}
+                      strokeWidth={5}
+                    />
+                  </button>
+                  <div className="flex flex-col gap-3">
                     <button
                       onClick={handleNextSet}
                       className="flex items-center justify-center gap-2 w-full py-3 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl"
                     >
                       <Play className="w-4 h-4" /> {t("workout.startNextSet")}
+                    </button>
+                    <button
+                      onClick={undoSetComplete}
+                      className="flex items-center justify-center gap-2 w-full py-2.5 border border-zinc-600 text-icon hover:text-white hover:border-zinc-500 rounded-xl transition-colors cursor-pointer text-sm"
+                    >
+                      {t("workout.editSet")}
                     </button>
                   </div>
                 </div>
@@ -619,6 +647,14 @@ const handleCompleteSet = () => {
             exerciseName={selectedExercise?.name}
             exerciseDescription={selectedExercise?.description}
             onClose={() => setExerciseImage(null)}
+          />
+        )}
+        {prCelebration && (
+          <PRCelebration
+            exerciseName={prCelebration.exerciseName}
+            weight={prCelebration.weight}
+            reps={prCelebration.reps}
+            onClose={() => setPrCelebration(null)}
           />
         )}
       </div>

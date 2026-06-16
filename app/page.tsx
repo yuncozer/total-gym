@@ -59,16 +59,28 @@ function UserDashboard({ stats, loading }: { stats: DashboardStats | null; loadi
         </div>
         <div className="text-icon text-xs sm:text-sm">{t("home.stats.trainedLabel")}</div>
       </div>
-      <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-all duration-300 hover:scale-105">
+      <div className={`bg-card/80 border rounded-xl p-3 sm:p-4 text-center transition-all duration-300 hover:scale-105 ${
+        stats?.streak && stats.streak > 0
+          ? "border-orange-500/40 shadow-[0_0_25px_rgba(249,115,22,0.2)] animate-[glowPulse_2s_ease-in-out_infinite]"
+          : "border hover:border-accent"
+      }`}>
         {stats?.streak && stats.streak > 0 ? (
-          <Flame className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-orange-500 drop-shadow-[0_0_8px_rgba(249,115,22,0.5)]" />
+          <div className="relative mx-auto w-6 h-6 sm:w-7 sm:h-7 mb-1 sm:mb-2">
+            <Flame className="w-full h-full text-orange-500 drop-shadow-[0_0_12px_rgba(249,115,22,0.7)] animate-bounce-check" />
+            <div className="absolute -inset-2 bg-orange-500/20 rounded-full blur-lg animate-pulse" />
+          </div>
         ) : (
           <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6 mx-auto mb-1 sm:mb-2 text-icon" />
         )}
         <div className="text-xl sm:text-2xl font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
           {loading ? "..." : stats?.streak || 0}
         </div>
-        <div className="text-icon text-xs sm:text-sm">{t("home.stats.streakLabel")}</div>
+        <div className="text-icon text-xs sm:text-sm">
+          {stats?.streak && stats.streak >= 7 ? "🔥 Imparable"
+            : stats?.streak && stats.streak >= 3 ? "🔥 En racha"
+            : stats?.streak && stats.streak > 0 ? "🔥 Racha activa"
+            : t("home.stats.streakLabel")}
+        </div>
       </div>
       <div className="bg-card/80 border border rounded-xl p-3 sm:p-4 text-center hover:border-accent transition-all duration-300 hover:scale-105">
         <Target className="w-5 h-5 sm:w-6 sm:h-6 text-accent mx-auto mb-1 sm:mb-2" />

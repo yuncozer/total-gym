@@ -282,18 +282,30 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     setPrevDescansando(timer.descansando);
   }, [timer.descansando, prevDescansando]);
 
+  const syncXp = useCallback(async () => {
+    try {
+      await fetch("/api/gamification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workoutId }),
+      });
+    } catch {
+    }
+  }, [workoutId]);
+
   const saveSets = useCallback(async (exercisesToSave?: ExerciseInWorkout[]) => {
     const ejs = exercisesToSave || exercises;
     setSaving(true);
     try {
       await service.saveSets(workoutId, ejs);
+      syncXp();
     } catch (err) {
       console.error("Error saving sets:", err);
       throw err;
     } finally {
       setSaving(false);
     }
-  }, [workoutId, exercises]);
+  }, [workoutId, exercises, syncXp]);
 
   const selectExercise = useCallback(async (exercise: ExerciseInWorkout) => {
     setIsExerciseComplete(false);
@@ -402,6 +414,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     if (prog.completed === prog.total) {
       setIsWorkoutComplete(true);
       await service.completeWorkout(workoutId);
+      syncXp();
       clearTimerStorage();
     } else if (selectedExercise?.exerciseId && updatedExercises[exerciseIdx]?.sets?.[0]?.is_cardio) {
       setTimer({ segundos: 0, activo: false, descansando: false });
