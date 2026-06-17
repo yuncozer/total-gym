@@ -4,12 +4,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target, RefreshCw } from "lucide-react";
+import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target, RefreshCw, Sparkles } from "lucide-react";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
 import { NotificationButton } from "@/app/components/NotificationButton";
+import { QuickStartModal } from "@/app/components/QuickStartModal";
+import { QuestionOnboarding } from "@/app/components/QuestionOnboarding";
+import { CoachMarks } from "@/app/components/CoachMarks";
 import { useInstallPrompt } from "@/lib/use-install-prompt";
 import { useLanguage, strings, type StringKey, type Lang } from "@/lib/i18n";
 import type { Session } from "@supabase/supabase-js";
@@ -110,6 +113,9 @@ export default function Home() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
+  const [showQuickStart, setShowQuickStart] = useState(false);
+  const [showQuestionOnboarding, setShowQuestionOnboarding] = useState(false);
+  const [showCoach, setShowCoach] = useState(false);
 
   const { canInstall, installed, install } = useInstallPrompt();
   const { t, lang } = useLanguage();
@@ -243,6 +249,15 @@ export default function Home() {
     };
   }, [supabase]);
 
+  useEffect(() => {
+    if (!stats || !user) return;
+    const seen = localStorage.getItem("totalgym_coach_seen");
+    if (!seen && stats.totalWorkouts === 0) {
+      const timer = setTimeout(() => setShowCoach(true), 800);
+      return () => clearTimeout(timer);
+    }
+  }, [stats, user]);
+
   const handleStartTraining = () => {
     if (pendingWorkout) {
       router.push(`/workout/${pendingWorkout.id}`);
@@ -342,7 +357,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center w-full">
+            <div className="flex flex-col gap-5 justify-center items-center w-full">
               {checkingPending ? (
                 <button
                   disabled
@@ -362,6 +377,53 @@ export default function Home() {
                   {t("home.cta.continue")} ({pendingWorkout.completed}/{pendingWorkout.total})
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
+              ) : user && stats && (stats.totalWorkouts ?? 0) === 0 ? (
+                <>
+                  <button
+                    onClick={() => setShowQuestionOnboarding(true)}
+                    className="group relative w-full max-w-sm bg-gradient-to-b from-accent to-amber-500 text-black font-bold px-8 py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-lg shadow-accent/30 animate-[glowPulse_3s_ease-in-out_infinite]"
+                    style={{ fontFamily: "var(--font-oswald)", fontSize: "1.1rem" }}
+                  >
+                    <span className="flex items-center justify-center gap-3">
+                      <Sparkles className="w-5 h-5" />
+                      MI PRIMERA RUTINA
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 text-xs font-bold tracking-wider text-accent ring-1 ring-accent/40 shadow-sm shadow-accent/20">
+                        ✦ IA
+                      </span>
+                      <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </span>
+                  </button>
+                  <button
+                    onClick={handleStartTraining}
+                    className="flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors cursor-pointer py-1"
+                  >
+                    Elegir yo mismo <ArrowRight className="w-3 h-3" />
+                  </button>
+                </>
+              ) : user ? (
+                <>
+                  <button
+                    onClick={handleStartTraining}
+                    className="group flex items-center justify-center gap-3 w-full max-w-sm bg-gradient-to-b from-accent to-accent-hover text-black font-bold px-8 py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-lg shadow-accent/30 hover:shadow-xl hover:shadow-accent/40"
+                    style={{ fontFamily: "var(--font-oswald)", fontSize: "1.05rem" }}
+                  >
+                    <Zap className="w-5 h-5" />
+                    {t("home.cta.start")}
+                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                  <button
+                    onClick={() => setShowQuestionOnboarding(true)}
+                    className="group flex items-center justify-center gap-3 w-full max-w-sm bg-card border border-accent/20 hover:border-accent/50 text-white font-bold px-6 py-4 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] cursor-pointer"
+                    style={{ fontFamily: "var(--font-oswald)" }}
+                  >
+                    <Sparkles className="w-5 h-5 text-accent" />
+                    RUTINA SMART
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/15 border border-accent/40 text-xs font-bold text-accent tracking-wider shadow-sm shadow-accent/20">
+                      ✦ IA
+                    </span>
+                    <ArrowRight className="w-4 h-4 text-accent/70 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </>
               ) : (
                 <button
                   onClick={handleStartTraining}
@@ -374,13 +436,6 @@ export default function Home() {
                 </button>
               )}
             </div>
-
-            {user && stats && stats.totalWorkouts === 0 && (
-              <div className="mt-4 sm:mt-6 inline-flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-full px-4 py-2 text-xs sm:text-sm text-accent">
-                <Zap className="w-3.5 h-3.5" />
-                {t("home.cta.firstTime")}
-              </div>
-            )}
 
             {user && !pendingWorkout && !checkingPending && stats && !stats.todayWorkout && stats.totalWorkouts > 0 && (
               <p className="text-icon text-xs sm:text-sm mt-3">
@@ -686,6 +741,23 @@ export default function Home() {
         <div className="mt-6">
           <NotificationButton userId={user.id} />
         </div>
+      )}
+      {showQuickStart && (
+        <QuickStartModal onClose={() => setShowQuickStart(false)} />
+      )}
+      {showQuestionOnboarding && (
+        <QuestionOnboarding onClose={() => {
+          setShowQuestionOnboarding(false);
+          setShowQuickStart(true);
+        }} />
+      )}
+      {showCoach && (
+        <CoachMarks onDone={() => {
+          setShowCoach(false);
+          if (stats?.totalWorkouts === 0) {
+            setShowQuestionOnboarding(true);
+          }
+        }} />
       )}
       <footer className="bg-background border-t border py-16">
         <div className="max-w-6xl mx-auto px-4">

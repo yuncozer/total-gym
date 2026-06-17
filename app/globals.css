@@ -223,12 +223,37 @@ body {
   }
 }
 
-@keyframes badge-pop {
-  0% { transform: scale(0); opacity: 0; }
-  70% { transform: scale(1.15); }
-  100% { transform: scale(1); opacity: 1; }
+@keyframes badge-think {
+  0% {
+    border-color: rgba(234, 179, 8, 0.3);
+    box-shadow: 0 0 0px rgba(234, 179, 8, 0);
+  }
+  25% {
+    border-color: rgba(234, 179, 8, 0.7);
+    box-shadow: 0 0 18px rgba(234, 179, 8, 0.18);
+  }
+  50% {
+    border-color: rgba(234, 179, 8, 0.5);
+    box-shadow: 0 0 8px rgba(234, 179, 8, 0.1);
+  }
+  100% {
+    border-color: rgba(234, 179, 8, 0.3);
+    box-shadow: 0 0 0px rgba(234, 179, 8, 0);
+  }
 }
 
-.animate-badge-pop {
-  animation: badge-pop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+@keyframes zap-think {
+  0%, 100% { opacity: 1; }
+  15% { opacity: 0.4; }
+  30% { opacity: 1; }
+  45% { opacity: 0.6; }
+  60% { opacity: 1; }
+}
+
+.animate-badge-think {
+  animation: badge-think 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.animate-zap-think {
+  animation: zap-think 0.9s ease-out forwards;
 }
