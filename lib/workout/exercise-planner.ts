@@ -122,7 +122,7 @@ export async function selectExercises(ctx: PlannerContext): Promise<NewExerciseD
   const newDefs: NewExerciseDef[] = [];
 
   for (const [muscleId, count] of muscleCounts) {
-    const res = await fetch(`/api/exercises?muscleGroup=${muscleId}&limit=15`);
+    const res = await fetch(`/api/exercises?muscleGroup=${muscleId}&limit=15&smart=true`);
     const json = await res.json();
     const exercises: RawExercise[] = json.data ?? [];
 

@@ -91,6 +91,7 @@ export function QuestionOnboarding({ onClose }: { onClose: () => void }) {
   const [suggested, setSuggested] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [badgeKey, setBadgeKey] = useState(0);
+  const [suggestLoading, setSuggestLoading] = useState(false);
 
   const isHipertrofia = goal === "hipertrofia";
   const totalSteps = isHipertrofia ? 3 : 2;
@@ -118,6 +119,8 @@ export function QuestionOnboarding({ onClose }: { onClose: () => void }) {
   };
 
   const handleSuggest = async () => {
+    if (suggestLoading) return;
+    setSuggestLoading(true);
     setBadgeKey(k => k + 1);
     try {
       const res = await fetch("/api/dashboard-stats");
@@ -129,6 +132,8 @@ export function QuestionOnboarding({ onClose }: { onClose: () => void }) {
     } catch {
       setSelectedMuscles([...ALL_MUSCLES_FALLBACK]);
       setSuggested([...ALL_MUSCLES_FALLBACK]);
+    } finally {
+      setSuggestLoading(false);
     }
   };
 
@@ -423,9 +428,14 @@ export function QuestionOnboarding({ onClose }: { onClose: () => void }) {
 
               <button
                 onClick={handleSuggest}
-                className="flex items-center justify-center gap-2 w-full py-2.5 border border-accent/40 text-accent hover:bg-accent/10 rounded-xl cursor-pointer transition-all text-sm font-medium active:scale-[0.97]"
+                disabled={suggestLoading}
+                className="flex items-center justify-center gap-2 w-full py-2.5 border border-accent/40 text-accent hover:bg-accent/10 rounded-xl cursor-pointer transition-all text-sm font-medium active:scale-[0.97] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Sparkles className="w-4 h-4" /> No sé, sugerime
+                {suggestLoading ? (
+                  <span className="w-4 h-4 border-2 border-accent/40 border-t-accent rounded-full animate-spin" />
+                ) : (
+                  <Sparkles className="w-4 h-4" />
+                )} No sé, sugiéreme
               </button>
               {suggested && (
                 <p className="text-[11px] text-icon text-center">Basado en tu último entrenamiento</p>
