@@ -13,6 +13,7 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const muscleGroupId = searchParams.get("muscleGroup");
   const equipmentCategory = searchParams.get("equipment");
+  const smartOnly = searchParams.get("smart") === "true";
   const limit = parseInt(searchParams.get("limit") || "50", 10);
 
   try {
@@ -28,11 +29,17 @@ export async function GET(request: NextRequest) {
           equipmentIds = getEquipmentIdsByCategory(equipmentCategory);
         }
 
-        const { data: localData } = await supabase
+        let query = supabase
           .from("exercises")
           .select("*")
           .eq("muscle_group_id", muscleGroup.id)
           .eq("is_active", true);
+
+        if (smartOnly) {
+          query = query.eq("smart_enabled", true);
+        }
+
+        const { data: localData } = await query;
 
         if (localData && localData.length > 0) {
           exercises = localData.map(mapRowToExercise);
@@ -44,6 +51,22 @@ export async function GET(request: NextRequest) {
           }
 
           exercises = exercises.slice(0, limit);
+        } else if (smartOnly) {
+          const { data: fallback } = await supabase
+            .from("exercises")
+            .select("*")
+            .eq("muscle_group_id", muscleGroup.id)
+            .eq("is_active", true);
+
+          if (fallback && fallback.length > 0) {
+            exercises = fallback.map(mapRowToExercise);
+            if (equipmentIds) {
+              exercises = exercises.filter((ex) =>
+                ex.equipmentIds.some((id) => equipmentIds!.includes(id))
+              );
+            }
+            exercises = exercises.slice(0, limit);
+          }
         }
       }
     } else {
