@@ -65,21 +65,39 @@ export async function GET(request: NextRequest) {
         todayWorkout: false,
         streak: 0,
         totalWorkouts: 0,
-        totalSets: 0
+        totalSets: 0,
+        lastWorkoutMuscles: []
       });
     }
 
     const workoutIds = completedWorkouts.map(w => w.id);
     let totalSets = 0;
+    let lastWorkoutMuscles: string[] = [];
 
     if (workoutIds.length > 0) {
       const { data: allSets } = await supabase
         .from("workout_sets")
-        .select("id", { count: 'exact' })
+        .select("id, workout_id, muscle_group")
         .in("workout_id", workoutIds)
         .eq("is_completed", true);
       
       totalSets = allSets?.length || 0;
+
+      const sortedWorkouts = [...completedWorkouts].sort((a, b) => {
+        const dateA = a.completed_at || a.date || "";
+        const dateB = b.completed_at || b.date || "";
+        return dateB.localeCompare(dateA);
+      });
+      const lastWorkout = sortedWorkouts[0];
+
+      if (lastWorkout && lastWorkout.id && allSets) {
+        const lastSets = allSets.filter(s => s.workout_id === lastWorkout.id);
+        const muscleSet = new Set<string>();
+        lastSets.forEach(s => {
+          if (s.muscle_group) muscleSet.add(s.muscle_group);
+        });
+        lastWorkoutMuscles = Array.from(muscleSet);
+      }
     }
 
     const workoutDates = completedWorkouts
@@ -119,7 +137,8 @@ export async function GET(request: NextRequest) {
       todayWorkout,
       streak,
       totalWorkouts: completedWorkouts.length,
-      totalSets
+      totalSets,
+      lastWorkoutMuscles
     });
   } catch (error) {
     console.error("Error loading dashboard stats:", error);
