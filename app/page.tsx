@@ -4,14 +4,13 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target, RefreshCw, Sparkles } from "lucide-react";
+import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target, RefreshCw, Sparkles, Brain } from "lucide-react";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
 import { NotificationButton } from "@/app/components/NotificationButton";
-import { QuickStartModal } from "@/app/components/QuickStartModal";
-import { QuestionOnboarding } from "@/app/components/QuestionOnboarding";
+import { SmartCoach } from "@/app/components/SmartCoach";
 import { CoachMarks } from "@/app/components/CoachMarks";
 import { useInstallPrompt } from "@/lib/use-install-prompt";
 import { useLanguage, strings, type StringKey, type Lang } from "@/lib/i18n";
@@ -113,8 +112,7 @@ export default function Home() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loadingStats, setLoadingStats] = useState(false);
   const [authLoading, setAuthLoading] = useState(true);
-  const [showQuickStart, setShowQuickStart] = useState(false);
-  const [showQuestionOnboarding, setShowQuestionOnboarding] = useState(false);
+  const [showSmartCoach, setShowSmartCoach] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
 
   const { canInstall, installed, install } = useInstallPrompt();
@@ -380,7 +378,7 @@ export default function Home() {
               ) : user && stats && (stats.totalWorkouts ?? 0) === 0 ? (
                 <>
                   <button
-                    onClick={() => setShowQuestionOnboarding(true)}
+                    onClick={() => setShowSmartCoach(true)}
                     className="group relative w-full max-w-sm bg-gradient-to-b from-accent to-amber-500 text-black font-bold px-8 py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-lg shadow-accent/30 animate-[glowPulse_3s_ease-in-out_infinite]"
                     style={{ fontFamily: "var(--font-oswald)", fontSize: "1.1rem" }}
                   >
@@ -412,7 +410,7 @@ export default function Home() {
                     <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                   <button
-                    onClick={() => setShowQuestionOnboarding(true)}
+                    onClick={() => setShowSmartCoach(true)}
                     className="group flex items-center justify-center gap-3 w-full max-w-sm bg-card border border-accent/20 hover:border-accent/50 text-white font-bold px-6 py-4 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] cursor-pointer"
                     style={{ fontFamily: "var(--font-oswald)" }}
                   >
@@ -563,6 +561,96 @@ export default function Home() {
               </p>
             </div>
           </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="py-28 bg-background relative overflow-hidden">
+          <div className="absolute inset-0 opacity-[0.02]" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, var(--accent) 1px, transparent 0)`,
+            backgroundSize: '20px 20px',
+          }} />
+          <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-accent/5 rounded-full blur-[130px]" />
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+
+          <div className="max-w-6xl mx-auto px-4 relative z-10">
+            <div className="text-center mb-5">
+              <div className="inline-flex items-center gap-2.5 bg-accent/10 border border-accent/30 rounded-full px-5 py-2">
+                <Sparkles className="w-4 h-4 text-accent" />
+                <span className="text-accent text-sm font-bold uppercase tracking-wider" style={{ fontFamily: "var(--font-oswald)" }}>
+                  RUTINA SMART
+                </span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/15 text-[10px] font-bold text-accent tracking-wider border border-accent/30">
+                  ✦ IA
+                </span>
+              </div>
+            </div>
+
+            <h2
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4"
+              style={{ fontFamily: "var(--font-oswald)" }}
+            >
+              <span className="text-white">Tu coach con </span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-amber-400">Inteligencia Artificial</span>
+            </h2>
+            <p className="text-muted-foreground text-center text-lg mb-16 max-w-2xl mx-auto">
+              Dile qué quieres lograr, cuánto tiempo tienes y qué músculos trabajar.
+              El coach IA analiza más de <span className="text-white font-semibold">120 ejercicios curados</span> y arma la rutina perfecta al instante.
+            </p>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-16">
+              {[
+                { icon: Target, label: "Objetivo", desc: "Fuerza, hipertrofia, resistencia o general", color: "text-blue-500", border: "border-blue-500/30", bg: "bg-blue-500/10" },
+                { icon: Timer, label: "Duración", desc: "15, 30, 45 o 60 minutos exactos", color: "text-red-500", border: "border-red-500/30", bg: "bg-red-500/10" },
+                { icon: Dumbbell, label: "Músculos", desc: "Elige uno o varios grupos musculares", color: "text-accent", border: "border-accent/30", bg: "bg-accent/10" },
+                { icon: Brain, label: "IA genera", desc: "Selección inteligente de ejercicios", color: "text-green-500", border: "border-green-500/30", bg: "bg-green-500/10" },
+              ].map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div key={i} className="group relative">
+                    <div className={`absolute -inset-0.5 ${item.bg} rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                    <div className={`relative bg-card border ${item.border} rounded-2xl p-5 md:p-6 text-center hover:border-white/20 transition-all duration-300`}>
+                      <div className={`w-12 h-12 ${item.bg} rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className={`w-6 h-6 ${item.color}`} />
+                      </div>
+                      <h3 className="text-white font-bold text-sm md:text-base mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                        {item.label}
+                      </h3>
+                      <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 max-w-4xl mx-auto p-6 md:p-8 bg-card border border-accent/10 rounded-2xl">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 md:gap-8">
+                {[
+                  { value: "122", label: "Ejercicios curados", color: "text-accent" },
+                  { value: "9", label: "Grupos musculares", color: "text-accent" },
+                  { value: "4", label: "Objetivos", color: "text-accent" },
+                  { value: "Patrones", label: "de movimiento", color: "text-icon" },
+                ].map((stat, i) => (
+                  <div key={i} className="text-center md:text-left">
+                    <div className={`text-2xl md:text-3xl font-bold ${stat.color}`} style={{ fontFamily: "var(--font-oswald)" }}>
+                      {stat.value}
+                    </div>
+                    <div className="text-muted-foreground text-xs md:text-sm whitespace-nowrap">{stat.label}</div>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => setShowSmartCoach(true)}
+                className="group flex items-center justify-center gap-2.5 shrink-0 w-full md:w-auto bg-gradient-to-b from-accent to-amber-500 hover:to-amber-400 text-black font-bold px-7 py-3.5 rounded-xl transition-all hover:scale-105 active:scale-[0.97] cursor-pointer shadow-lg shadow-accent/30"
+                style={{ fontFamily: "var(--font-oswald)" }}
+              >
+                <Sparkles className="w-4 h-4" />
+                PRUEBA RUTINA SMART
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
             </div>
           </div>
         </section>
@@ -742,20 +830,17 @@ export default function Home() {
           <NotificationButton userId={user.id} />
         </div>
       )}
-      {showQuickStart && (
-        <QuickStartModal onClose={() => setShowQuickStart(false)} />
-      )}
-      {showQuestionOnboarding && (
-        <QuestionOnboarding onClose={() => {
-          setShowQuestionOnboarding(false);
-          setShowQuickStart(true);
-        }} />
+      {showSmartCoach && (
+        <SmartCoach
+          onClose={() => setShowSmartCoach(false)}
+          userName={user ? getNameFromEmail(user.email) : undefined}
+        />
       )}
       {showCoach && (
         <CoachMarks onDone={() => {
           setShowCoach(false);
           if (stats?.totalWorkouts === 0) {
-            setShowQuestionOnboarding(true);
+            setShowSmartCoach(true);
           }
         }} />
       )}

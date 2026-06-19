@@ -46,7 +46,7 @@ function SortableItem({ id, disabled, children }: SortableItemProps) {
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.5 : 1,
-    touchAction: 'none' as const,
+    ...(isDragging ? { touchAction: 'none' as const } : {}),
   };
 
   return (

@@ -1,5 +1,6 @@
 import toast from "react-hot-toast";
 import type { ExerciseInWorkout, WorkoutSummary, WorkoutSet } from "./types";
+import type { ExerciseRole } from "./exercise-classifier";
 
 export interface NewExerciseDef {
   exerciseId: string;
@@ -9,6 +10,8 @@ export interface NewExerciseDef {
   setsCount: number;
   isCardio?: boolean;
   muscleGroup?: string;
+  role?: ExerciseRole;
+  recommendedReps?: number;
 }
 
 const FETCH_TIMEOUT = 15000;

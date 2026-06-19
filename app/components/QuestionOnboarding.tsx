@@ -179,7 +179,7 @@ export function QuestionOnboarding({ onClose }: { onClose: () => void }) {
             imageUrl: d.imageUrl || undefined,
             muscle_group: d.muscleGroup,
             sets: Array.from({ length: d.setsCount }, (_, i) => ({
-              reps: REPS_BY_GOAL[goal ?? "general"] ?? 10,
+              reps: d.recommendedReps ?? REPS_BY_GOAL[goal ?? "general"] ?? 10,
               peso: 0,
             })),
           })),
