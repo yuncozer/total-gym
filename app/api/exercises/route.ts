@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
   const muscleGroupId = searchParams.get("muscleGroup");
   const equipmentCategory = searchParams.get("equipment");
   const smartOnly = searchParams.get("smart") === "true";
-  const limit = parseInt(searchParams.get("limit") || "50", 10);
+  const limit = parseInt(searchParams.get("limit") || "200", 10);
 
   try {
     let exercises: Exercise[] = [];
@@ -38,6 +38,8 @@ export async function GET(request: NextRequest) {
         if (smartOnly) {
           query = query.eq("smart_enabled", true);
         }
+
+        query = query.order("name");
 
         const { data: localData } = await query;
 
