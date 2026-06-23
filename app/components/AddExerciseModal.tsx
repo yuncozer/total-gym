@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { X, Plus, Loader2, Minus, Search, Check, Maximize2 } from "lucide-react";
+import { ImageModal } from "@/app/components/EjercicioCard";
 import toast from "react-hot-toast";
 import { muscleGroupsData, type MuscleGroup } from "@/lib/data/ejercicios";
 import * as service from "@/lib/workout/service";
@@ -317,25 +318,11 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
       </div>
 
       {exerciseImage && (
-        <div
-          className="fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4"
-          onClick={() => setExerciseImage(null)}
-        >
-          <button
-            onClick={() => setExerciseImage(null)}
-            className="absolute top-4 right-4 p-2 text-white/60 hover:text-white cursor-pointer z-10"
-          >
-            <X className="w-6 h-6" />
-          </button>
-          <Image
-            src={exerciseImage}
-            alt={t("train.imageView")}
-            width={600}
-            height={450}
-            className="max-w-full max-h-[90vh] object-contain rounded-xl"
-            onClick={(e) => e.stopPropagation()}
-          />
-        </div>
+        <ImageModal
+          imageUrl={exerciseImage}
+          exerciseName=""
+          onClose={() => setExerciseImage(null)}
+        />
       )}
     </div>
   );
