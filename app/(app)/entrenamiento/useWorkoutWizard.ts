@@ -204,7 +204,7 @@ export function useWorkoutWizard() {
     try {
       const params = new URLSearchParams();
       params.append("muscleGroup", muscleGroup.id);
-      params.append("limit", "50");
+      params.append("limit", "200");
       const response = await fetch(`/api/exercises?${params.toString()}`);
       const data = await response.json();
       if (data.success) {
