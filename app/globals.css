@@ -14,6 +14,8 @@ html.workout-mode main {
   --accent-foreground: #050505;
   --accent-secondary: #f97316;
   --accent-secondary-hover: #ea580c;
+  --accent-tertiary: #d97706;
+  --accent-tertiary-hover: #b45309;
   --card: #111113;
   --card-foreground: #fafafa;
   --muted: #27272a;
@@ -30,6 +32,8 @@ html.workout-mode main {
   --color-accent-hover: #ca9a04;
   --color-accent-secondary: var(--accent-secondary);
   --color-accent-secondary-hover: var(--accent-secondary-hover);
+  --color-accent-tertiary: var(--accent-tertiary);
+  --color-accent-tertiary-hover: var(--accent-tertiary-hover);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-muted: var(--muted);
@@ -81,6 +85,21 @@ body {
 
 .animate-fade-in-up {
   animation: fade-in-up 0.6s ease-out forwards;
+}
+
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes fade-in {

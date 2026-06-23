@@ -21,6 +21,8 @@ import {
   ZoomIn,
   XCircle,
   FileText,
+  ImageOff,
+  Image as ImageIcon,
 } from "lucide-react";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
@@ -32,6 +34,7 @@ import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
 import { SaveTemplateModal } from "@/app/components/SaveTemplateModal";
 import { AddExerciseModal } from "@/app/components/AddExerciseModal";
 import { ImageModal } from "@/app/components/EjercicioCard";
+import { ReferenceSheet } from "@/app/components/ReferenceSheet";
 import { TimerCircle } from "@/app/components/TimerCircle";
 import { PRCelebration } from "@/app/components/PRCelebration";
 import { DraggableExerciseList, GripVertical } from "@/app/components/DraggableExerciseList";
@@ -122,7 +125,8 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [modalSubPhrase, setModalSubPhrase] = useState("");
   const [pendingAction, setPendingAction] = useState<"completeSet" | "addExtraSet" | null>(null);
   const [exerciseImage, setExerciseImage] = useState<string | null>(null);
-  const [listImageModal, setListImageModal] = useState<{ url: string; name: string; description?: string } | null>(null);
+  const [listImageModal, setListImageModal] = useState<{ url: string; name: string; description?: string; gallery?: { imageUrl: string; name: string; description?: string }[]; index?: number } | null>(null);
+  const [showReference, setShowReference] = useState(false);
   const [showCancelConfirm, setShowCancelConfirm] = useState(false);
   const [showAddExercise, setShowAddExercise] = useState(false);
   const [prCelebration, setPrCelebration] = useState<{
@@ -361,36 +365,46 @@ const handleCompleteSet = () => {
                 </div>
               )}
 
-              {selectedExercise.imageUrl && (
-                <div className="flex flex-col items-center mb-4">
+              <div className="flex flex-col items-center mb-4">
+                {selectedExercise.imageUrl ? (
                   <button
-                    onClick={() => setExerciseImage(selectedExercise.imageUrl!)}
-                    className="relative block rounded-lg border border-transparent hover:border-accent-secondary/30 transition-all active:scale-95"
+                    onClick={() => {
+                      const galleryItems = exercises.filter(e => e.imageUrl).map(e => ({
+                        imageUrl: e.imageUrl!,
+                        name: e.name,
+                        description: e.description,
+                      }));
+                      const idx = galleryItems.findIndex(i => i.imageUrl === selectedExercise.imageUrl);
+                      setListImageModal({ url: selectedExercise.imageUrl!, name: selectedExercise.name, description: selectedExercise.description, gallery: galleryItems, index: idx });
+                    }}
+                    className="relative block rounded-xl border border-accent-tertiary/20 hover:border-accent-tertiary/40 transition-all active:scale-95"
                     title={t("workout.imageView")}
                   >
                     <Image
                       src={selectedExercise.imageUrl}
                       alt={selectedExercise.name}
-                      width={80}
-                      height={60}
-                      className="rounded-lg object-cover"
+                      width={120}
+                      height={90}
+                      className="rounded-xl object-cover"
                     />
-                    <div className="absolute top-1 right-1">
-                      <div className="bg-black/50 rounded-full p-1 backdrop-blur-sm">
-                        <ZoomIn className="w-3.5 h-3.5 text-white" />
+                    <div className="absolute top-1.5 right-1.5">
+                      <div className="bg-black/60 rounded-full p-1.5 backdrop-blur-sm">
+                        <ZoomIn className="w-4 h-4 text-white" />
                       </div>
                     </div>
                   </button>
-                  {selectedExercise.description && (
-                    <div className="flex items-start gap-1.5 mt-1.5 max-w-[200px] animate-fade-in-up" style={{ animationDelay: "200ms" }}>
-                      <FileText className="w-3 h-3 mt-[2px] shrink-0 text-zinc-500" />
-                      <p className="text-[10px] text-zinc-500 line-clamp-1 leading-relaxed">
-                        {selectedExercise.description}
-                      </p>
-                    </div>
-                  )}
+                ) : (
+                  <div className="w-[120px] h-[90px] bg-zinc-800/50 rounded-xl flex items-center justify-center border border-white/5">
+                    <ImageOff className="w-6 h-6 text-zinc-600" />
+                  </div>
+                )}
+                <div className="flex items-center gap-1.5 mt-1.5 max-w-[260px] text-center">
+                  <FileText className="w-3 h-3 shrink-0 text-accent-tertiary/60" />
+                  <p className="text-[11px] text-zinc-500 leading-relaxed line-clamp-2">
+                    {selectedExercise.description || "Sin descripción disponible"}
+                  </p>
                 </div>
-              )}
+              </div>
 
               {!isCardio && (
                 <div className="text-center mb-6">
@@ -633,6 +647,17 @@ const handleCompleteSet = () => {
             </div>
           </div>
         </main>
+
+        {selectedExercise && (selectedExercise.imageUrl) && (
+          <button
+            onClick={() => setShowReference(true)}
+            className="fixed bottom-36 right-4 z-[45] w-12 h-12 bg-accent-tertiary/90 hover:bg-accent-tertiary text-black rounded-full flex items-center justify-center shadow-lg shadow-accent-tertiary/20 active:scale-90 transition-all cursor-pointer"
+            title="Ver referencia del ejercicio"
+          >
+            <ImageIcon className="w-5 h-5" />
+          </button>
+        )}
+
         <MotivationalModal
           show={showMotivationalModal}
           phrase={modalPhrase}
@@ -646,6 +671,11 @@ const handleCompleteSet = () => {
             imageUrl={exerciseImage}
             exerciseName={selectedExercise?.name}
             exerciseDescription={selectedExercise?.description}
+            gallery={exercises.filter(e => e.imageUrl).map(e => ({
+              imageUrl: e.imageUrl!,
+              name: e.name,
+              description: e.description,
+            }))}
             onClose={() => setExerciseImage(null)}
           />
         )}
@@ -655,6 +685,23 @@ const handleCompleteSet = () => {
             weight={prCelebration.weight}
             reps={prCelebration.reps}
             onClose={() => setPrCelebration(null)}
+          />
+        )}
+        {showReference && selectedExercise && (
+          <ReferenceSheet
+            imageUrl={selectedExercise.imageUrl}
+            exerciseName={selectedExercise.name}
+            description={selectedExercise.description}
+            onClose={() => setShowReference(false)}
+          />
+        )}
+        {listImageModal && (
+          <ImageModal
+            imageUrl={listImageModal.url}
+            exerciseName={listImageModal.name}
+            exerciseDescription={listImageModal.description}
+            gallery={listImageModal.gallery}
+            onClose={() => setListImageModal(null)}
           />
         )}
       </div>
@@ -769,38 +816,42 @@ const handleCompleteSet = () => {
                                 <GripVertical className="w-5 h-5 pointer-events-none" />
                               </div>
                               <div className="flex items-center gap-3 min-w-0">
-                                <div className="w-10 h-10 shrink-0">
+                                <div className="w-14 h-14 shrink-0">
                                   {exercise.imageUrl ? (
                                     <div
-                                      onClick={() => setListImageModal({
-                                        url: exercise.imageUrl!,
-                                        name: exercise.name,
-                                        description: exercise.description,
-                                      })}
+                                      onClick={() => {
+                                        const galleryItems = exercises.filter(e => e.imageUrl).map(e => ({
+                                          imageUrl: e.imageUrl!,
+                                          name: e.name,
+                                          description: e.description,
+                                        }));
+                                        const idx = galleryItems.findIndex(i => i.imageUrl === exercise.imageUrl);
+                                        setListImageModal({ url: exercise.imageUrl!, name: exercise.name, description: exercise.description, gallery: galleryItems, index: idx });
+                                      }}
                                       data-avatar
                                       role="button"
                                       tabIndex={0}
                                       onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setListImageModal({ url: exercise.imageUrl!, name: exercise.name, description: exercise.description }); }}
-                                      className={`w-10 h-10 block rounded-lg overflow-hidden cursor-zoom-in active:scale-90 transition-transform relative ${isComplete ? "ring-2 ring-green-500" : "hover:ring-1 hover:ring-accent-secondary/50"}`}
+                                      className={`w-14 h-14 block rounded-xl overflow-hidden cursor-zoom-in active:scale-90 transition-transform relative ${isComplete ? "ring-2 ring-green-500" : "ring-1 ring-accent-tertiary/20 hover:ring-accent-tertiary/50"}`}
                                     >
                                       <Image
                                         src={exercise.imageUrl}
                                         alt={exercise.name}
-                                        width={40}
-                                        height={40}
-                                        className="object-cover w-10 h-10"
+                                        width={56}
+                                        height={56}
+                                        className="object-cover w-14 h-14"
                                       />
                                       <div className="absolute top-0.5 right-0.5 bg-black/60 rounded-full p-0.5">
                                         <ZoomIn className="w-2.5 h-2.5 text-white" />
                                       </div>
                                     </div>
                                   ) : isComplete ? (
-                                    <div className="w-10 h-10 bg-green-500 rounded-full flex justify-center items-center">
-                                      <Check className="w-5 h-5 text-black" />
+                                    <div className="w-14 h-14 bg-green-500/20 rounded-xl flex justify-center items-center ring-1 ring-green-500/30">
+                                      <Check className="w-6 h-6 text-green-500" />
                                     </div>
                                   ) : (
-                                    <div className="w-10 h-10 bg-muted rounded-full flex justify-center items-center">
-                                      <Target className="w-5 h-5 text-icon" />
+                                    <div className="w-14 h-14 bg-zinc-800/50 rounded-xl flex justify-center items-center ring-1 ring-white/5">
+                                      <ImageOff className="w-5 h-5 text-zinc-600" />
                                     </div>
                                   )}
                                 </div>
@@ -914,6 +965,7 @@ const handleCompleteSet = () => {
             imageUrl={listImageModal.url}
             exerciseName={listImageModal.name}
             exerciseDescription={listImageModal.description}
+            gallery={listImageModal.gallery}
             onClose={() => setListImageModal(null)}
           />
         )}
