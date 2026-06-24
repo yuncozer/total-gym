@@ -9,6 +9,7 @@ import { muscleGroupsData, type MuscleGroup } from "@/lib/data/ejercicios";
 import * as service from "@/lib/workout/service";
 import type { NewExerciseDef } from "@/lib/workout/service";
 import { useLanguage } from "@/lib/i18n";
+import { isExcludedCardio } from "@/lib/data/cardio";
 
 interface WgerExercise {
   id: string;
@@ -73,7 +74,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
     try {
       const params = new URLSearchParams();
       params.append("muscleGroup", muscleId);
-      params.append("limit", "50");
+      params.append("limit", "200");
 
       const res = await fetch(`/api/exercises?${params.toString()}`);
       const data = await res.json();
@@ -127,12 +128,15 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
       : selectedEquipment === "personalizados"
         ? allExercises.filter(ex => ex.id.startsWith("custom_"))
         : allExercises.filter(ex =>
-            !ex.id.startsWith("custom_") && ex.equipmentCategory === selectedEquipment
+            ex.equipmentCategory === selectedEquipment ||
+            (ex.id.startsWith("custom_") && ex.equipment === selectedEquipment)
           );
 
+    filtered = filtered.filter(ex => !isExcludedCardio(ex.id));
+
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase();
-      filtered = filtered.filter(ex => ex.name.toLowerCase().includes(q));
+      const q = searchQuery.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+      filtered = filtered.filter(ex => ex.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(q));
     }
 
     filtered.sort((a, b) => {
