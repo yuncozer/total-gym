@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { Dumbbell, Zap, Heart, Target, Check, ArrowLeft, Sparkles } from "lucide-react";
+import { Dumbbell, Zap, Heart, Target, Check, ArrowLeft, Sparkles, Loader2 } from "lucide-react";
 import { selectExercises } from "@/lib/workout/exercise-planner";
 import { CoachAvatar } from "@/app/components/CoachAvatar";
 import { TypewriterText } from "@/app/components/TypewriterText";
@@ -28,28 +28,6 @@ const REPS_BY_GOAL: Record<string, number> = {
   fuerza: 6, hipertrofia: 10, resistencia: 15, general: 10,
 };
 
-const ALL_MUSCLES = [
-  "pecho", "espalda", "hombros", "biceps", "triceps",
-  "piernas", "gluteos", "cuadriceps", "femoral", "pantorrillas", "abdomen",
-] as const;
-
-const MUSCLE_LABELS: Record<string, string> = {
-  pecho: "Pecho", espalda: "Espalda", hombros: "Hombros",
-  biceps: "Bíceps", triceps: "Tríceps",
-  piernas: "Piernas", gluteos: "Glúteos", cuadriceps: "Cuádriceps",
-  femoral: "Femoral", pantorrillas: "Pantorrillas", abdomen: "Abdomen",
-};
-
-const COMPLEMENTS: Record<string, string[]> = {
-  pecho: ["espalda"], espalda: ["pecho"], hombros: ["espalda"],
-  biceps: ["triceps"], triceps: ["biceps"], piernas: ["pecho"],
-  gluteos: ["cuadriceps"], cuadriceps: ["gluteos", "femoral"],
-  femoral: ["cuadriceps"], pantorrillas: ["piernas"], abdomen: [],
-};
-
-const ALL_MUSCLES_FALLBACK = ["pecho", "espalda", "piernas", "hombros", "biceps", "triceps"];
-const POPULAR_GROUPS = ["pecho", "espalda", "piernas", "hombros", "abdomen"];
-
 const ACKNOWLEDGEMENTS: Record<string, string[]> = {
   fuerza: ["¡Fuerza bruta! 💪", "A cargar peso!", "Clásico y efectivo"],
   hipertrofia: ["A crecer! 💪", "Volumen total!", "Hipertrofia al máximo"],
@@ -57,45 +35,22 @@ const ACKNOWLEDGEMENTS: Record<string, string[]> = {
   general: ["Balance perfecto!", "A darle!", "Rutina completa"],
 };
 
-function getSuggestedMuscles(lastMuscles: string[]): string[] {
-  if (lastMuscles.length === 0) return [...ALL_MUSCLES_FALLBACK];
-  const suggested = new Set<string>();
-  for (const m of lastMuscles) {
-    const comps = COMPLEMENTS[m];
-    if (comps) comps.forEach((c) => suggested.add(c));
-  }
-  lastMuscles.forEach((m) => {
-    if (m === "abdomen" || m === "pantorrillas") suggested.add(m);
-  });
-  if (suggested.size < 3) {
-    for (const p of POPULAR_GROUPS) {
-      if (!lastMuscles.includes(p)) suggested.add(p);
-      if (suggested.size >= 4) break;
-    }
-  }
-  return Array.from(suggested);
+interface CoachIAWizardProps {
+  selectedMuscles: string[];
+  onClose: () => void;
 }
 
-export function SmartCoach({
-  onClose,
-  userName,
-}: {
-  onClose: () => void;
-  userName?: string;
-}) {
+export function CoachIAWizard({ selectedMuscles, onClose }: CoachIAWizardProps) {
   const router = useRouter();
-  const [step, setStep] = useState<"goal" | "time" | "muscles" | "ack" | "loading">("goal");
+  const [step, setStep] = useState<"goal" | "time" | "ack" | "loading">("goal");
   const [goal, setGoal] = useState<string | null>(null);
   const [time, setTime] = useState<number | null>(null);
-  const [selectedMuscles, setSelectedMuscles] = useState<string[]>([]);
-  const [suggested, setSuggested] = useState<string[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [thinking, setThinking] = useState(false);
   const [coachPulse, setCoachPulse] = useState(false);
   const [ackText, setAckText] = useState("");
   const [typewriterDone, setTypewriterDone] = useState(false);
   const [slideKey, setSlideKey] = useState(0);
-  const [suggestLoading, setSuggestLoading] = useState(false);
   const [loadingStalled, setLoadingStalled] = useState(false);
   const animationDoneRef = useRef(false);
   const pendingNavigationRef = useRef<string | null>(null);
@@ -127,7 +82,7 @@ export function SmartCoach({
     setThinking(false);
   }, [triggerCoachPulse]);
 
-  const transitionTo = useCallback((next: "goal" | "time" | "muscles" | "loading") => {
+  const transitionTo = useCallback((next: "goal" | "time" | "loading") => {
     setSlideKey((k) => k + 1);
     setTypewriterDone(false);
     setStep(next);
@@ -148,59 +103,27 @@ export function SmartCoach({
     triggerCoachPulse();
     await new Promise((r) => setTimeout(r, 600));
     setThinking(false);
-    transitionTo("muscles");
+    createWorkout(t);
   };
 
-  const toggleMuscle = (m: string) => {
-    setSelectedMuscles((prev) =>
-      prev.includes(m) ? prev.filter((x) => x !== m) : [...prev, m]
-    );
-    setSuggested(null);
-    triggerCoachPulse();
-  };
-
-  const handleSuggest = async () => {
-    if (suggestLoading) return;
-    setSuggestLoading(true);
-    triggerCoachPulse();
-    try {
-      const res = await fetch("/api/dashboard-stats");
-      const data = await res.json();
-      const lastMuscles: string[] = data.lastWorkoutMuscles ?? [];
-      const suggestedMuscles = getSuggestedMuscles(lastMuscles);
-      setSuggested(suggestedMuscles);
-      setSelectedMuscles(suggestedMuscles);
-    } catch {
-      setSelectedMuscles([...ALL_MUSCLES_FALLBACK]);
-      setSuggested([...ALL_MUSCLES_FALLBACK]);
-    } finally {
-      setSuggestLoading(false);
-    }
-  };
-
-  const createWorkout = async (customMuscles?: string[]) => {
+  const createWorkout = async (selectedTime: number) => {
     const effectiveGoal = goal;
-    const effectiveTime = time;
-    if (!effectiveGoal || !effectiveTime) return;
+    if (!effectiveGoal || !selectedTime) return;
     setStep("loading");
     setError(null);
 
-    const totalExercises = EXERCISES_PER_TIME[effectiveGoal][effectiveTime] ?? EXERCISES_PER_TIME[effectiveGoal][30];
+    const totalExercises = EXERCISES_PER_TIME[effectiveGoal]?.[selectedTime] ?? EXERCISES_PER_TIME[effectiveGoal][30];
 
     try {
-      const musclesToUse = (customMuscles && customMuscles.length > 0)
-        ? customMuscles
-        : [...ALL_MUSCLES_FALLBACK];
-
       const newDefs = await selectExercises({
         goal: effectiveGoal,
-        muscles: musclesToUse,
+        muscles: selectedMuscles,
         totalExercises,
       });
 
       if (newDefs.length === 0) {
         setError("No se encontraron ejercicios. Prueba de nuevo.");
-        setStep("muscles");
+        setStep("goal");
         return;
       }
 
@@ -229,12 +152,12 @@ export function SmartCoach({
         }
       } else {
         setError("Error al crear el entrenamiento.");
-        setStep("muscles");
+        setStep("goal");
       }
     } catch (e) {
-      console.error("SmartCoach error:", e);
+      console.error("CoachIA creation error:", e);
       setError("Error de conexión. Intenta de nuevo.");
-      setStep("muscles");
+      setStep("goal");
     }
   };
 
@@ -266,10 +189,10 @@ export function SmartCoach({
           </div>
           {loadingStalled && (
             <button
-              onClick={() => { setStep("muscles"); setError(null); }}
+              onClick={() => { onClose(); }}
               className="mt-4 w-full text-xs text-muted-foreground hover:text-white cursor-pointer py-2 text-center"
             >
-              ¿Tarda mucho? Cancelar y volver
+              ¿Tarda mucho? Cancelar
             </button>
           )}
         </div>
@@ -303,14 +226,20 @@ export function SmartCoach({
 
         <div className="p-6">
           <div className="flex items-center justify-center gap-1.5 mb-5">
-            {[0, 1, 2].map((i) => {
-              const idx = step === "goal" ? 0 : step === "time" ? 1 : 2;
+            {[0, 1].map((i) => {
+              const idx = step === "goal" ? 0 : 1;
               return (
                 <div key={i} className={`h-1 rounded-full transition-all duration-500 ${
                   i === idx ? "w-7 bg-accent" : i < idx ? "w-2 bg-accent/40" : "w-2 bg-zinc-700"
                 }`} />
               );
             })}
+          </div>
+
+          <div className="text-center mb-4">
+            <p className="text-xs text-muted-foreground">
+              {selectedMuscles.length} grupo(s) muscular(es) seleccionado(s)
+            </p>
           </div>
 
           <CoachAvatar thinking={thinking} pulse={coachPulse} />
@@ -320,7 +249,7 @@ export function SmartCoach({
               <div className="text-center mb-5">
                 <p className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
                   <TypewriterText
-                    text={userName ? `${userName}, ¿cuál es tu objetivo?` : "¿Cuál es tu objetivo principal?"}
+                    text="¿Cuál es tu objetivo?"
                     speed={30}
                     onComplete={() => setTypewriterDone(true)}
                   />
@@ -413,72 +342,6 @@ export function SmartCoach({
             </div>
           )}
 
-          {step === "muscles" && (
-            <div className="animate-fade-in">
-              <div className="text-center mb-5">
-                <p className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
-                  <TypewriterText
-                    text="¿Qué músculos quieres trabajar hoy?"
-                    speed={30}
-                    onComplete={() => setTypewriterDone(true)}
-                  />
-                </p>
-                <p className={`text-xs text-muted-foreground mt-1 transition-opacity duration-300 ${typewriterDone ? "opacity-100" : "opacity-0"}`}>
-                  Elige uno o varios grupos musculares
-                </p>
-              </div>
-
-              <div className={`flex flex-wrap gap-2 mb-4 justify-center transition-all duration-300 ${typewriterDone ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2"}`}>
-                {ALL_MUSCLES.map((m) => {
-                  const isSelected = selectedMuscles.includes(m);
-                  const isSuggested = suggested?.includes(m);
-                  return (
-                    <button
-                      key={m}
-                      onClick={() => toggleMuscle(m)}
-                      className={`px-4 py-3 rounded-xl text-sm font-medium border-2 transition-all cursor-pointer active:scale-[0.96] ${
-                        isSelected
-                          ? "border-accent bg-accent/15 text-accent"
-                          : isSuggested
-                          ? "border-accent/40 bg-accent/5 text-white"
-                          : "border-zinc-800 hover:border-accent/50 bg-card text-muted-foreground"
-                      }`}
-                    >
-                      {MUSCLE_LABELS[m]}
-                      {isSelected && <Check className="w-3 h-3 inline ml-1" />}
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => selectedMuscles.length > 0 && createWorkout(selectedMuscles)}
-                  disabled={selectedMuscles.length === 0}
-                  className="flex items-center justify-center gap-2 w-full py-3 bg-accent hover:bg-accent-hover disabled:bg-zinc-800 disabled:cursor-not-allowed text-black disabled:text-zinc-600 font-bold rounded-xl cursor-pointer transition-all active:scale-[0.97]"
-                  style={{ fontFamily: "var(--font-oswald)" }}
-                >
-                  <Zap className="w-4 h-4" /> CREAR RUTINA
-                </button>
-
-                <button
-                  onClick={handleSuggest}
-                  disabled={suggestLoading}
-                  className="flex items-center justify-center gap-2 w-full py-2.5 border border-accent/30 text-accent hover:bg-accent/10 rounded-xl cursor-pointer transition-all text-sm font-medium active:scale-[0.97] disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  {suggestLoading ? (
-                    <span className="w-4 h-4 border-2 border-accent/30 border-t-accent rounded-full animate-spin" />
-                  ) : (
-                    <Sparkles className="w-4 h-4" />
-                  )} No sé, sugiéreme
-                </button>
-                {suggested && (
-                  <p className="text-[11px] text-icon text-center">Basado en tu último entrenamiento</p>
-                )}
-              </div>
-            </div>
-          )}
-
           {error && (
             <p className="text-red-500 text-xs text-center mt-3 mb-2">{error}</p>
           )}
@@ -490,14 +353,6 @@ export function SmartCoach({
                 className="text-xs text-muted-foreground hover:text-white cursor-pointer py-1 flex items-center gap-1"
               >
                 <ArrowLeft className="w-3 h-3" /> Objetivo
-              </button>
-            )}
-            {step === "muscles" && (
-              <button
-                onClick={() => { setStep("time"); setTypewriterDone(false); setSlideKey(k => k + 1); setError(null); }}
-                className="text-xs text-muted-foreground hover:text-white cursor-pointer py-1 flex items-center gap-1"
-              >
-                <ArrowLeft className="w-3 h-3" /> Tiempo
               </button>
             )}
             <button

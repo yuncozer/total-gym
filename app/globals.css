@@ -324,3 +324,34 @@ body {
 .animate-coach-idle {
   animation: coach-idle 3s ease-in-out infinite;
 }
+
+@keyframes ia-sparkle {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  30% { transform: scale(1.25) rotate(-8deg); }
+  60% { transform: scale(1.25) rotate(8deg); }
+}
+
+.animate-ia-sparkle {
+  animation: ia-sparkle 2.5s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes ia-badge-pulse {
+  0%, 100% { border-color: rgba(234, 179, 8, 0.4); box-shadow: 0 0 6px rgba(234, 179, 8, 0.12); }
+  50% { border-color: rgba(234, 179, 8, 0.8); box-shadow: 0 0 16px rgba(234, 179, 8, 0.35); }
+}
+
+.animate-ia-badge {
+  animation: ia-badge-pulse 2s ease-in-out infinite;
+}
+
+@keyframes ia-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-ia-gradient {
+  background-size: 200% 200%;
+  animation: ia-gradient 4s ease-in-out infinite;
+}
