@@ -379,17 +379,20 @@ export default function Home() {
                 <>
                   <button
                     onClick={() => setShowSmartCoach(true)}
-                    className="group relative w-full max-w-sm bg-gradient-to-b from-accent to-amber-500 text-black font-bold px-8 py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-lg shadow-accent/30 animate-[glowPulse_3s_ease-in-out_infinite]"
+                    className="group relative w-full max-w-sm bg-gradient-to-b from-accent to-amber-500 text-black font-bold px-8 py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-[0.98] cursor-pointer shadow-lg shadow-accent/30 animate-[glowPulse_3s_ease-in-out_infinite] overflow-hidden"
                     style={{ fontFamily: "var(--font-oswald)", fontSize: "1.1rem" }}
                   >
-                    <span className="flex items-center justify-center gap-3">
-                      <Sparkles className="w-5 h-5" />
+                    <span className="relative z-10 flex items-center justify-center gap-3">
+                      <span className="animate-ia-sparkle">
+                        <Sparkles className="w-5 h-5" />
+                      </span>
                       MI PRIMERA RUTINA
-                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 text-xs font-bold tracking-wider text-accent ring-1 ring-accent/40 shadow-sm shadow-accent/20">
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 text-xs font-bold tracking-wider text-accent ring-1 ring-accent/40 shadow-sm animate-ia-badge">
                         ✦ IA
                       </span>
                       <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </span>
+                    <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.1)_50%,transparent_100%)] bg-[length:200%_100%] animate-shimmer pointer-events-none" />
                   </button>
                   <button
                     onClick={handleStartTraining}
@@ -411,15 +414,20 @@ export default function Home() {
                   </button>
                   <button
                     onClick={() => setShowSmartCoach(true)}
-                    className="group flex items-center justify-center gap-3 w-full max-w-sm bg-card border border-accent/20 hover:border-accent/50 text-white font-bold px-6 py-4 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] cursor-pointer"
+                    className="group relative w-full max-w-sm bg-gradient-to-b from-accent/90 to-amber-600/90 text-white font-bold px-6 py-4 rounded-xl transition-all hover:scale-[1.01] active:scale-[0.98] cursor-pointer shadow-lg shadow-accent/20 overflow-hidden animate-ia-gradient"
                     style={{ fontFamily: "var(--font-oswald)" }}
                   >
-                    <Sparkles className="w-5 h-5 text-accent" />
-                    RUTINA SMART
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent/15 border border-accent/40 text-xs font-bold text-accent tracking-wider shadow-sm shadow-accent/20">
-                      ✦ IA
+                    <span className="relative z-10 flex items-center justify-center gap-3">
+                      <span className="animate-ia-sparkle">
+                        <Sparkles className="w-5 h-5" />
+                      </span>
+                      RUTINA SMART
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/20 text-xs font-bold tracking-wider text-accent ring-1 ring-accent/40 shadow-sm animate-ia-badge">
+                        ✦ IA
+                      </span>
+                      <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </span>
-                    <ArrowRight className="w-4 h-4 text-accent/70 group-hover:translate-x-1 transition-transform" />
+                    <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.08)_50%,transparent_100%)] bg-[length:200%_100%] animate-shimmer pointer-events-none" />
                   </button>
                 </>
               ) : (
@@ -644,12 +652,17 @@ export default function Home() {
               </div>
               <button
                 onClick={() => setShowSmartCoach(true)}
-                className="group flex items-center justify-center gap-2.5 shrink-0 w-full md:w-auto bg-gradient-to-b from-accent to-amber-500 hover:to-amber-400 text-black font-bold px-7 py-3.5 rounded-xl transition-all hover:scale-105 active:scale-[0.97] cursor-pointer shadow-lg shadow-accent/30"
+                className="group relative flex items-center justify-center gap-2.5 shrink-0 w-full md:w-auto bg-gradient-to-b from-accent to-amber-500 hover:to-amber-400 text-black font-bold px-7 py-3.5 rounded-xl transition-all hover:scale-105 active:scale-[0.97] cursor-pointer shadow-lg shadow-accent/30 overflow-hidden"
                 style={{ fontFamily: "var(--font-oswald)" }}
               >
-                <Sparkles className="w-4 h-4" />
-                PRUEBA RUTINA SMART
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <span className="relative z-10 flex items-center gap-2.5">
+                  <span className="animate-ia-sparkle">
+                    <Sparkles className="w-4 h-4" />
+                  </span>
+                  PRUEBA RUTINA SMART
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </span>
+                <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.1)_50%,transparent_100%)] bg-[length:200%_100%] animate-shimmer pointer-events-none" />
               </button>
             </div>
           </div>

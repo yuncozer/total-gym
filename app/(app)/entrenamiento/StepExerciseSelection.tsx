@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { Search, X, Plus, Trash2, Loader2, ArrowLeft, ArrowRight, UserCheck } from "lucide-react";
+import { Search, X, Plus, Trash2, Loader2, ArrowLeft, ArrowRight, UserCheck, Sparkles } from "lucide-react";
 import { ExerciseCard, ExerciseCardSkeleton, ImageModal, type WgerExercise } from "@/app/components/EjercicioCard";
 import { type MuscleGroup } from "@/lib/data/ejercicios";
+import { CoachIAWizard } from "@/app/components/CoachIAWizard";
 
 interface StepExerciseSelectionProps {
   muscleGroups: MuscleGroup[];
@@ -43,6 +44,7 @@ export function StepExerciseSelection({
   onCreateCustomExercise, getFilteredExercises, isExerciseSelected,
   t, EQUIPMENT_TABS,
 }: StepExerciseSelectionProps) {
+  const [showCoachIA, setShowCoachIA] = useState(false);
   const [showRecent, setShowRecent] = useState(true);
 
   return (
@@ -243,7 +245,37 @@ export function StepExerciseSelection({
           {t("train.confirm")}
           <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
         </button>
+
+        <div className="flex items-center gap-3 my-5">
+          <div className="flex-1 h-px bg-zinc-800" />
+          <span className="text-xs text-zinc-600 font-medium">o usa IA</span>
+          <div className="flex-1 h-px bg-zinc-800" />
+        </div>
+
+        <button
+          onClick={() => setShowCoachIA(true)}
+          className="group relative w-full bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 text-white font-bold px-8 py-4 rounded-xl transition-all hover:scale-105 cursor-pointer shadow-lg shadow-orange-900/40 overflow-hidden animate-ia-gradient"
+          style={{ fontFamily: "var(--font-oswald)" }}
+        >
+          <span className="relative z-10 flex items-center justify-center gap-3">
+            <span className="animate-ia-sparkle">
+              <Sparkles className="w-5 h-5" />
+            </span>
+            Crear rutina con IA
+            <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-white/10 text-[10px] font-bold tracking-wider border border-white/20 animate-ia-badge">
+              ✦ IA
+            </span>
+          </span>
+          <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.1)_50%,transparent_100%)] bg-[length:200%_100%] animate-shimmer pointer-events-none" />
+        </button>
       </div>
+
+      {showCoachIA && (
+        <CoachIAWizard
+          selectedMuscles={selectedMuscles}
+          onClose={() => setShowCoachIA(false)}
+        />
+      )}
     </div>
   );
 }
