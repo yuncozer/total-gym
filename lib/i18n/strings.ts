@@ -473,6 +473,9 @@ export const strings = {
   "error.retry": { es: "Intentar de nuevo", en: "Try again" },
   "error.app.description": { es: "No pudimos cargar esta sección. Revisa tu conexión e inténtalo de nuevo.", en: "We couldn't load this section. Check your connection and try again." },
   "error.app.reload": { es: "Recargar", en: "Reload" },
+
+  // --- LevelFAB ---
+  "levelFAB.level": { es: "NIVEL", en: "LEVEL" },
 } as const;
 
 export type StringKey = keyof typeof strings;
