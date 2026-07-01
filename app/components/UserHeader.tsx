@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3, Globe } from "lucide-react";
+import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3, Globe, Users } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
 
@@ -24,6 +24,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
   const [showDropdown, setShowDropdown] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
+  const [pendingRequests, setPendingRequests] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -48,6 +49,21 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
       setLoading(false);
     });
   }, [supabase]);
+
+  useEffect(() => {
+    if (!user) return;
+    async function fetchPending() {
+      try {
+        const res = await fetch("/api/friends");
+        if (!res.ok) return;
+        const data = await res.json();
+        setPendingRequests(data.incoming?.length || 0);
+      } catch {}
+    }
+    fetchPending();
+    const interval = setInterval(fetchPending, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -115,21 +131,50 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
           <span className="text-[9px] text-muted-foreground tracking-[0.2em] uppercase mt-0.5">Beta Version</span>
         </div>
 
-        <div className="flex items-center gap-3 w-[140px] justify-end" ref={dropdownRef}>
+        <div className="flex items-center gap-2 justify-end" ref={dropdownRef}>
           {user ? (
-            <div className="relative">
-              <button
-                onClick={() => setShowDropdown(!showDropdown)}
-                className="flex items-center gap-1.5 py-1 pr-1.5 bg-card border border rounded-full hover:border-accent hover:shadow-[0_0_12px_rgba(234,179,8,0.3)] transition-all duration-200 cursor-pointer"
+            <>
+              <Link
+                href="/amigos"
+                className={`relative flex items-center justify-center sm:gap-2 w-9 h-9 sm:w-auto sm:pl-2.5 sm:pr-3.5 bg-gradient-to-b from-card to-[#0e0e10] border rounded-full transition-all duration-300 cursor-pointer group ${
+                  pendingRequests > 0
+                    ? "border-accent/40"
+                    : "border hover:border-accent/50 hover:shadow-[0_0_14px_rgba(234,179,8,0.2)]"
+                }`}
               >
-                <div className="w-6 h-6 bg-accent rounded-full flex items-center justify-center">
-                  <span className="text-black font-bold text-[10px] leading-none">{getInitials(user.email)}</span>
-                </div>
-                <ChevronDown className={`w-3 h-3 text-icon transition-transform duration-200 ${showDropdown ? 'rotate-180' : ''}`} />
-              </button>
+                <Users className="w-4 h-4 text-icon group-hover:text-accent transition-colors duration-300" />
+                <span className="hidden sm:inline text-xs font-semibold text-muted-foreground group-hover:text-white transition-colors duration-300" style={{ fontFamily: "var(--font-oswald)", letterSpacing: "0.05em" }}>
+                  {t("header.friends")}
+                </span>
+                {pendingRequests > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-accent text-black text-[10px] font-bold rounded-full px-1 leading-none animate-[friends-pulse_2s_ease-in-out_infinite] shadow-[0_0_8px_rgba(234,179,8,0.5)]">
+                    {pendingRequests > 9 ? "9+" : pendingRequests}
+                  </span>
+                )}
+              </Link>
+              <div className="relative">
+                <button
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className={`flex items-center gap-2 py-1.5 pl-1.5 pr-3 bg-gradient-to-b from-card to-[#0e0e10] border rounded-full transition-all duration-300 cursor-pointer group ${
+                    showDropdown
+                      ? "border-accent/60 shadow-[0_0_16px_rgba(234,179,8,0.25)]"
+                      : "border hover:border-accent/50 hover:shadow-[0_0_14px_rgba(234,179,8,0.2)]"
+                  }`}
+                >
+                  <div className="relative w-7 h-7 rounded-full bg-[#0a0a0b] border-2 border-accent/80 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:border-accent group-hover:shadow-[0_0_10px_rgba(234,179,8,0.35)]">
+                    <span className="text-accent font-bold text-[11px] leading-none" style={{ fontFamily: "var(--font-oswald)" }}>
+                      {getInitials(user.email)}
+                    </span>
+                    {showDropdown && (
+                      <span className="absolute inset-0 rounded-full animate-[medallion-pulse_2s_ease-in-out_infinite]" />
+                    )}
+                  </div>
+                  <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-all duration-300 ${showDropdown ? 'rotate-180 text-accent' : 'group-hover:text-white'}`} style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)' }} />
+                </button>
 
               {showDropdown && (
-                <div className="absolute right-0 mt-2 w-56 bg-card border border rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+                <div className="absolute right-0 mt-2 w-56 bg-gradient-to-b from-card to-[#0e0e10] border border rounded-2xl shadow-2xl overflow-hidden animate-fade-in">
+                  <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
                   <div className="px-4 py-3 border-b border">
                     <p className="text-white text-sm font-medium truncate">{user.email}</p>
                   </div>
@@ -137,7 +182,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                     <Link
                       href="/historial"
                       onClick={() => setShowDropdown(false)}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-gradient-to-r hover:from-accent/5 hover:to-transparent hover:text-white transition-all duration-200 cursor-pointer border-l-2 border-transparent hover:border-accent/40"
                     >
                       <History className="w-4 h-4" />
                       <span className="text-sm">{t("header.historial")}</span>
@@ -145,7 +190,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                     <Link
                       href="/progreso"
                       onClick={() => setShowDropdown(false)}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-gradient-to-r hover:from-accent/5 hover:to-transparent hover:text-white transition-all duration-200 cursor-pointer border-l-2 border-transparent hover:border-accent/40"
                     >
                       <TrendingUp className="w-4 h-4" />
                       <span className="text-sm">{t("header.progreso")}</span>
@@ -153,15 +198,23 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                     <Link
                       href="/estadisticas"
                       onClick={() => setShowDropdown(false)}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-gradient-to-r hover:from-accent/5 hover:to-transparent hover:text-white transition-all duration-200 cursor-pointer border-l-2 border-transparent hover:border-accent/40"
                     >
                       <BarChart3 className="w-4 h-4" />
                       <span className="text-sm">{t("header.estadisticas")}</span>
                     </Link>
                     <Link
+                      href="/amigos"
+                      onClick={() => setShowDropdown(false)}
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-gradient-to-r hover:from-accent/5 hover:to-transparent hover:text-white transition-all duration-200 cursor-pointer border-l-2 border-transparent hover:border-accent/40"
+                    >
+                      <Users className="w-4 h-4" />
+                      <span className="text-sm">{t("header.friends")}</span>
+                    </Link>
+                    <Link
                       href="/admin"
                       onClick={() => setShowDropdown(false)}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-gradient-to-r hover:from-accent/5 hover:to-transparent hover:text-white transition-all duration-200 cursor-pointer border-l-2 border-transparent hover:border-accent/40"
                     >
                       <Shield className="w-4 h-4" />
                       <span className="text-sm">{t("header.admin")}</span>
@@ -169,7 +222,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                     <Link
                       href="/perfil"
                       onClick={() => setShowDropdown(false)}
-                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-muted hover:text-white transition-colors cursor-pointer"
+                      className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-gradient-to-r hover:from-accent/5 hover:to-transparent hover:text-white transition-all duration-200 cursor-pointer border-l-2 border-transparent hover:border-accent/40"
                     >
                       <User className="w-4 h-4" />
                       <span className="text-sm">{t("header.perfil")}</span>
@@ -212,6 +265,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                 </div>
               )}
             </div>
+            </>
           ) : (
             <Link
               href="/login"

@@ -21,6 +21,7 @@ export const strings = {
   "header.historial": { es: "Historial", en: "History" },
   "header.progreso": { es: "Progreso", en: "Progress" },
   "header.estadisticas": { es: "Estadísticas", en: "Stats" },
+  "header.friends": { es: "Amigos", en: "Friends" },
   "header.admin": { es: "Admin", en: "Admin" },
   "header.perfil": { es: "Mi Perfil", en: "My Profile" },
   "header.language": { es: "Idioma", en: "Language" },
@@ -347,6 +348,8 @@ export const strings = {
   "perfil.deactivate": { es: "DESACTIVAR", en: "DEACTIVATE" },
   "perfil.activate": { es: "ACTIVAR", en: "ACTIVATE" },
   "perfil.notifError": { es: "Error al actualizar notificaciones", en: "Error updating notifications" },
+  "perfil.achievements": { es: "LOGROS", en: "ACHIEVEMENTS" },
+  "perfil.achieved": { es: "OBTENIDO", en: "ACHIEVED" },
 
   // --- Estadisticas page ---
   "estadisticas.title": { es: "Estadísticas", en: "Stats" },
@@ -476,6 +479,32 @@ export const strings = {
 
   // --- LevelFAB ---
   "levelFAB.level": { es: "NIVEL", en: "LEVEL" },
+
+  // --- Friends ---
+  "friends.title": { es: "Amigos", en: "Friends" },
+  "friends.tabFriends": { es: "Amigos", en: "Friends" },
+  "friends.tabRequests": { es: "Solicitudes", en: "Requests" },
+  "friends.tabSearch": { es: "Buscar", en: "Search" },
+  "friends.noFriends": { es: "Todavía no tenés amigos", en: "No friends yet" },
+  "friends.noFriendsDesc": { es: "Buscá usuarios por email para agregarlos", en: "Search for users by email to add them" },
+  "friends.noRequests": { es: "No tenés solicitudes pendientes", en: "No pending requests" },
+  "friends.searchPlaceholderExact": { es: "Buscar por email exacto", en: "Search by exact email" },
+  "friends.addFriend": { es: "Agregar", en: "Add" },
+  "friends.pending": { es: "Pendiente", en: "Pending" },
+  "friends.accept": { es: "Aceptar", en: "Accept" },
+  "friends.decline": { es: "Rechazar", en: "Decline" },
+  "friends.remove": { es: "Eliminar", en: "Remove" },
+  "friends.cancel": { es: "Cancelar", en: "Cancel" },
+  "friends.sentTitle": { es: "Enviadas", en: "Sent" },
+  "friends.requestAccepted": { es: "Solicitud aceptada", en: "Request accepted" },
+  "friends.requestDeclined": { es: "Solicitud rechazada", en: "Request declined" },
+  "friends.requestSent": { es: "Solicitud enviada", en: "Request sent" },
+  "friends.friendRemoved": { es: "Amigo eliminado", en: "Friend removed" },
+  "friends.incomingRequests": { es: "Solicitudes recibidas", en: "Incoming requests" },
+  "friends.searchNoResults": { es: "No se encontró ningún usuario con ese email", en: "No user found with that email" },
+  "friends.searchMinChars": { es: "Ingresá el email exacto de la persona que querés agregar", en: "Enter the exact email of the person you want to add" },
+  "friends.friendSince": { es: "Amigos desde", en: "Friends since" },
+  "friends.tabLeaderboard": { es: "Ranking", en: "Leaderboard" },
 } as const;
 
 export type StringKey = keyof typeof strings;
