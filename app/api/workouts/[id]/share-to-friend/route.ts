@@ -21,43 +21,41 @@ export async function POST(
     );
 
     const { data: { session } } = await authClient.auth.getSession();
-
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await request.json().catch(() => ({}));
-    const { completed_at } = body;
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
-      {
-        cookies: {
-          getAll() { return request.cookies.getAll(); },
-          setAll(cookies) { cookies.forEach(({ name, value, options }) => { request.cookies.set(name, value); }); },
-        },
-      }
-    );
-
-    const { error } = await supabase
-      .from("workouts")
-      .update({ status: "completed", ...(completed_at ? { completed_at } : {}) })
-      .eq("id", workoutId)
-      .eq("user_id", session.user.id);
-
-    if (error) throw error;
+    const { receiverId } = await request.json();
+    if (!receiverId) {
+      return NextResponse.json({ error: "receiverId is required" }, { status: 400 });
+    }
 
     const adminClient = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    await adminClient.rpc("sync_gamification", { p_user_id: session.user.id });
+    const { data: existing } = await adminClient
+      .from("friend_shares")
+      .select("id")
+      .eq("sender_id", session.user.id)
+      .eq("receiver_id", receiverId)
+      .eq("workout_id", workoutId)
+      .maybeSingle();
+
+    if (existing) {
+      return NextResponse.json({ error: "Already shared" }, { status: 409 });
+    }
+
+    const { error } = await adminClient
+      .from("friend_shares")
+      .insert({ sender_id: session.user.id, receiver_id: receiverId, workout_id: workoutId });
+
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error completing workout:", error);
-    return NextResponse.json({ error: "Failed to complete workout" }, { status: 500 });
+    console.error("Error sharing workout with friend:", error);
+    return NextResponse.json({ error: "Failed to share workout" }, { status: 500 });
   }
 }

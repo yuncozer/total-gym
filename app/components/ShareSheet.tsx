@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { X, Link2, ImageIcon, Copy, Check, Share2, Loader2, Clock, ChevronLeft } from "lucide-react";
+import { X, Link2, ImageIcon, Copy, Check, Share2, Loader2, Clock, ChevronLeft, Users, UserPlus } from "lucide-react";
 import { WorkoutPhotoOverlay } from "./WorkoutPhotoOverlay";
 import type { ExerciseInWorkout } from "@/lib/workout/types";
 
@@ -37,6 +37,10 @@ export function ShareSheet({
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPhotoOverlay, setShowPhotoOverlay] = useState(false);
+  const [showFriendPicker, setShowFriendPicker] = useState(false);
+  const [friends, setFriends] = useState<{ id: string; email: string }[]>([]);
+  const [sharingToFriend, setSharingToFriend] = useState<string | null>(null);
+  const [sharedToFriend, setSharedToFriend] = useState(false);
 
   useEffect(() => {
     if (step === "share" && !linkData) {
@@ -117,6 +121,29 @@ export function ShareSheet({
       setLinkData(null);
       setCopied(false);
     } catch {}
+  };
+
+  useEffect(() => {
+    if (!showFriendPicker) return;
+    fetch("/api/friends")
+      .then(r => r.json())
+      .then(data => setFriends(data.friends || []))
+      .catch(() => {});
+  }, [showFriendPicker]);
+
+  const handleShareToFriend = async (receiverId: string) => {
+    setSharingToFriend(receiverId);
+    try {
+      const res = await fetch(`/api/workouts/${workoutId}/share-to-friend`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ receiverId }),
+      });
+      if (!res.ok) return;
+      setSharedToFriend(true);
+      setTimeout(() => setSharedToFriend(false), 2000);
+    } catch {}
+    setSharingToFriend(null);
   };
 
   if (showPhotoOverlay) {
@@ -289,6 +316,60 @@ export function ShareSheet({
                       >
                         Telegram
                       </button>
+                    </div>
+
+                    <div className="border-t border pt-4 mt-4">
+                      {!showFriendPicker ? (
+                        <button
+                          onClick={() => setShowFriendPicker(true)}
+                          className="w-full flex items-center justify-center gap-2 bg-card hover:bg-muted text-muted-foreground hover:text-white font-semibold py-3 rounded-xl border border transition-all cursor-pointer"
+                        >
+                          <Users className="w-4 h-4" />
+                          Compartir con un amigo
+                        </button>
+                      ) : (
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                              Tus amigos
+                            </span>
+                            <button
+                              onClick={() => setShowFriendPicker(false)}
+                              className="text-xs text-icon hover:text-white transition-colors cursor-pointer"
+                            >
+                              Cancelar
+                            </button>
+                          </div>
+                          {friends.length === 0 ? (
+                            <p className="text-xs text-icon text-center py-4">No tenés amigos para compartir</p>
+                          ) : (
+                            <div className="space-y-1 max-h-40 overflow-y-auto">
+                              {friends.map((friend) => (
+                                <button
+                                  key={friend.id}
+                                  onClick={() => handleShareToFriend(friend.id)}
+                                  disabled={sharingToFriend === friend.id || sharedToFriend}
+                                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors cursor-pointer disabled:opacity-40"
+                                >
+                                  <div className="w-7 h-7 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
+                                    <span className="text-[10px] font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                                      {friend.email.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <span className="text-sm text-left text-white flex-1 truncate">{friend.email}</span>
+                                  {sharingToFriend === friend.id ? (
+                                    <Loader2 className="w-4 h-4 animate-spin text-accent shrink-0" />
+                                  ) : sharedToFriend ? (
+                                    <Check className="w-4 h-4 text-green-500 shrink-0" />
+                                  ) : (
+                                    <UserPlus className="w-4 h-4 text-icon shrink-0" />
+                                  )}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ) : null}

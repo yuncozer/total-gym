@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Bell, BellOff } from "lucide-react";
+import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Bell, BellOff, Trophy, Flame, Zap, Crown, Share2, Users2, Dumbbell } from "lucide-react";
 import { usePushNotifications, updateNotificationSettings, saveSubscription } from "@/lib/push";
 import { useAuth } from "@/lib/useAuth";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
@@ -23,6 +23,7 @@ export default function PerfilPage() {
   const { t } = useLanguage();
   const { loading: authLoading, authenticated } = useAuth(true);
   const [loading, setLoading] = useState(true);
+  const [achievements, setAchievements] = useState<{ id: string; name: string; desc: string; icon: string; earned: boolean }[]>([]);
   const [saving, setSaving] = useState(false);
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -79,6 +80,20 @@ export default function PerfilPage() {
     if (authenticated) {
       initSupabase();
     }
+
+    fetch("/api/achievements")
+      .then(r => r.json())
+      .then(data => {
+        const lang = document.documentElement.lang || "es";
+        setAchievements((data.achievements || []).map((a: any) => ({
+          id: a.id,
+          name: a.name[lang] || a.name.es,
+          desc: a.desc[lang] || a.desc.es,
+          icon: a.icon,
+          earned: a.earned,
+        })));
+      })
+      .catch(() => {});
   }, [authenticated, authLoading]);
 
   const handleSave = async () => {
@@ -377,9 +392,63 @@ export default function PerfilPage() {
                 </button>
               </div>
             </div>
+
+            <div className="bg-card border border rounded-xl p-4">
+              <div className="flex items-center gap-3 mb-4">
+                <Trophy className="w-5 h-5 text-accent" />
+                <h3 className="text-white font-semibold text-lg" style={{ fontFamily: "var(--font-rajdhani)" }}>
+                  {t("perfil.achievements")}
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {achievements.map(a => (
+                  <div
+                    key={a.id}
+                    className={`flex flex-col items-center gap-1.5 p-3 rounded-xl border text-center transition-all ${
+                      a.earned
+                        ? "bg-accent/10 border-accent/30"
+                        : "bg-zinc-900/50 border-zinc-800 opacity-50"
+                    }`}
+                  >
+                    <AchievementIcon icon={a.icon} earned={a.earned} />
+                    <span className="text-xs font-medium text-white leading-tight" style={{ fontFamily: "var(--font-oswald)" }}>
+                      {a.name}
+                    </span>
+                    <span className="text-[10px] text-muted-foreground leading-tight">
+                      {a.desc}
+                    </span>
+                    {a.earned && (
+                      <span className="text-[10px] text-accent font-medium">
+                        ✓ {t("perfil.achieved")}
+                      </span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+const iconMap: Record<string, React.ReactNode> = {
+  trophy: <Trophy className="w-6 h-6" />,
+  flame: <Flame className="w-6 h-6" />,
+  zap: <Zap className="w-6 h-6" />,
+  crown: <Crown className="w-6 h-6" />,
+  dumbbell: <Dumbbell className="w-6 h-6" />,
+  share: <Share2 className="w-6 h-6" />,
+  users: <Users2 className="w-6 h-6" />,
+};
+
+function AchievementIcon({ icon, earned }: { icon: string; earned: boolean }) {
+  return (
+    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+      earned ? "bg-accent/20 text-accent" : "bg-zinc-800 text-zinc-600"
+    }`}>
+      {iconMap[icon] || <Trophy className="w-6 h-6" />}
     </div>
   );
 }

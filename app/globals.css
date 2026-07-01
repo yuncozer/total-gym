@@ -360,3 +360,13 @@ body {
   background-size: 200% 200%;
   animation: ia-gradient 4s ease-in-out infinite;
 }
+
+@keyframes friends-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.12); }
+}
+
+@keyframes medallion-pulse {
+  0%, 100% { box-shadow: 0 0 6px rgba(234, 179, 8, 0.3); }
+  50% { box-shadow: 0 0 14px rgba(234, 179, 8, 0.6); }
+}
