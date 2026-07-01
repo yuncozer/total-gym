@@ -31,6 +31,7 @@ import type { ExerciseInWorkout } from "@/lib/workout/types";
 import { ConfirmModal } from "@/app/components/ConfirmModal";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
+import { ShareSheet } from "@/app/components/ShareSheet";
 import { SaveTemplateModal } from "@/app/components/SaveTemplateModal";
 import { AddExerciseModal } from "@/app/components/AddExerciseModal";
 import { ImageModal } from "@/app/components/EjercicioCard";
@@ -117,7 +118,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const extraSetIndexRef = useRef<number | null>(null);
   const [deleteConfirmExercise, setDeleteConfirmExercise] = useState<ExerciseInWorkout | null>(null);
   const [isDeletingWorkout, setIsDeletingWorkout] = useState(false);
-  const [showPhotoOverlay, setShowPhotoOverlay] = useState(false);
+  const [showShareSheet, setShowShareSheet] = useState(false);
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [workoutName, setWorkoutName] = useState("");
   const [showMotivationalModal, setShowMotivationalModal] = useState(false);
@@ -266,7 +267,7 @@ const handleCompleteSet = () => {
               <span className="text-sm text-icon">{t("workout.seriesCount")} </span>
               <span className="text-sm font-bold text-green-500">{progress.completed}/{progress.total}</span>
             </div>
-            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowPhotoOverlay(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-accent/10 border-2 border-accent hover:bg-accent/20 cursor-pointer font-bold rounded-xl text-accent transition-all duration-300 animate-pulse">
+            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowShareSheet(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-accent/10 border-2 border-accent hover:bg-accent/20 cursor-pointer font-bold rounded-xl text-accent transition-all duration-300 animate-pulse">
               <Share2 className="w-5 h-5" /> {t("workout.share")}
             </button>
             <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowSaveTemplate(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border hover:border-accent cursor-pointer font-bold rounded-xl">
@@ -280,11 +281,13 @@ const handleCompleteSet = () => {
             </button>
           </div>
         </main>
-        {showPhotoOverlay && (
-          <WorkoutPhotoOverlay
-            exercises={exercises}
+        {showShareSheet && (
+          <ShareSheet
+            workoutId={workoutId}
             workoutName={workoutName.trim()}
-            onClose={() => setShowPhotoOverlay(false)}
+            exercises={exercises}
+            onClose={() => setShowShareSheet(false)}
+            onRename={(name) => setWorkoutName(name)}
           />
         )}
         {showSaveTemplate && (

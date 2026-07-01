@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock, Target, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X, Flame, Calendar, Share2 } from "lucide-react";
 import { loadWorkoutHistory, type WorkoutSummary, type WorkoutSet, type ExerciseInWorkout } from "@/lib/workout";
 import { useAuth } from "@/lib/useAuth";
-import { WorkoutPhotoOverlay } from "@/app/components/WorkoutPhotoOverlay";
+import { ShareSheet } from "@/app/components/ShareSheet";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 
 type DateFilter = "all" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year" | "specific_day";
@@ -174,7 +174,8 @@ export default function HistorialPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [selectedDayIndex, setSelectedDayIndex] = useState<number | null>(null);
-  const [sharingWorkout, setSharingWorkout] = useState<WorkoutSummary | null>(null);
+  const [shareWorkoutId, setShareWorkoutId] = useState<string | null>(null);
+  const [shareWorkoutData, setShareWorkoutData] = useState<{ name: string | null | undefined; exercises: ExerciseInWorkout[]; completed_at: string | null; date: string } | null>(null);
 
   const DATE_FILTERS: { id: DateFilter; label: string }[] = [
     { id: "all", label: t("historial.filterAll") },
@@ -467,7 +468,13 @@ export default function HistorialPage() {
                                     <div
                                       onClick={(e) => {
                                         e.stopPropagation();
-                                        setSharingWorkout(workout);
+                                        setShareWorkoutId(workout.id);
+                                        setShareWorkoutData({
+                                          name: workout.name,
+                                          exercises: workout.exercises,
+                                          completed_at: workout.completed_at,
+                                          date: workout.date,
+                                        });
                                       }}
                                       className="p-1.5 text-icon hover:text-accent transition-colors cursor-pointer"
                                       title={t("historial.shareTitle")}
@@ -613,13 +620,22 @@ export default function HistorialPage() {
         </div>
       </main>
 
-      {sharingWorkout && (
-        <WorkoutPhotoOverlay
-          exercises={sharingWorkout.exercises}
-          workoutName={sharingWorkout.name || undefined}
-          completedAt={sharingWorkout.completed_at}
-          workoutDate={sharingWorkout.date}
-          onClose={() => setSharingWorkout(null)}
+      {shareWorkoutId && shareWorkoutData && (
+        <ShareSheet
+          workoutId={shareWorkoutId}
+          workoutName={shareWorkoutData.name}
+          exercises={shareWorkoutData.exercises}
+          completedAt={shareWorkoutData.completed_at}
+          workoutDate={shareWorkoutData.date}
+          onClose={() => { setShareWorkoutId(null); setShareWorkoutData(null); }}
+          onRename={(name) => {
+            setShareWorkoutData((prev) => prev ? { ...prev, name } : prev);
+            setWorkouts((prev) =>
+              prev.map((w) =>
+                w.id === shareWorkoutId ? { ...w, name } : w
+              )
+            );
+          }}
         />
       )}
     </div>
