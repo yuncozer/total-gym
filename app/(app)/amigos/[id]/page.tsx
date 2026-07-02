@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
-import { Flame, Zap, Trophy, Calendar, Dumbbell, ArrowLeft, Loader2, ChevronRight } from "lucide-react";
+import { Flame, Zap, Trophy, Calendar, Dumbbell, ArrowLeft, Loader2, ChevronRight, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { xpForLevel } from "@/lib/gamification";
 
@@ -34,6 +34,8 @@ export default function FriendProfilePage() {
   const [profile, setProfile] = useState<FriendProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [sharedWorkouts, setSharedWorkouts] = useState<any[]>([]);
+  const [sharesLoading, setSharesLoading] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -49,7 +51,21 @@ export default function FriendProfilePage() {
       }
     }
     load();
+    fetchSharesFromFriend();
   }, [id]);
+
+  const fetchSharesFromFriend = async () => {
+    setSharesLoading(true);
+    try {
+      const res = await fetch(`/api/friends/shares?friendId=${encodeURIComponent(id)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setSharedWorkouts(data.shares || []);
+    } catch {
+    } finally {
+      setSharesLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -166,6 +182,42 @@ export default function FriendProfilePage() {
               <span className="text-xs font-normal text-icon ml-1">k kg</span>
             </p>
           </div>
+        </div>
+
+        {/* Rutinas compartidas */}
+        <div className="bg-card/60 border border rounded-xl p-4 mb-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Rutinas compartidas</span>
+            {sharesLoading && <Loader2 className="w-3 h-3 animate-spin text-icon" />}
+          </div>
+          {sharedWorkouts.length === 0 && !sharesLoading ? (
+            <p className="text-xs text-icon text-center py-4">Este amigo no compartió rutinas con vos</p>
+          ) : (
+            <div className="space-y-2">
+              {sharedWorkouts.map((share: any) => (
+                <Link
+                  key={share.id}
+                  href={`/shared-friend/${share.workoutId}`}
+                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors"
+                >
+                  <div className="w-8 h-8 rounded-lg bg-accent/10 flex items-center justify-center shrink-0">
+                    <Dumbbell className="w-4 h-4 text-accent" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{share.workoutName}</p>
+                    <p className="text-[10px] text-icon">
+                      {share.workoutDate ? new Date(share.workoutDate).toLocaleDateString("es-ES", { day: "numeric", month: "short" }) : ""}
+                    </p>
+                  </div>
+                  {share.viewedAt ? (
+                    <EyeOff className="w-3.5 h-3.5 text-icon/40 shrink-0" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5 text-accent shrink-0" />
+                  )}
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* XP details */}

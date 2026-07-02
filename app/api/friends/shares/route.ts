@@ -25,11 +25,64 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    const { data: received } = await adminClient
-      .from("friend_shares")
-      .select("id, workout_id, sender_id, created_at")
-      .eq("receiver_id", session.user.id)
-      .order("created_at", { ascending: false });
+    const friendId = request.nextUrl.searchParams.get("friendId");
+
+    if (friendId) {
+      let fromFriend;
+      try {
+        const { data } = await adminClient
+          .from("friend_shares")
+          .select("id, workout_id, sender_id, created_at, viewed_at")
+          .eq("receiver_id", session.user.id)
+          .eq("sender_id", friendId)
+          .order("created_at", { ascending: false });
+        fromFriend = data;
+      } catch {
+        const { data } = await adminClient
+          .from("friend_shares")
+          .select("id, workout_id, sender_id, created_at")
+          .eq("receiver_id", session.user.id)
+          .eq("sender_id", friendId)
+          .order("created_at", { ascending: false });
+        fromFriend = data;
+      }
+
+      const workoutIds = [...new Set(fromFriend?.map(s => s.workout_id) || [])];
+
+      const { data: workouts } = workoutIds.length > 0
+        ? await adminClient.from("workouts").select("id, started_at, name").in("id", workoutIds)
+        : { data: [] };
+
+      const typed = (fromFriend || []).map(s => ({
+        id: s.id,
+        workoutId: s.workout_id,
+        senderId: s.sender_id,
+        workoutName: workouts?.find(w => w.id === s.workout_id)?.name || "Workout",
+        workoutDate: workouts?.find(w => w.id === s.workout_id)?.started_at,
+        createdAt: s.created_at,
+        viewedAt: (s as any).viewed_at ?? null,
+      }));
+
+      return NextResponse.json({ shares: typed });
+    }
+
+    let received;
+    try {
+      const { data } = await adminClient
+        .from("friend_shares")
+        .select("id, workout_id, sender_id, created_at")
+        .eq("receiver_id", session.user.id)
+        .is("viewed_at", null)
+        .order("created_at", { ascending: false });
+      received = data;
+    } catch {
+      const { data } = await adminClient
+        .from("friend_shares")
+        .select("id, workout_id, sender_id, created_at")
+        .eq("receiver_id", session.user.id)
+        .order("created_at", { ascending: false });
+      received = data;
+    }
 
     const { data: sent } = await adminClient
       .from("friend_shares")
@@ -59,6 +112,7 @@ export async function GET(request: NextRequest) {
     const typedReceived = (received || []).map(s => ({
       id: s.id,
       workoutId: s.workout_id,
+      senderId: s.sender_id,
       senderEmail: senderMap.get(s.sender_id) || "Unknown",
       workoutName: workouts?.find(w => w.id === s.workout_id)?.name || "Workout",
       workoutDate: workouts?.find(w => w.id === s.workout_id)?.started_at,
@@ -68,6 +122,7 @@ export async function GET(request: NextRequest) {
     const typedSent = (sent || []).map(s => ({
       id: s.id,
       workoutId: s.workout_id,
+      receiverId: s.receiver_id,
       receiverEmail: receiverMap.get(s.receiver_id) || "Unknown",
       workoutName: workouts?.find(w => w.id === s.workout_id)?.name || "Workout",
       workoutDate: workouts?.find(w => w.id === s.workout_id)?.started_at,

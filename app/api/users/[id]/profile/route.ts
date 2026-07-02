@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { levelFromXp } from "@/lib/gamification";
 
 export async function GET(
   request: NextRequest,
@@ -8,14 +9,14 @@ export async function GET(
   try {
     const { id } = await params;
 
-    const adminClient = createClient(
+    const adminClient: any = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
     const { data: profile, error } = await adminClient
       .from("profiles")
-      .select("id, email, level, xp, current_streak, longest_streak")
+      .select("id, email")
       .eq("id", id)
       .single();
 
@@ -25,9 +26,71 @@ export async function GET(
 
     // Fallback to auth.users email if profile email is missing
     if (!profile.email) {
-      const { data: authEmail } = await (adminClient.rpc as any)("get_user_email", { p_user_id: id });
+      const { data: authEmail } = await adminClient.rpc("get_user_email", { p_user_id: id });
       if (authEmail) profile.email = authEmail as string;
     }
+
+    // Calculate XP, level, streak from raw workout data (no DB function dependency)
+    const { data: userWorkouts } = await adminClient
+      .from("workouts")
+      .select("id, completed_at")
+      .eq("user_id", id);
+
+    const completedWorkouts = (userWorkouts || []).filter((w: any) => w.completed_at);
+    const workoutIds = (userWorkouts || []).map((w: any) => w.id);
+
+    const { data: allSets } = await adminClient
+      .from("workout_sets")
+      .select("id, workout_id")
+      .eq("is_completed", true)
+      .in("workout_id", workoutIds.length > 0 ? workoutIds : ["none"]);
+
+    const userWorkoutIdSet = new Set(workoutIds);
+    const totalSets = (allSets || []).filter((s: any) => userWorkoutIdSet.has(s.workout_id)).length;
+    const totalWorkouts = completedWorkouts.length;
+
+    const xp = totalSets * 10 + totalWorkouts * 25;
+    const level = levelFromXp(xp);
+
+    // Calculate streak
+    const workoutDates: string[] = completedWorkouts.map((w: any) => {
+      const d = new Date(w.completed_at);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    });
+    const uniqueDates = [...new Set(workoutDates)].sort((a, b) => b.localeCompare(a));
+
+    let currentStreak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split("T")[0];
+    const checkDate = new Date(today);
+    if (uniqueDates.includes(todayStr)) {
+      currentStreak = 1;
+      checkDate.setDate(checkDate.getDate() - 1);
+    }
+    while (true) {
+      const ds = checkDate.toISOString().split("T")[0];
+      if (uniqueDates.includes(ds)) { currentStreak++; checkDate.setDate(checkDate.getDate() - 1); }
+      else break;
+    }
+
+    let longestStreak = 0;
+    if (uniqueDates.length > 0) {
+      let run = 1;
+      for (let i = 0; i < uniqueDates.length - 1; i++) {
+        const curr = new Date(uniqueDates[i]);
+        const next = new Date(uniqueDates[i + 1]);
+        const diff = (curr.getTime() - next.getTime()) / (1000 * 60 * 60 * 24);
+        if (diff === 1) run++;
+        else { longestStreak = Math.max(longestStreak, run); run = 1; }
+      }
+      longestStreak = Math.max(longestStreak, run);
+    }
+
+    // Best-effort save back to profiles
+    await adminClient.from("profiles").update({
+      xp, level, current_streak: currentStreak, longest_streak: longestStreak
+    }).eq("id", id).maybeSingle();
 
     const { count: weekWorkouts } = await adminClient
       .from("workouts")
@@ -40,23 +103,16 @@ export async function GET(
       .select("reps, weight_kg")
       .eq("is_completed", true);
 
-    const { data: userWorkouts } = await adminClient
-      .from("workouts")
-      .select("id")
-      .eq("user_id", id);
-
-    const userWorkoutIds = (userWorkouts || []).map(w => w.id);
-
     let totalVolume = 0;
-    if (weekSetsRes.data && userWorkoutIds.length > 0) {
+    if (weekSetsRes.data && workoutIds.length > 0) {
       const { data: weekSets } = await adminClient
         .from("workout_sets")
         .select("reps, weight_kg")
         .eq("is_completed", true)
-        .in("workout_id", userWorkoutIds);
+        .in("workout_id", workoutIds);
 
       if (weekSets) {
-        weekSets.forEach(set => {
+        weekSets.forEach((set: any) => {
           totalVolume += (set.reps || 0) * (set.weight_kg || 0);
         });
       }
@@ -65,10 +121,10 @@ export async function GET(
     return NextResponse.json({
       id: profile.id,
       email: profile.email,
-      level: profile.level,
-      xp: profile.xp,
-      currentStreak: profile.current_streak,
-      longestStreak: profile.longest_streak,
+      level,
+      xp,
+      currentStreak,
+      longestStreak,
       weekWorkouts: weekWorkouts || 0,
       totalVolume: Math.round(totalVolume),
     });

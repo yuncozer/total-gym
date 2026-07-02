@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useLanguage } from "@/lib/i18n";
-import { UserPlus, Users, Mail, Clock, UserMinus, Check, X, Search, Loader2, UserCheck, Ban, ChevronRight, Trophy, Flame } from "lucide-react";
+import { UserPlus, Users, Mail, Clock, UserMinus, Check, X, Search, Loader2, UserCheck, Ban, ChevronRight, Trophy, Flame, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
 
@@ -68,6 +68,9 @@ export default function AmigosPage() {
   const [searchResults, setSearchResults] = useState<SearchUser[]>([]);
   const [searching, setSearching] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [receivedShares, setReceivedShares] = useState<any[]>([]);
+  const [showSharesBanner, setShowSharesBanner] = useState(false);
+  const [sharesLoading, setSharesLoading] = useState(false);
 
   const loadFriends = useCallback(async () => {
     try {
@@ -86,7 +89,21 @@ export default function AmigosPage() {
   useEffect(() => {
     setLoading(true);
     loadFriends();
+    fetchShares();
   }, [loadFriends]);
+
+  const fetchShares = async () => {
+    setSharesLoading(true);
+    try {
+      const res = await fetch("/api/friends/shares");
+      if (!res.ok) return;
+      const data = await res.json();
+      setReceivedShares(data.received || []);
+    } catch {
+    } finally {
+      setSharesLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (!searchQuery.trim()) {
@@ -208,6 +225,47 @@ export default function AmigosPage() {
         <h1 className="text-2xl font-bold text-white mb-6" style={{ fontFamily: "var(--font-oswald)" }}>
           {t("friends.title")}
         </h1>
+
+        {receivedShares.length > 0 && (
+          <div className="mb-4 border border-accent/20 rounded-xl overflow-hidden">
+            <button
+              onClick={() => setShowSharesBanner(!showSharesBanner)}
+              className="w-full flex items-center justify-between gap-2 px-4 py-3 bg-accent/5 hover:bg-accent/10 transition-colors cursor-pointer"
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📩</span>
+                <span className="text-sm font-semibold text-white">
+                  {receivedShares.length} {receivedShares.length === 1 ? "amigo compartió" : "amigos compartieron"} rutinas contigo
+                </span>
+              </div>
+              <ChevronDown className={`w-4 h-4 text-icon transition-transform ${showSharesBanner ? "rotate-180" : ""}`} />
+            </button>
+            {showSharesBanner && (
+              <div className="divide-y divide border-t border-accent/10">
+                {receivedShares.map((share: any) => (
+                  <div key={share.id} className="flex items-center gap-3 px-4 py-3">
+                    <div className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
+                      <span className="text-xs font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                        {(share.senderEmail || "?").charAt(0).toUpperCase()}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-white truncate">{share.senderEmail}</p>
+                      <p className="text-xs text-icon truncate">{share.workoutName}</p>
+                    </div>
+                    <div className="text-[10px] text-icon shrink-0">{share.workoutDate ? formatDate(share.workoutDate) : ""}</div>
+                    <Link
+                      href={`/shared-friend/${share.workoutId}`}
+                      className="flex items-center gap-1 bg-accent hover:bg-accent-hover text-black text-xs font-bold px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                    >
+                      Ver
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="flex border-b border mb-6">
           {tabs.map((t) => (

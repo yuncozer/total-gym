@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -114,6 +114,9 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(true);
   const [showSmartCoach, setShowSmartCoach] = useState(false);
   const [showCoach, setShowCoach] = useState(false);
+  const [receivedShares, setReceivedShares] = useState<any[]>([]);
+  const [showSharesModal, setShowSharesModal] = useState(false);
+  const modalShownRef = useRef(false);
 
   const { canInstall, installed, install } = useInstallPrompt();
   const { t, lang } = useLanguage();
@@ -255,6 +258,22 @@ export default function Home() {
       return () => clearTimeout(timer);
     }
   }, [stats, user]);
+
+  useEffect(() => {
+    if (!user || modalShownRef.current) return;
+    fetch("/api/friends/shares")
+      .then(r => r.json())
+      .then(data => {
+        const received = data.received || [];
+        setReceivedShares(received);
+        if (received.length > 0) {
+          modalShownRef.current = true;
+          const timer = setTimeout(() => setShowSharesModal(true), 600);
+          return () => clearTimeout(timer);
+        }
+      })
+      .catch(() => {});
+  }, [user]);
 
   const handleStartTraining = () => {
     if (pendingWorkout) {
@@ -856,6 +875,51 @@ export default function Home() {
             setShowSmartCoach(true);
           }
         }} />
+      )}
+      {showSharesModal && receivedShares.length > 0 && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={() => setShowSharesModal(false)}>
+          <div className="w-full max-w-sm bg-card border border rounded-2xl p-6 shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-2xl">📩</span>
+              <div>
+                <h3 className="text-lg font-bold text-white" style={{ fontFamily: "var(--font-oswald)" }}>
+                  {receivedShares.length === 1 ? "Recibiste una rutina" : `Recibiste ${receivedShares.length} rutinas`}
+                </h3>
+                <p className="text-xs text-muted-foreground">
+                  {receivedShares.length === 1 ? "Un amigo compartió una rutina con vos" : "Tus amigos compartieron rutinas con vos"}
+                </p>
+              </div>
+            </div>
+            <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
+              {receivedShares.map((share: any) => (
+                <div key={share.id} className="flex items-center gap-3 px-3 py-2.5 bg-muted rounded-xl">
+                  <div className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
+                    <span className="text-xs font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                      {(share.senderEmail || "?").charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-white truncate">{share.senderEmail}</p>
+                    <p className="text-xs text-icon truncate">{share.workoutName}</p>
+                  </div>
+                  <Link
+                    href={`/shared-friend/${share.workoutId}`}
+                    onClick={() => setShowSharesModal(false)}
+                    className="bg-accent hover:bg-accent-hover text-black text-xs font-bold px-3 py-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+                  >
+                    Ver
+                  </Link>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={() => setShowSharesModal(false)}
+              className="w-full py-2.5 text-sm font-semibold text-muted-foreground hover:text-white bg-muted rounded-xl transition-colors cursor-pointer"
+            >
+              Ahora no
+            </button>
+          </div>
+        </div>
       )}
       <footer className="bg-background border-t border py-16">
         <div className="max-w-6xl mx-auto px-4">

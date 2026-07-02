@@ -40,13 +40,27 @@ export function ShareSheet({
   const [showFriendPicker, setShowFriendPicker] = useState(false);
   const [friends, setFriends] = useState<{ id: string; email: string }[]>([]);
   const [sharingToFriend, setSharingToFriend] = useState<string | null>(null);
-  const [sharedToFriend, setSharedToFriend] = useState(false);
+  const [alreadyShared, setAlreadyShared] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (step === "share" && !linkData) {
       generateLink();
     }
   }, [step]);
+
+  useEffect(() => {
+    if (!showFriendPicker) return;
+    Promise.all([
+      fetch("/api/friends").then(r => r.json()),
+      fetch("/api/friends/shares").then(r => r.json()),
+    ])
+      .then(([friendsData, sharesData]) => {
+        setFriends(friendsData.friends || []);
+        const sentForThis = (sharesData.sent || []).filter((s: any) => s.workoutId === workoutId);
+        setAlreadyShared(new Set(sentForThis.map((s: any) => s.receiverId)));
+      })
+      .catch(() => {});
+  }, [showFriendPicker, workoutId]);
 
   const handleSaveName = async () => {
     if (!name.trim() || saving) return;
@@ -140,8 +154,7 @@ export function ShareSheet({
         body: JSON.stringify({ receiverId }),
       });
       if (!res.ok) return;
-      setSharedToFriend(true);
-      setTimeout(() => setSharedToFriend(false), 2000);
+      setAlreadyShared(prev => new Set(prev).add(receiverId));
     } catch {}
     setSharingToFriend(null);
   };
@@ -318,7 +331,7 @@ export function ShareSheet({
                       </button>
                     </div>
 
-                    <div className="border-t border pt-4 mt-4">
+                    <div className="pt-4 mt-4">
                       {!showFriendPicker ? (
                         <button
                           onClick={() => setShowFriendPicker(true)}
@@ -344,28 +357,31 @@ export function ShareSheet({
                             <p className="text-xs text-icon text-center py-4">No tenés amigos para compartir</p>
                           ) : (
                             <div className="space-y-1 max-h-40 overflow-y-auto">
-                              {friends.map((friend) => (
-                                <button
-                                  key={friend.id}
-                                  onClick={() => handleShareToFriend(friend.id)}
-                                  disabled={sharingToFriend === friend.id || sharedToFriend}
-                                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors cursor-pointer disabled:opacity-40"
-                                >
-                                  <div className="w-7 h-7 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
-                                    <span className="text-[10px] font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                                      {friend.email.charAt(0).toUpperCase()}
-                                    </span>
-                                  </div>
-                                  <span className="text-sm text-left text-white flex-1 truncate">{friend.email}</span>
-                                  {sharingToFriend === friend.id ? (
-                                    <Loader2 className="w-4 h-4 animate-spin text-accent shrink-0" />
-                                  ) : sharedToFriend ? (
-                                    <Check className="w-4 h-4 text-green-500 shrink-0" />
-                                  ) : (
-                                    <UserPlus className="w-4 h-4 text-icon shrink-0" />
-                                  )}
-                                </button>
-                              ))}
+                              {friends.map((friend) => {
+                                const alreadySent = alreadyShared.has(friend.id);
+                                return (
+                                  <button
+                                    key={friend.id}
+                                    onClick={() => !alreadySent && handleShareToFriend(friend.id)}
+                                    disabled={alreadySent || sharingToFriend === friend.id}
+                                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors cursor-pointer disabled:opacity-40"
+                                  >
+                                    <div className="w-7 h-7 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
+                                      <span className="text-[10px] font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                                        {friend.email.charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <span className="text-sm text-left text-white flex-1 truncate">{friend.email}</span>
+                                    {alreadySent ? (
+                                      <span className="text-[10px] text-green-500 font-semibold shrink-0">Compartida</span>
+                                    ) : sharingToFriend === friend.id ? (
+                                      <Loader2 className="w-4 h-4 animate-spin text-accent shrink-0" />
+                                    ) : (
+                                      <UserPlus className="w-4 h-4 text-icon shrink-0" />
+                                    )}
+                                  </button>
+                                );
+                              })}
                             </div>
                           )}
                         </div>
