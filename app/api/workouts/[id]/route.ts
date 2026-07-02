@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 function createSupabaseClient(request: NextRequest) {
@@ -20,6 +21,14 @@ function createSupabaseClient(request: NextRequest) {
   );
 }
 
+function createAdminClient() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -34,18 +43,51 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { data: workout, error: workoutError } = await supabase
+    let isSharedAccess = false;
+
+    let { data: workout, error: workoutError } = await supabase
       .from("workouts")
       .select("*")
       .eq("id", workoutId)
       .eq("user_id", session.user.id)
-      .single();
+      .maybeSingle();
 
-    if (workoutError || !workout) {
-      return NextResponse.json({ error: "Workout not found" }, { status: 404 });
+    if (!workout) {
+      const { data: share } = await supabase
+        .from("friend_shares")
+        .select("id")
+        .eq("workout_id", workoutId)
+        .eq("receiver_id", session.user.id)
+        .maybeSingle();
+
+      if (share) {
+        isSharedAccess = true;
+        const admin = createAdminClient();
+        const { data: sharedWorkout, error: sharedError } = await admin
+          .from("workouts")
+          .select("*")
+          .eq("id", workoutId)
+          .maybeSingle();
+
+        if (sharedError || !sharedWorkout) {
+          return NextResponse.json({ error: "Workout not found" }, { status: 404 });
+        }
+        workout = sharedWorkout;
+
+        admin
+          .from("friend_shares")
+          .update({ viewed_at: new Date().toISOString() })
+          .eq("receiver_id", session.user.id)
+          .eq("workout_id", workoutId)
+          .then(() => {}, () => {});
+      } else {
+        return NextResponse.json({ error: "Workout not found" }, { status: 404 });
+      }
     }
 
-    const { data: sets, error: setsError } = await supabase
+    const client = isSharedAccess ? createAdminClient() : supabase;
+
+    const { data: sets, error: setsError } = await client
       .from("workout_sets")
       .select("*")
       .eq("workout_id", workoutId)

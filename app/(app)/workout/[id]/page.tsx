@@ -135,6 +135,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     weight: number;
     reps: number;
   } | null>(null);
+  const [redirectHome, setRedirectHome] = useState(false);
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -154,6 +155,12 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     }
     return () => document.documentElement.classList.remove("workout-mode");
   }, [selectedExercise]);
+
+  useEffect(() => {
+    if (redirectHome) {
+      router.push("/");
+    }
+  }, [redirectHome, router]);
 
 const handleCompleteSet = () => {
     if (!selectedExercise || !canCompleteSet) return;
@@ -231,7 +238,7 @@ const handleCompleteSet = () => {
   }
 
   if (exercises.length === 0 && !loading) {
-    router.push("/");
+    if (!redirectHome) setRedirectHome(true);
     return null;
   }
 

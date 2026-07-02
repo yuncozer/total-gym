@@ -25,6 +25,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
   const [signingOut, setSigningOut] = useState(false);
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
   const [pendingRequests, setPendingRequests] = useState(0);
+  const [unreadShares, setUnreadShares] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -54,10 +55,18 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
     if (!user) return;
     async function fetchPending() {
       try {
-        const res = await fetch("/api/friends");
-        if (!res.ok) return;
-        const data = await res.json();
-        setPendingRequests(data.incoming?.length || 0);
+        const [friendsRes, sharesRes] = await Promise.all([
+          fetch("/api/friends"),
+          fetch("/api/friends/shares"),
+        ]);
+        if (friendsRes.ok) {
+          const data = await friendsRes.json();
+          setPendingRequests(data.incoming?.length || 0);
+        }
+        if (sharesRes.ok) {
+          const sharesData = await sharesRes.json();
+          setUnreadShares(sharesData.received?.length || 0);
+        }
       } catch {}
     }
     fetchPending();
@@ -137,7 +146,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
               <Link
                 href="/amigos"
                 className={`relative flex items-center justify-center sm:gap-2 w-9 h-9 sm:w-auto sm:pl-2.5 sm:pr-3.5 bg-gradient-to-b from-card to-[#0e0e10] border rounded-full transition-all duration-300 cursor-pointer group ${
-                  pendingRequests > 0
+                  pendingRequests > 0 || unreadShares > 0
                     ? "border-accent/40"
                     : "border hover:border-accent/50 hover:shadow-[0_0_14px_rgba(234,179,8,0.2)]"
                 }`}
@@ -150,6 +159,21 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                   <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-accent text-black text-[10px] font-bold rounded-full px-1 leading-none animate-[friends-pulse_2s_ease-in-out_infinite] shadow-[0_0_8px_rgba(234,179,8,0.5)]">
                     {pendingRequests > 9 ? "9+" : pendingRequests}
                   </span>
+                )}
+                {unreadShares > 0 && !pendingRequests && (
+                  <span className="absolute -bottom-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-blue-500 text-white text-[10px] font-bold rounded-full px-1 leading-none shadow-[0_0_8px_rgba(59,130,246,0.5)]">
+                    {unreadShares > 9 ? "9+" : unreadShares}
+                  </span>
+                )}
+                {unreadShares > 0 && pendingRequests > 0 && (
+                  <>
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-accent text-black text-[10px] font-bold rounded-full px-1 leading-none animate-[friends-pulse_2s_ease-in-out_infinite] shadow-[0_0_8px_rgba(234,179,8,0.5)]">
+                      {pendingRequests > 9 ? "9+" : pendingRequests}
+                    </span>
+                    <span className="absolute -bottom-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-blue-500 text-white text-[10px] font-bold rounded-full px-1 leading-none shadow-[0_0_8px_rgba(59,130,246,0.5)]">
+                      {unreadShares > 9 ? "9+" : unreadShares}
+                    </span>
+                  </>
                 )}
               </Link>
               <div className="relative">
