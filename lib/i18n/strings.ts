@@ -280,6 +280,16 @@ export const strings = {
   "workout.photoDeleteConfirm": { es: "¿Eliminar esta foto?", en: "Delete this photo?" },
   "workout.photoUploading": { es: "Subiendo...", en: "Uploading..." },
 
+  // --- Workout: Bodyweight ---
+  "workout.useBodyweight": { es: "USAR PESO CORPORAL", en: "USE BODYWEIGHT" },
+  "workout.bodyweightLabel": { es: "Peso corporal", en: "Bodyweight" },
+  "workout.bodyweightActive": { es: "Peso corporal:", en: "Bodyweight:" },
+  "workout.profileWeightTitle": { es: "Peso corporal", en: "Bodyweight" },
+  "workout.profileWeightMsg": { es: "Para usar peso corporal, necesitas ingresar tu peso en el perfil.", en: "To use bodyweight, enter your weight in your profile." },
+  "workout.profileWeightSave": { es: "GUARDAR Y CONTINUAR", en: "SAVE AND CONTINUE" },
+  "workout.profileWeightPlaceholder": { es: "Ej: 75", en: "E.g.: 165" },
+  "workout.cancel": { es: "CANCELAR", en: "CANCEL" },
+
   // --- Workout: Phrases ---
   "workout.phrase.excellent": { es: "¡Excelente trabajo!", en: "Excellent work!" },
   "workout.phrase.achieving": { es: "¡Lo estás logrando!", en: "You're nailing it!" },

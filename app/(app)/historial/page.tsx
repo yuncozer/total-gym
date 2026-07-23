@@ -576,7 +576,7 @@ export default function HistorialPage() {
                                                     <span className="text-sm font-medium">{set.reps ?? 0} reps</span>
                                                     <span className="flex items-center gap-1 text-sm text-accent">
                                                       <Scale className="w-3 h-3" />
-                                                      {set.weight_kg ?? 0} kg
+                                                      {set.is_bodyweight ? "Peso corporal" : `${set.weight_kg ?? 0} kg`}
                                                     </span>
                                                   </>
                                                 )}

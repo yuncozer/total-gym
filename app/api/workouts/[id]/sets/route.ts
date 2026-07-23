@@ -48,13 +48,14 @@ export async function PUT(
     if (deleteError) throw deleteError;
 
     const setsToInsert = exercises.flatMap((ej: { exerciseId: string; name: string; muscleGroup?: string; sets: unknown[] }, ejIndex: number) =>
-      (ej.sets as Array<{ reps: number | null; weight_kg: number | null; is_cardio?: boolean; distance_km?: number | null; duration_minutes?: number | null; is_completed: boolean; exercise_order?: number; muscle_group?: string; image_url?: string; description?: string }>).map((s, index) => ({
+      (ej.sets as Array<{ reps: number | null; weight_kg: number | null; is_cardio?: boolean; is_bodyweight?: boolean; distance_km?: number | null; duration_minutes?: number | null; is_completed: boolean; exercise_order?: number; muscle_group?: string; image_url?: string; description?: string }>).map((s, index) => ({
         workout_id: workoutId,
         exercise_id: ej.exerciseId,
         exercise_name: ej.name,
         set_number: index + 1,
         reps: s.is_cardio ? null : (Number(s.reps) || 0),
         weight_kg: s.is_cardio ? null : (Number(s.weight_kg) || 0),
+        is_bodyweight: Boolean(s.is_bodyweight),
         is_cardio: s.is_cardio || false,
         distance_km: s.is_cardio ? (Number(s.distance_km) || 0) : null,
         duration_minutes: s.is_cardio ? (Number(s.duration_minutes) || 0) : null,

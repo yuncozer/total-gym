@@ -24,6 +24,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseInWorkout }) {
   const totalSets = exercise.sets.length;
   const completedSets = exercise.sets.filter(s => s.is_completed).length;
   const hasWeight = exercise.sets.some(s => s.weight_kg && s.weight_kg > 0);
+  const isBodyweight = exercise.sets.some(s => s.is_bodyweight);
 
   return (
     <div className="bg-card/60 border border rounded-xl overflow-hidden">
@@ -56,7 +57,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseInWorkout }) {
             ) : (
               <span className="text-muted-foreground">
                 {set.reps ? `${set.reps} rep${set.reps !== 1 ? "s" : ""}` : "-"}
-                {set.weight_kg ? ` × ${formatWeight(set.weight_kg)}` : ""}
+                {set.is_bodyweight ? " · Peso corporal" : (set.weight_kg ? ` × ${formatWeight(set.weight_kg)}` : "")}
               </span>
             )}
             {set.is_completed && (
@@ -65,9 +66,14 @@ function ExerciseCard({ exercise }: { exercise: ExerciseInWorkout }) {
           </div>
         ))}
       </div>
-      {hasWeight && (
+      {hasWeight && !isBodyweight && (
         <div className="px-4 py-1.5 bg-muted/30 border-t border">
           <p className="text-[10px] text-icon/60 italic">* Pesos de referencia del creador</p>
+        </div>
+      )}
+      {isBodyweight && (
+        <div className="px-4 py-1.5 bg-muted/30 border-t border">
+          <p className="text-[10px] text-accent/80 italic">Este ejercicio usa peso corporal</p>
         </div>
       )}
     </div>
