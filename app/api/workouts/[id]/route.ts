@@ -44,6 +44,7 @@ export async function GET(
     }
 
     let isSharedAccess = false;
+    let senderEmail: string | null = null;
 
     let { data: workout, error: workoutError } = await supabase
       .from("workouts")
@@ -73,6 +74,15 @@ export async function GET(
           return NextResponse.json({ error: "Workout not found" }, { status: 404 });
         }
         workout = sharedWorkout;
+
+        if (sharedWorkout.user_id) {
+          const { data: profileData } = await admin
+            .from("profiles")
+            .select("email")
+            .eq("id", sharedWorkout.user_id)
+            .maybeSingle();
+          senderEmail = profileData?.email ?? null;
+        }
 
         admin
           .from("friend_shares")
@@ -113,7 +123,21 @@ export async function GET(
       grouped[set.exercise_id].sets.push(set);
     });
 
-    return NextResponse.json(Object.values(grouped));
+    const { data: photos } = await client
+      .from("workout_photos")
+      .select("id, storage_path, created_at")
+      .eq("workout_id", workoutId)
+      .order("created_at", { ascending: true });
+
+    return NextResponse.json({
+      exercises: Object.values(grouped),
+      name: workout?.name || null,
+      photos: (photos || []).map(p => {
+        const { data } = client.storage.from("workout-photos").getPublicUrl(p.storage_path);
+        return { id: p.id, url: data.publicUrl, createdAt: p.created_at };
+      }),
+      ...(isSharedAccess && senderEmail ? { senderEmail } : {}),
+    });
   } catch (error) {
     console.error("Error loading workout:", error);
     return NextResponse.json({ error: "Failed to load workout" }, { status: 500 });

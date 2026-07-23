@@ -23,7 +23,9 @@ import {
   FileText,
   ImageOff,
   Image as ImageIcon,
+  Camera,
 } from "lucide-react";
+import toast from "react-hot-toast";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
 import * as service from "@/lib/workout/service";
@@ -87,6 +89,9 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     currentSetIndex,
     setCurrentSetIndex,
     isWorkoutComplete,
+    pendingCompletion,
+    confirmWorkoutCompletion,
+    dismissPendingCompletion,
     isExerciseComplete,
     isLastSet,
     showExtraSetButton,
@@ -136,6 +141,10 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     reps: number;
   } | null>(null);
   const [redirectHome, setRedirectHome] = useState(false);
+  const [workoutPhotos, setWorkoutPhotos] = useState<{ id: string; url: string }[]>([]);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [photoViewer, setPhotoViewer] = useState<{ url: string; index: number } | null>(null);
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -161,6 +170,13 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
       router.push("/");
     }
   }, [redirectHome, router]);
+
+  useEffect(() => {
+    if (!isWorkoutComplete) return;
+    service.getWorkoutPhotos(workoutId).then(photos => {
+      setWorkoutPhotos(photos.map(p => ({ id: p.id, url: p.url })));
+    }).catch(() => {});
+  }, [isWorkoutComplete, workoutId]);
 
 const handleCompleteSet = () => {
     if (!selectedExercise || !canCompleteSet) return;
@@ -233,6 +249,34 @@ const handleCompleteSet = () => {
     }
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || uploadingPhoto) return;
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error(t("workout.photoTooLarge"));
+      return;
+    }
+    setUploadingPhoto(true);
+    try {
+      const { url } = await service.uploadWorkoutPhoto(workoutId, file);
+      setWorkoutPhotos(prev => [...prev, { id: crypto.randomUUID(), url }]);
+    } catch {
+      toast.error(t("workout.photoError"));
+    } finally {
+      setUploadingPhoto(false);
+      if (photoInputRef.current) photoInputRef.current.value = "";
+    }
+  };
+
+  const handleDeletePhoto = async (photoId: string) => {
+    try {
+      await service.deleteWorkoutPhoto(workoutId, photoId);
+      setWorkoutPhotos(prev => prev.filter(p => p.id !== photoId));
+    } catch {
+      toast.error(t("workout.photoError"));
+    }
+  };
+
   if (loading || isDeletingWorkout) {
     return <LoadingScreen />;
   }
@@ -240,6 +284,42 @@ const handleCompleteSet = () => {
   if (exercises.length === 0 && !loading) {
     if (!redirectHome) setRedirectHome(true);
     return null;
+  }
+
+  if (pendingCompletion) {
+    return (
+      <div className="min-h-screen bg-background text-white">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#111113] border border rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in-95">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-green-500/15 border border-green-500/30 flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 className="w-7 h-7 text-green-400" />
+              </div>
+              <h2 className="text-lg font-bold text-white mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                {t("workout.pendingTitle")}
+              </h2>
+              <p className="text-sm text-icon">{t("workout.pendingMsg")}</p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => { dismissPendingCompletion(); setShowAddExercise(true); }}
+                className="flex-1 py-3 rounded-xl border border-accent/30 text-sm font-semibold text-accent hover:bg-accent/10 transition-colors cursor-pointer"
+                style={{ fontFamily: "var(--font-oswald)" }}
+              >
+                {t("workout.pendingAdd")}
+              </button>
+              <button
+                onClick={confirmWorkoutCompletion}
+                className="flex-1 py-3 rounded-xl bg-accent text-black text-sm font-bold hover:bg-accent-hover transition-colors cursor-pointer"
+                style={{ fontFamily: "var(--font-oswald)" }}
+              >
+                {t("workout.pendingFinish")}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (isWorkoutComplete) {
@@ -270,24 +350,113 @@ const handleCompleteSet = () => {
               <Flame className="w-8 h-8 text-accent mx-auto mb-4" />
               <p className="text-xl font-semibold" style={{ fontFamily: "var(--font-rajdhani)" }}>&ldquo;{quote}&rdquo;</p>
             </div>
-            <div className="bg-card rounded-xl p-4 mb-8">
+            <div className="bg-card rounded-xl p-4 mb-6">
               <span className="text-sm text-icon">{t("workout.seriesCount")} </span>
               <span className="text-sm font-bold text-green-500">{progress.completed}/{progress.total}</span>
             </div>
-            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowShareSheet(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 bg-accent/10 border-2 border-accent hover:bg-accent/20 cursor-pointer font-bold rounded-xl text-accent transition-all duration-300 animate-pulse">
-              <Share2 className="w-5 h-5" /> {t("workout.share")}
-            </button>
-            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowSaveTemplate(true); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border hover:border-accent cursor-pointer font-bold rounded-xl">
-              <Bookmark className="w-5 h-5" /> {t("workout.saveTemplate")}
-            </button>
-            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/historial"); }} className="flex items-center justify-center gap-2 w-full py-4 mb-4 border border hover:border-accent cursor-pointer font-bold rounded-xl">
-              <History className="w-5 h-5" /> {t("workout.viewHistory")}
-            </button>
-            <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/"); }} className="flex items-center justify-center gap-2 w-full py-4 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl">
-              <Play className="w-5 h-5" /> {t("workout.goHome")}
-            </button>
+
+            {workoutPhotos.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
+                {workoutPhotos.map((photo, i) => (
+                  <div key={photo.id} className="relative shrink-0 w-20 h-20 rounded-xl overflow-hidden border border group">
+                    <button
+                      onClick={() => setPhotoViewer({ url: photo.url, index: i })}
+                      className="w-full h-full cursor-pointer"
+                    >
+                      <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id); }}
+                      className="absolute top-1 right-1 w-5 h-5 bg-black/70 hover:bg-red-500/90 rounded-full flex items-center justify-center transition-colors cursor-pointer"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <input
+              ref={photoInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handlePhotoUpload}
+              className="hidden"
+            />
+
+            <div className="flex flex-col gap-3 mb-4">
+              <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowShareSheet(true); }} className="flex items-center justify-center gap-2 w-full py-4 border-2 border-accent/50 hover:border-accent hover:bg-accent/5 cursor-pointer font-bold rounded-xl text-accent transition-all duration-200" style={{ fontFamily: "var(--font-oswald)" }}>
+                <Share2 className="w-5 h-5" /> {t("workout.share")}
+              </button>
+              <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/"); }} className="flex items-center justify-center gap-2 w-full py-4 bg-accent hover:bg-accent-hover cursor-pointer text-black font-bold rounded-xl transition-all duration-200" style={{ fontFamily: "var(--font-oswald)" }}>
+                <Play className="w-5 h-5" /> {t("workout.goHome")}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <button
+                onClick={() => photoInputRef.current?.click()}
+                disabled={uploadingPhoto || workoutPhotos.length >= 5}
+                className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 border border rounded-xl text-icon hover:text-accent hover:border-accent/30 hover:bg-accent/5 disabled:opacity-40 disabled:cursor-not-allowed transition-all cursor-pointer relative"
+              >
+                {uploadingPhoto ? <Loader2 className="w-4 h-4 animate-spin" /> : <Camera className="w-4 h-4" />}
+                <span className="text-[11px] font-medium leading-tight text-center">
+                  {uploadingPhoto ? t("workout.photoUploading") : t("workout.addPhoto")}
+                </span>
+                {workoutPhotos.length > 0 && (
+                  <span className="absolute top-1.5 right-1.5 min-w-[18px] h-[18px] px-1 bg-accent text-black text-[10px] font-bold rounded-full flex items-center justify-center">
+                    {workoutPhotos.length}
+                  </span>
+                )}
+              </button>
+              <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); setShowSaveTemplate(true); }} className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 border border rounded-xl text-icon hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all cursor-pointer">
+                <Bookmark className="w-4 h-4" />
+                <span className="text-[11px] font-medium leading-tight text-center">{t("workout.saveTemplate")}</span>
+              </button>
+              <button onClick={() => { if (workoutName.trim()) service.renameWorkout(workoutId, workoutName.trim()); router.push("/historial"); }} className="flex flex-col items-center justify-center gap-1.5 py-3 px-2 border border rounded-xl text-icon hover:text-accent hover:border-accent/30 hover:bg-accent/5 transition-all cursor-pointer">
+                <History className="w-4 h-4" />
+                <span className="text-[11px] font-medium leading-tight text-center">{t("workout.viewHistory")}</span>
+              </button>
+            </div>
           </div>
         </main>
+
+        {photoViewer && (
+          <div
+            className="fixed inset-0 z-[60] bg-black/95 flex flex-col items-center justify-center p-4"
+            onClick={() => setPhotoViewer(null)}
+          >
+            <button
+              onClick={() => setPhotoViewer(null)}
+              className="absolute top-4 right-4 w-10 h-10 bg-white/10 hover:bg-white/20 rounded-full flex items-center justify-center cursor-pointer transition-colors"
+            >
+              <X className="w-5 h-5 text-white" />
+            </button>
+            <img
+              src={photoViewer.url}
+              alt=""
+              className="max-w-full max-h-[80vh] rounded-2xl object-contain"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="flex items-center gap-3 mt-4">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeletePhoto(workoutPhotos[photoViewer.index].id);
+                  setPhotoViewer(null);
+                }}
+                className="flex items-center gap-2 px-4 py-2.5 bg-red-500/15 border border-red-500/30 text-red-400 hover:bg-red-500/25 rounded-xl text-sm font-medium transition-colors cursor-pointer"
+              >
+                <Trash2 className="w-4 h-4" />
+                {t("workout.photoDelete")}
+              </button>
+              <span className="text-sm text-icon">
+                {photoViewer.index + 1} / {workoutPhotos.length}
+              </span>
+            </div>
+          </div>
+        )}
+
         {showShareSheet && (
           <ShareSheet
             workoutId={workoutId}

@@ -119,10 +119,17 @@ export async function GET(request: NextRequest) {
 
     const workoutsWithSets = await Promise.all(
       (workouts || []).map(async (workout) => {
-        const { data: sets } = await supabase
-          .from("workout_sets")
-          .select("id, exercise_id, exercise_name, image_url, muscle_group, set_number, reps, weight_kg, is_cardio, distance_km, duration_minutes, is_completed")
-          .eq("workout_id", workout.id)
+        const [{ data: sets }, { data: photos }] = await Promise.all([
+          supabase
+            .from("workout_sets")
+            .select("id, exercise_id, exercise_name, image_url, muscle_group, set_number, reps, weight_kg, is_cardio, distance_km, duration_minutes, is_completed")
+            .eq("workout_id", workout.id),
+          supabase
+            .from("workout_photos")
+            .select("id, storage_path, created_at")
+            .eq("workout_id", workout.id)
+            .order("created_at", { ascending: true }),
+        ]);
 
         const grouped: Record<string, { exerciseId: string; name: string; equipment: string; imageUrl?: string; muscleGroup?: string; sets: unknown[] }> = {};
         
@@ -142,7 +149,11 @@ export async function GET(request: NextRequest) {
 
         return {
           ...workout,
-          exercises: Object.values(grouped)
+          exercises: Object.values(grouped),
+          photos: (photos || []).map(p => {
+            const { data } = supabase.storage.from("workout-photos").getPublicUrl(p.storage_path);
+            return { id: p.id, url: data.publicUrl, createdAt: p.created_at };
+          }),
         };
       })
     );

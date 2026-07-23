@@ -80,6 +80,9 @@ export default function SharedFriendWorkoutPage() {
   const workoutId = params.id as string;
 
   const [exercises, setExercises] = useState<ExerciseInWorkout[]>([]);
+  const [workoutName, setWorkoutName] = useState("");
+  const [senderEmail, setSenderEmail] = useState("");
+  const [photos, setPhotos] = useState<{ id: string; url: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -94,7 +97,10 @@ export default function SharedFriendWorkoutPage() {
           return;
         }
         const data = await res.json();
-        setExercises(data);
+        setExercises(data.exercises);
+        setWorkoutName(data.name || "");
+        setSenderEmail(data.senderEmail || "");
+        setPhotos(data.photos || []);
       } catch {
         setError("Error al cargar la rutina");
       } finally {
@@ -114,7 +120,12 @@ export default function SharedFriendWorkoutPage() {
         equipment: "",
         sets: Math.max(...ex.sets.map(s => s.set_number)),
       }));
-      await createTemplate("Rutina compartida", templateExercises);
+      const templateName = workoutName
+        ? senderEmail
+          ? `${workoutName} by ${senderEmail}`
+          : workoutName
+        : "Rutina compartida";
+      await createTemplate(templateName, templateExercises);
       setSaved(true);
     } catch {
     } finally {
@@ -186,8 +197,11 @@ export default function SharedFriendWorkoutPage() {
             <Dumbbell className="w-7 h-7 text-accent" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
-            Rutina compartida
+            {workoutName || "Rutina compartida"}
           </h1>
+          {workoutName && senderEmail && (
+            <p className="text-xs text-icon mb-2">por {senderEmail}</p>
+          )}
           <div className="flex items-center justify-center gap-4 text-xs text-icon mt-2">
             <span className="flex items-center gap-1">
               <Dumbbell className="w-3 h-3" />
@@ -199,6 +213,16 @@ export default function SharedFriendWorkoutPage() {
             </span>
           </div>
         </div>
+
+        {photos.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
+            {photos.map((photo) => (
+              <div key={photo.id} className="relative shrink-0 w-24 h-24 rounded-xl overflow-hidden border border">
+                <img src={photo.url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="space-y-3">
           {exercises.map((exercise) => (

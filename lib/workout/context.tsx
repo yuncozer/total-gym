@@ -16,6 +16,9 @@ interface WorkoutContextValue {
   currentSetIndex: number;
   setCurrentSetIndex: React.Dispatch<React.SetStateAction<number>>;
   isWorkoutComplete: boolean;
+  pendingCompletion: boolean;
+  confirmWorkoutCompletion: () => void;
+  dismissPendingCompletion: () => void;
   isExerciseComplete: boolean;
   isLastSet: boolean;
   showExtraSetButton: boolean;
@@ -69,6 +72,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
   const [selectedExercise, setSelectedExercise] = useState<ExerciseInWorkout | null>(null);
   const [currentSetIndex, setCurrentSetIndex] = useState(0);
   const [isWorkoutComplete, setIsWorkoutComplete] = useState(false);
+  const [pendingCompletion, setPendingCompletion] = useState(false);
   const [isExerciseComplete, setIsExerciseComplete] = useState(false);
   const [isLastSet, setIsLastSet] = useState(false);
   const [showExtraSetButton, setShowExtraSetButton] = useState(false);
@@ -345,13 +349,25 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
   const deselectExercise = useCallback(() => {
     const prog = progressFn.getProgress(exercises);
     if (prog.completed === prog.total && prog.total > 0) {
-      setIsWorkoutComplete(true);
-      service.completeWorkout(workoutId);
+      setPendingCompletion(true);
       clearTimerStorage();
     }
     setSelectedExercise(null);
     setTimer({ segundos: 0, activo: false, descansando: false });
   }, [exercises, workoutId]);
+
+  const confirmWorkoutCompletion = useCallback(() => {
+    setIsWorkoutComplete(true);
+    setPendingCompletion(false);
+    service.completeWorkout(workoutId);
+    clearTimerStorage();
+  }, [workoutId]);
+
+  const dismissPendingCompletion = useCallback(() => {
+    setPendingCompletion(false);
+    setSelectedExercise(null);
+    setTimer({ segundos: 0, activo: false, descansando: false });
+  }, []);
 
   const goToSet = useCallback((index: number) => {
     setCurrentSetIndex(index);
@@ -412,9 +428,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     
     const prog = progressFn.getProgress(updatedExercises);
     if (prog.completed === prog.total) {
-      setIsWorkoutComplete(true);
-      await service.completeWorkout(workoutId);
-      syncXp();
+      setPendingCompletion(true);
       clearTimerStorage();
     } else if (selectedExercise?.exerciseId && updatedExercises[exerciseIdx]?.sets?.[0]?.is_cardio) {
       setTimer({ segundos: 0, activo: false, descansando: false });
@@ -535,8 +549,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
         e.sets.length > 0 && e.sets.every(s => s.is_completed)
       );
       if (allComplete) {
-        setIsWorkoutComplete(true);
-        await service.completeWorkout(workoutId);
+        setPendingCompletion(true);
         clearTimerStorage();
       }
     }
@@ -545,6 +558,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
   const addExercises = useCallback(async (newExercises: NewExerciseDef[]) => {
     const updated = service.buildExercisesFromNewDefs(exercises, newExercises);
     setExercises(updated);
+    setPendingCompletion(false);
 
     if (selectedExercise) {
       const stillSelected = updated.find(e => e.exerciseId === selectedExercise.exerciseId);
@@ -591,6 +605,9 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     currentSetIndex,
     setCurrentSetIndex,
     isWorkoutComplete,
+    pendingCompletion,
+    confirmWorkoutCompletion,
+    dismissPendingCompletion,
     isExerciseComplete,
     isLastSet,
     showExtraSetButton,

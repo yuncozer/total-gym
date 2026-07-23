@@ -51,7 +51,7 @@ export async function DELETE(
       .from("friend_requests")
       .update({ status: "cancelled", updated_at: new Date().toISOString() })
       .or(`and(sender_id.eq.${userId},receiver_id.eq.${id}),and(sender_id.eq.${id},receiver_id.eq.${userId})`)
-      .neq("status", "accepted");
+      .in("status", ["pending", "accepted"]);
 
     if (cancelRequest) throw cancelRequest;
 
