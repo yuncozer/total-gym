@@ -41,8 +41,22 @@ export async function POST(request: NextRequest) {
       if (existing.status === "pending") {
         return NextResponse.json({ error: "Request already pending" }, { status: 409 });
       }
-      if (existing.status === "accepted") {
-        return NextResponse.json({ error: "Already friends" }, { status: 409 });
+      if (existing.status === "accepted" || existing.status === "cancelled") {
+        const { data: friendship } = await supabase
+          .from("friends")
+          .select("id")
+          .eq("user_id", session.user.id)
+          .eq("friend_id", receiverId)
+          .maybeSingle();
+
+        if (friendship) {
+          return NextResponse.json({ error: "Already friends" }, { status: 409 });
+        }
+
+        await supabase
+          .from("friend_requests")
+          .update({ status: "stale", updated_at: new Date().toISOString() })
+          .eq("id", existing.id);
       }
     }
 
@@ -54,7 +68,18 @@ export async function POST(request: NextRequest) {
       .maybeSingle();
 
     if (alreadyFriends) {
-      return NextResponse.json({ error: "Already friends" }, { status: 409 });
+      const { data: hasAcceptedRequest } = await supabase
+        .from("friend_requests")
+        .select("id")
+        .or(`and(sender_id.eq.${session.user.id},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${session.user.id})`)
+        .eq("status", "accepted")
+        .maybeSingle();
+
+      if (!hasAcceptedRequest) {
+        await supabase.from("friends").delete().eq("id", alreadyFriends.id);
+      } else {
+        return NextResponse.json({ error: "Already friends" }, { status: 409 });
+      }
     }
 
     const { data, error } = await supabase
