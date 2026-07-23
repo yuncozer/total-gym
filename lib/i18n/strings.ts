@@ -113,6 +113,25 @@ export const strings = {
   "home.mini.native": { es: "SE SIENTE NATIVO", en: "FEELS NATIVE" },
   "home.mini.nativeDesc": { es: "Pantalla completa, sin barras de navegador.", en: "Full screen, no browser chrome." },
 
+  // --- Home: Smart Coach ---
+  "home.smart.badge": { es: "RUTINA SMART", en: "SMART ROUTINE" },
+  "home.smart.title1": { es: "Tu coach con ", en: "Your coach with " },
+  "home.smart.title2": { es: "Inteligencia Artificial", en: "Artificial Intelligence" },
+  "home.smart.desc": { es: "Dile qué quieres lograr, cuánto tiempo tienes y qué músculos trabajar. El coach IA analiza más de 120 ejercicios curados y arma la rutina perfecta al instante.", en: "Tell it your goal, how much time you have, and which muscles to work. The AI coach analyzes 120+ curated exercises and builds the perfect routine instantly." },
+  "home.smart.goalLabel": { es: "Objetivo", en: "Goal" },
+  "home.smart.goalDesc": { es: "Fuerza, hipertrofia, resistencia o general", en: "Strength, hypertrophy, endurance or general" },
+  "home.smart.durationLabel": { es: "Duración", en: "Duration" },
+  "home.smart.durationDesc": { es: "15, 30, 45 o 60 minutos exactos", en: "15, 30, 45 or 60 exact minutes" },
+  "home.smart.musclesLabel": { es: "Músculos", en: "Muscles" },
+  "home.smart.musclesDesc": { es: "Elige uno o varios grupos musculares", en: "Pick one or multiple muscle groups" },
+  "home.smart.iaLabel": { es: "IA genera", en: "AI generates" },
+  "home.smart.iaDesc": { es: "Selección inteligente de ejercicios", en: "Intelligent exercise selection" },
+  "home.smart.statExercises": { es: "Ejercicios curados", en: "Curated exercises" },
+  "home.smart.statMuscles": { es: "Grupos musculares", en: "Muscle groups" },
+  "home.smart.statGoals": { es: "Objetivos", en: "Goals" },
+  "home.smart.statPatterns": { es: "de movimiento", en: "movement patterns" },
+  "home.smart.cta": { es: "PRUEBA RUTINA SMART", en: "TRY SMART ROUTINE" },
+
   // --- Home: Auth Modal ---
   "auth.title": { es: "CREA TU CUENTA", en: "CREATE YOUR ACCOUNT" },
   "auth.desc": { es: "Necesitas una cuenta para guardar tu progreso y consultar tu historial de entrenamiento.", en: "You need an account to save your progress and check your workout history." },

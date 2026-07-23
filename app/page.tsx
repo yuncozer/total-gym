@@ -606,7 +606,7 @@ export default function Home() {
               <div className="inline-flex items-center gap-2.5 bg-accent/10 border border-accent/30 rounded-full px-5 py-2">
                 <Sparkles className="w-4 h-4 text-accent" />
                 <span className="text-accent text-sm font-bold uppercase tracking-wider" style={{ fontFamily: "var(--font-oswald)" }}>
-                  RUTINA SMART
+                  {t("home.smart.badge")}
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-accent/15 text-[10px] font-bold text-accent tracking-wider border border-accent/30">
                   ✦ IA
@@ -618,20 +618,19 @@ export default function Home() {
               className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4"
               style={{ fontFamily: "var(--font-oswald)" }}
             >
-              <span className="text-white">Tu coach con </span>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-amber-400">Inteligencia Artificial</span>
+              <span className="text-white">{t("home.smart.title1")}</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-amber-400">{t("home.smart.title2")}</span>
             </h2>
             <p className="text-muted-foreground text-center text-lg mb-16 max-w-2xl mx-auto">
-              Dile qué quieres lograr, cuánto tiempo tienes y qué músculos trabajar.
-              El coach IA analiza más de <span className="text-white font-semibold">120 ejercicios curados</span> y arma la rutina perfecta al instante.
+              {t("home.smart.desc")}
             </p>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-16">
               {[
-                { icon: Target, label: "Objetivo", desc: "Fuerza, hipertrofia, resistencia o general", color: "text-blue-500", border: "border-blue-500/30", bg: "bg-blue-500/10" },
-                { icon: Timer, label: "Duración", desc: "15, 30, 45 o 60 minutos exactos", color: "text-red-500", border: "border-red-500/30", bg: "bg-red-500/10" },
-                { icon: Dumbbell, label: "Músculos", desc: "Elige uno o varios grupos musculares", color: "text-accent", border: "border-accent/30", bg: "bg-accent/10" },
-                { icon: Brain, label: "IA genera", desc: "Selección inteligente de ejercicios", color: "text-green-500", border: "border-green-500/30", bg: "bg-green-500/10" },
+                { icon: Target, label: t("home.smart.goalLabel"), desc: t("home.smart.goalDesc"), color: "text-blue-500", border: "border-blue-500/30", bg: "bg-blue-500/10" },
+                { icon: Timer, label: t("home.smart.durationLabel"), desc: t("home.smart.durationDesc"), color: "text-red-500", border: "border-red-500/30", bg: "bg-red-500/10" },
+                { icon: Dumbbell, label: t("home.smart.musclesLabel"), desc: t("home.smart.musclesDesc"), color: "text-accent", border: "border-accent/30", bg: "bg-accent/10" },
+                { icon: Brain, label: t("home.smart.iaLabel"), desc: t("home.smart.iaDesc"), color: "text-green-500", border: "border-green-500/30", bg: "bg-green-500/10" },
               ].map((item, i) => {
                 const Icon = item.icon;
                 return (
@@ -656,10 +655,10 @@ export default function Home() {
             <div className="flex flex-col md:flex-row items-center justify-between gap-6 max-w-4xl mx-auto p-6 md:p-8 bg-card border border-accent/10 rounded-2xl">
               <div className="flex flex-wrap items-center justify-center md:justify-start gap-5 md:gap-8">
                 {[
-                  { value: "122", label: "Ejercicios curados", color: "text-accent" },
-                  { value: "9", label: "Grupos musculares", color: "text-accent" },
-                  { value: "4", label: "Objetivos", color: "text-accent" },
-                  { value: "Patrones", label: "de movimiento", color: "text-icon" },
+                  { value: "122", label: t("home.smart.statExercises"), color: "text-accent" },
+                  { value: "9", label: t("home.smart.statMuscles"), color: "text-accent" },
+                  { value: "4", label: t("home.smart.statGoals"), color: "text-accent" },
+                  { value: "Patrones", label: t("home.smart.statPatterns"), color: "text-icon" },
                 ].map((stat, i) => (
                   <div key={i} className="text-center md:text-left">
                     <div className={`text-2xl md:text-3xl font-bold ${stat.color}`} style={{ fontFamily: "var(--font-oswald)" }}>
@@ -678,7 +677,7 @@ export default function Home() {
                   <span className="animate-ia-sparkle">
                     <Sparkles className="w-4 h-4" />
                   </span>
-                  PRUEBA RUTINA SMART
+                  {t("home.smart.cta")}
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </span>
                 <span className="absolute inset-0 bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.1)_50%,transparent_100%)] bg-[length:200%_100%] animate-shimmer pointer-events-none" />
