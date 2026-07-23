@@ -94,15 +94,7 @@ export default function FriendProfilePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
-        <Link
-          href="/amigos"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-white transition-colors mb-6 cursor-pointer"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span className="text-sm font-medium">{t("header.back")}</span>
-        </Link>
-
+      <div className="max-w-lg mx-auto px-4 pt-24 pb-24">
         {/* Hero */}
         <div className="bg-gradient-to-b from-card to-[#0e0e10] border border rounded-2xl p-6 mb-4">
           <div className="flex items-center gap-4">
@@ -243,6 +235,16 @@ export default function FriendProfilePage() {
             <span>{getLevelTitle(profile.level + 1) || "TOTAL GYM"}</span>
           </div>
         </div>
+
+        <Link
+          href="/amigos"
+          className="group mt-6 w-full flex items-center justify-center gap-2.5 bg-card/80 border border rounded-xl py-3.5 cursor-pointer transition-all duration-300 hover:border-accent/40 hover:shadow-[0_0_16px_rgba(234,179,8,0.12)]"
+        >
+          <ArrowLeft className="w-4 h-4 text-muted-foreground transition-all duration-300 group-hover:text-accent group-hover:-translate-x-0.5" />
+          <span className="text-sm font-semibold text-muted-foreground transition-colors duration-300 group-hover:text-white" style={{ fontFamily: "var(--font-oswald)" }}>
+            VOLVER A AMIGOS
+          </span>
+        </Link>
       </div>
     </div>
   );

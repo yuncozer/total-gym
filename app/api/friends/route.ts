@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { levelFromXp } from "@/lib/gamification";
 
 const FALLBACK_EMAILS_CACHE = new Map<string, string>();
 
@@ -65,6 +66,75 @@ export async function GET(request: NextRequest) {
           .select("id, email, level, xp, current_streak")
           .in("id", friendIds)
       : { data: [] };
+
+    const staleFriendIds = (friendProfiles || [])
+      .filter(p => !p.xp || p.level === 1)
+      .map(p => p.id);
+
+    if (staleFriendIds.length > 0) {
+      const { data: staleWorkouts } = await adminClient
+        .from("workouts")
+        .select("id, user_id, completed_at")
+        .in("user_id", staleFriendIds)
+        .not("completed_at", "is", null);
+
+      const staleWorkoutIds = [...new Set((staleWorkouts || []).map((w: any) => w.id))];
+
+      const { data: staleSets } = staleWorkoutIds.length > 0
+        ? await adminClient
+            .from("workout_sets")
+            .select("id, workout_id")
+            .eq("is_completed", true)
+            .in("workout_id", staleWorkoutIds)
+        : { data: [] };
+
+      const staleWorkoutMap = new Map<string, any[]>();
+      for (const w of (staleWorkouts || [])) {
+        const arr = staleWorkoutMap.get(w.user_id) || [];
+        arr.push(w);
+        staleWorkoutMap.set(w.user_id, arr);
+      }
+
+      const staleSetsMap = new Map<string, number>();
+      for (const s of (staleSets || [])) {
+        staleSetsMap.set(s.workout_id, (staleSetsMap.get(s.workout_id) || 0) + 1);
+      }
+
+      for (const friend of (friendProfiles || [])) {
+        if (!staleFriendIds.includes(friend.id)) continue;
+        const userWorkouts = staleWorkoutMap.get(friend.id) || [];
+        const completedCount = userWorkouts.length;
+        let setCount = 0;
+        for (const w of userWorkouts) {
+          setCount += staleSetsMap.get(w.id) || 0;
+        }
+        const xp = setCount * 10 + completedCount * 25;
+        friend.xp = xp;
+        friend.level = levelFromXp(xp);
+
+        // Calculate streak
+        const dates: string[] = userWorkouts.map((w: any) => {
+          const d = new Date(w.completed_at);
+          return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+        });
+        const uniqueDates = [...new Set(dates)].sort((a, b) => b.localeCompare(a));
+        let streak = 0;
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const todayStr = today.toISOString().split("T")[0];
+        const cd = new Date(today);
+        if (uniqueDates.includes(todayStr)) {
+          streak = 1;
+          cd.setDate(cd.getDate() - 1);
+        }
+        while (true) {
+          const ds = cd.toISOString().split("T")[0];
+          if (uniqueDates.includes(ds)) { streak++; cd.setDate(cd.getDate() - 1); }
+          else break;
+        }
+        friend.current_streak = streak;
+      }
+    }
 
     await fillMissingEmails(adminClient, friendProfiles || []);
 

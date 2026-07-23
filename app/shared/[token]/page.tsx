@@ -33,6 +33,7 @@ interface SharedWorkout {
     completed_at: string | null;
   };
   exercises: SharedExercise[];
+  photos: { id: string; url: string; createdAt: string }[];
   created_at: string;
   expires_at: string;
 }
@@ -286,6 +287,16 @@ export default function SharedWorkoutPage() {
             )}
           </p>
         </div>
+
+        {data.photos && data.photos.length > 0 && (
+          <div className="flex gap-2 overflow-x-auto pb-2 mb-4 -mx-1 px-1">
+            {data.photos.map((photo: { id: string; url: string }) => (
+              <div key={photo.id} className="relative shrink-0 w-24 h-24 rounded-xl overflow-hidden border border">
+                <img src={photo.url} alt="" className="w-full h-full object-cover" />
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="space-y-3">
           {data.exercises.map((exercise) => (

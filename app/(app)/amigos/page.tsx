@@ -71,6 +71,7 @@ export default function AmigosPage() {
   const [receivedShares, setReceivedShares] = useState<any[]>([]);
   const [showSharesBanner, setShowSharesBanner] = useState(false);
   const [sharesLoading, setSharesLoading] = useState(false);
+  const [deleteConfirmFriend, setDeleteConfirmFriend] = useState<Friend | null>(null);
 
   const loadFriends = useCallback(async () => {
     try {
@@ -221,7 +222,7 @@ export default function AmigosPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="max-w-lg mx-auto px-4 pt-6 pb-24">
+      <div className="max-w-lg mx-auto px-4 pt-24 pb-24">
         <h1 className="text-2xl font-bold text-white mb-6" style={{ fontFamily: "var(--font-oswald)" }}>
           {t("friends.title")}
         </h1>
@@ -346,9 +347,9 @@ export default function AmigosPage() {
                       </div>
                     </div>
                   <button
-                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleRemove(friend.id); }}
+                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); setDeleteConfirmFriend(friend); }}
                     disabled={actionLoading === friend.id}
-                    className="p-2 text-icon hover:text-red-400 transition-colors cursor-pointer disabled:opacity-30 shrink-0"
+                    className="w-8 h-8 rounded-lg bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 hover:border-red-500/40 transition-all cursor-pointer disabled:opacity-30 shrink-0"
                     title={t("friends.remove")}
                   >
                     {actionLoading === friend.id ? (
@@ -588,6 +589,46 @@ export default function AmigosPage() {
           </div>
         )}
       </div>
+
+      {deleteConfirmFriend && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-[#111113] border border rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in-95">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 rounded-full bg-red-500/15 border border-red-500/30 flex items-center justify-center mx-auto mb-4">
+                <UserMinus className="w-7 h-7 text-red-400" />
+              </div>
+              <h2 className="text-lg font-bold text-white mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                ELIMINAR AMIGO
+              </h2>
+              <p className="text-sm text-icon">
+                ¿Seguro que quieres eliminar a{" "}
+                <span className="text-white font-medium">{deleteConfirmFriend.email}</span>
+                {" "}de tus amigos?
+              </p>
+            </div>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setDeleteConfirmFriend(null)}
+                className="flex-1 py-3 rounded-xl border border text-sm font-semibold text-white hover:bg-white/5 transition-colors cursor-pointer"
+                style={{ fontFamily: "var(--font-oswald)" }}
+              >
+                CANCELAR
+              </button>
+              <button
+                onClick={() => {
+                  const id = deleteConfirmFriend.id;
+                  setDeleteConfirmFriend(null);
+                  handleRemove(id);
+                }}
+                className="flex-1 py-3 rounded-xl bg-red-500/15 border border-red-500/30 text-sm font-semibold text-red-400 hover:bg-red-500/25 transition-colors cursor-pointer"
+                style={{ fontFamily: "var(--font-oswald)" }}
+              >
+                ELIMINAR
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

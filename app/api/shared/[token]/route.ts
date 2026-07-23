@@ -101,6 +101,12 @@ export async function GET(
 
     const exercises = Array.from(exerciseMap.values());
 
+    const { data: photos } = await supabase
+      .from("workout_photos")
+      .select("id, storage_path, created_at")
+      .eq("workout_id", share.workout_id)
+      .order("created_at", { ascending: true });
+
     return NextResponse.json({
       workout: {
         id: workout.id,
@@ -109,6 +115,10 @@ export async function GET(
         completed_at: workout.completed_at,
       },
       exercises,
+      photos: (photos || []).map(p => {
+        const { data } = supabase.storage.from("workout-photos").getPublicUrl(p.storage_path);
+        return { id: p.id, url: data.publicUrl, createdAt: p.created_at };
+      }),
       created_at: share.created_at,
       expires_at: share.expires_at,
     });

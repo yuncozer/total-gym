@@ -41,6 +41,13 @@ export interface WorkoutSummary {
   started_at: string | null;
   completed_at: string | null;
   exercises: ExerciseInWorkout[];
+  photos?: WorkoutPhoto[];
+}
+
+export interface WorkoutPhoto {
+  id: string;
+  url: string;
+  createdAt: string;
 }
 
 export interface TimerState {

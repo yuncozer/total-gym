@@ -515,6 +515,15 @@ export default function HistorialPage() {
                             
                             {isExpanded && (
                               <div className="border-t border p-4 space-y-3">
+                                {workout.photos && workout.photos.length > 0 && (
+                                  <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
+                                    {workout.photos.map((photo) => (
+                                      <div key={photo.id} className="relative shrink-0 w-24 h-24 rounded-xl overflow-hidden border border">
+                                        <img src={photo.url} alt="" className="w-full h-full object-cover" />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                                 {Object.entries(groupedSets).map(([exerciseName, sets]) => {
                                   const exerciseKey = `${workout.id}-${exerciseName}`;
                                   const exerciseExpanded = expandedExercises.has(exerciseKey);

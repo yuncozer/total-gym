@@ -81,7 +81,8 @@ export async function createWorkout(
 }
 
 export async function loadWorkout(workoutId: string): Promise<ExerciseInWorkout[]> {
-  return fetchAPI(`/api/workouts/${workoutId}`);
+  const data = await fetchAPI(`/api/workouts/${workoutId}`);
+  return (data as { exercises: ExerciseInWorkout[] }).exercises;
 }
 
 export async function saveSets(workoutId: string, exercises: ExerciseInWorkout[]): Promise<void> {
@@ -269,6 +270,32 @@ export async function createTemplate(name: string, exercises: import("./types").
 
 export async function deleteTemplate(id: string) {
   await fetchAPI(`/api/templates/${id}`, { method: "DELETE" });
+}
+
+export async function uploadWorkoutPhoto(workoutId: string, file: File): Promise<{ url: string }> {
+  const formData = new FormData();
+  formData.append("photo", file);
+  const res = await fetchWithTimeout(`/api/workouts/${workoutId}/photos`, {
+    method: "POST",
+    body: formData,
+  }, FETCH_TIMEOUT);
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Error al subir foto" }));
+    throw new Error(err.error || "Error al subir foto");
+  }
+  return res.json();
+}
+
+export async function getWorkoutPhotos(workoutId: string): Promise<import("./types").WorkoutPhoto[]> {
+  const data = await fetchAPI(`/api/workouts/${workoutId}/photos`);
+  return data.photos || [];
+}
+
+export async function deleteWorkoutPhoto(workoutId: string, photoId: string): Promise<void> {
+  await fetchAPI(`/api/workouts/${workoutId}/photos`, {
+    method: "DELETE",
+    body: JSON.stringify({ photoId }),
+  });
 }
 
 export async function loadCustomExercises(): Promise<import("./types").CustomExercise[]> {

@@ -246,6 +246,21 @@ export const strings = {
   "workout.viewHistory": { es: "VER HISTORIAL", en: "VIEW HISTORY" },
   "workout.goHome": { es: "IR AL INICIO", en: "GO HOME" },
 
+  // --- Workout: Pending completion ---
+  "workout.pendingTitle": { es: "¡Entrenamiento completado!", en: "Workout completed!" },
+  "workout.pendingMsg": { es: "¿Deseas agregar otro ejercicio o finalizar?", en: "Want to add another exercise or finish?" },
+  "workout.pendingFinish": { es: "FINALIZAR", en: "FINISH" },
+  "workout.pendingAdd": { es: "AGREGAR EJERCICIO", en: "ADD EXERCISE" },
+
+  // --- Workout: Photos ---
+  "workout.addPhoto": { es: "AGREGAR FOTO", en: "ADD PHOTO" },
+  "workout.photoLimit": { es: "Máximo 5 fotos", en: "Maximum 5 photos" },
+  "workout.photoError": { es: "Error al subir foto", en: "Error uploading photo" },
+  "workout.photoTooLarge": { es: "La foto es muy grande (máx 5MB)", en: "Photo too large (max 5MB)" },
+  "workout.photoDelete": { es: "Eliminar foto", en: "Delete photo" },
+  "workout.photoDeleteConfirm": { es: "¿Eliminar esta foto?", en: "Delete this photo?" },
+  "workout.photoUploading": { es: "Subiendo...", en: "Uploading..." },
+
   // --- Workout: Phrases ---
   "workout.phrase.excellent": { es: "¡Excelente trabajo!", en: "Excellent work!" },
   "workout.phrase.achieving": { es: "¡Lo estás logrando!", en: "You're nailing it!" },
