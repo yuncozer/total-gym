@@ -173,7 +173,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
   const filteredExercises = getFilteredExercises();
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center">
+    <div className="fixed inset-0 z-[10000] bg-black/80 backdrop-blur-sm flex items-end sm:items-center justify-center">
       <div className="bg-card border border rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col animate-slide-up">
         <div className="flex items-center justify-between p-4 border-b border">
           <h2 className="text-lg font-bold text-white">{t("train.newExercise")}</h2>

@@ -34,7 +34,7 @@ interface WorkoutContextValue {
   addExercises: (newExercises: NewExerciseDef[]) => Promise<void>;
   reorderExercises: (reordered: ExerciseInWorkout[]) => Promise<void>;
   goToSet: (index: number) => void;
-  updateSet: (field: "reps" | "weight_kg" | "distance_km" | "duration_minutes", value: number) => void;
+  updateSet: (field: "reps" | "weight_kg" | "is_bodyweight" | "distance_km" | "duration_minutes", value: number) => void;
   completeSet: () => Promise<void>;
   undoSetComplete: () => void;
   addExtraSet: () => Promise<void>;
@@ -373,7 +373,7 @@ export function WorkoutProvider({ children, workoutId }: WorkoutProviderProps) {
     setCurrentSetIndex(index);
   }, []);
 
-  const updateSet = useCallback((field: "reps" | "weight_kg" | "distance_km" | "duration_minutes", value: number) => {
+  const updateSet = useCallback((field: "reps" | "weight_kg" | "is_bodyweight" | "distance_km" | "duration_minutes", value: number) => {
     if (!selectedExercise) return;
     
     setExercises(prev => prev.map(ej => {

@@ -122,7 +122,7 @@ export async function GET(request: NextRequest) {
         const [{ data: sets }, { data: photos }] = await Promise.all([
           supabase
             .from("workout_sets")
-            .select("id, exercise_id, exercise_name, image_url, muscle_group, set_number, reps, weight_kg, is_cardio, distance_km, duration_minutes, is_completed")
+            .select("id, exercise_id, exercise_name, image_url, muscle_group, set_number, reps, weight_kg, is_bodyweight, is_cardio, distance_km, duration_minutes, is_completed")
             .eq("workout_id", workout.id),
           supabase
             .from("workout_photos")

@@ -24,6 +24,7 @@ import {
   ImageOff,
   Image as ImageIcon,
   Camera,
+  User,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
@@ -46,6 +47,7 @@ import { getCardioGroup, CardioGroup } from "@/lib/data/cardio";
 import type { NewExerciseDef } from "@/lib/workout/service";
 import { useLanguage } from "@/lib/i18n";
 import { muscleGroupsData } from "@/lib/data/ejercicios";
+import { createClient } from "@/lib/supabase/client";
 
 function WorkoutContent({ workoutId }: { workoutId: string }) {
   const router = useRouter();
@@ -145,6 +147,9 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [photoViewer, setPhotoViewer] = useState<{ url: string; index: number } | null>(null);
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const [profileWeightKg, setProfileWeightKg] = useState<number | null>(null);
+  const [showProfileWeightModal, setShowProfileWeightModal] = useState(false);
+  const [profileWeightInput, setProfileWeightInput] = useState("");
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -177,6 +182,16 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
       setWorkoutPhotos(photos.map(p => ({ id: p.id, url: p.url })));
     }).catch(() => {});
   }, [isWorkoutComplete, workoutId]);
+
+  useEffect(() => {
+    (async () => {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) return;
+      const { data } = await supabase.from("profiles").select("weight_kg").eq("id", session.user.id).maybeSingle();
+      setProfileWeightKg(data?.weight_kg ?? null);
+    })();
+  }, []);
 
 const handleCompleteSet = () => {
     if (!selectedExercise || !canCompleteSet) return;
@@ -275,6 +290,20 @@ const handleCompleteSet = () => {
     } catch {
       toast.error(t("workout.photoError"));
     }
+  };
+
+  const handleSaveProfileWeight = async () => {
+    const weight = parseFloat(profileWeightInput);
+    if (!weight || weight <= 0) return;
+    const supabase = createClient();
+    const { data } = await supabase.auth.getSession();
+    const session = data.session;
+    if (!session?.user) return;
+    await supabase.from("profiles").update({ weight_kg: weight }).eq("id", session.user.id);
+    setProfileWeightKg(weight);
+    setShowProfileWeightModal(false);
+    updateSet('weight_kg', weight);
+    updateSet('is_bodyweight', 1);
   };
 
   if (loading || isDeletingWorkout) {
@@ -660,21 +689,57 @@ const handleCompleteSet = () => {
                       </button>
                     </div>
                   </div>
-                  <div>
-                    <label className="block text-sm text-icon mb-2">
-                      {getEquipmentLabel(selectedExercise.equipment)}
-                    </label>
-                    <input
-                      type="number"
-                        value={set.weight_kg || ""}
-                      onChange={(e) => updateSet('weight_kg', parseFloat(e.target.value) || 0)}
-                      disabled={set.is_completed}
-                      placeholder={(() => {
-                        const lastW = getLastWeight(selectedExercise.exerciseId);
-                        return lastW > 0 ? `${t("workout.last")} ${lastW} kg` : undefined;
-                      })()}
-                      className="w-full px-4 py-4 bg-background border border rounded-xl text-white text-center text-2xl placeholder:text-zinc-600"
-                    />
+                  <div className="bg-card/40 rounded-xl p-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <label className="text-xs text-icon/70 uppercase tracking-wider flex-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                        {set.is_bodyweight ? t("workout.bodyweightLabel") : getEquipmentLabel(selectedExercise.equipment)}
+                      </label>
+                      {!!set.is_bodyweight && (profileWeightKg != null) && (
+                        <span className="text-[10px] text-accent font-medium flex items-center gap-1">
+                          <User className="w-3 h-3" />{profileWeightKg} kg
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        inputMode="decimal"
+                        value={set.weight_kg && set.weight_kg > 0 ? String(set.weight_kg) : ""}
+                        onChange={(e) => { updateSet('weight_kg', parseFloat(e.target.value) || 0); if (set.is_bodyweight) updateSet('is_bodyweight', 0); }}
+                        disabled={set.is_completed || set.is_bodyweight}
+                        placeholder={(() => {
+                          const lastW = getLastWeight(selectedExercise.exerciseId);
+                          return lastW > 0 ? `${t("workout.last")} ${lastW} kg` : "0";
+                        })()}
+                        className="flex-1 min-w-0 px-3 py-3 bg-background border border rounded-lg text-white text-center text-xl font-bold placeholder:text-zinc-600 placeholder:font-normal disabled:opacity-50"
+                      />
+                      {!set.is_completed && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (set.is_bodyweight) {
+                              updateSet('is_bodyweight', 0);
+                            } else {
+                              if (profileWeightKg == null) {
+                                setShowProfileWeightModal(true);
+                                return;
+                              }
+                              updateSet('weight_kg', profileWeightKg);
+                              updateSet('is_bodyweight', 1);
+                            }
+                          }}
+                          className={`h-[50px] px-3 rounded-lg border text-[10px] font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 shrink-0 tracking-wide ${
+                            set.is_bodyweight
+                              ? "bg-accent/10 border-accent/40 text-accent"
+                              : "border-zinc-700 text-icon hover:text-accent hover:border-accent/30"
+                          }`}
+                          style={{ fontFamily: "var(--font-oswald)" }}
+                        >
+                          <User className="w-3.5 h-3.5" />
+                          {set.is_bodyweight ? "CORP" : "PESO CORP"}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -882,6 +947,45 @@ const handleCompleteSet = () => {
             gallery={listImageModal.gallery}
             onClose={() => setListImageModal(null)}
           />
+        )}
+        {showProfileWeightModal && (
+          <div className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+            <div className="bg-[#111113] border border rounded-2xl p-6 w-full max-w-sm animate-in fade-in zoom-in-95">
+              <div className="text-center mb-5">
+                <div className="w-12 h-12 rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center mx-auto mb-3">
+                  <User className="w-6 h-6 text-accent" />
+                </div>
+                <h2 className="text-lg font-bold text-white mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                  {t("workout.profileWeightTitle")}
+                </h2>
+                <p className="text-sm text-icon">{t("workout.profileWeightMsg")}</p>
+              </div>
+              <input
+                type="number"
+                value={profileWeightInput}
+                onChange={(e) => setProfileWeightInput(e.target.value)}
+                placeholder={t("workout.profileWeightPlaceholder")}
+                inputMode="decimal"
+                className="w-full px-4 py-3 bg-background border border rounded-xl text-white text-center text-xl placeholder:text-zinc-600 mb-4"
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowProfileWeightModal(false)}
+                  className="flex-1 py-3 rounded-xl border border text-sm font-semibold text-icon hover:text-white transition-colors cursor-pointer"
+                >
+                  {t("workout.cancel")}
+                </button>
+                <button
+                  onClick={handleSaveProfileWeight}
+                  disabled={!profileWeightInput || parseFloat(profileWeightInput) <= 0}
+                  className="flex-1 py-3 rounded-xl bg-accent text-black text-sm font-bold hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                  style={{ fontFamily: "var(--font-oswald)" }}
+                >
+                  {t("workout.profileWeightSave")}
+                </button>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     );

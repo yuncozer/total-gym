@@ -8,6 +8,7 @@ export interface WorkoutSet {
   set_number: number;
   reps: number | null;
   weight_kg: number | null;
+  is_bodyweight?: boolean;
   is_cardio?: boolean;
   distance_km?: number | null;
   duration_minutes?: number | null;
