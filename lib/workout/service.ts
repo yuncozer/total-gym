@@ -272,7 +272,7 @@ export async function deleteTemplate(id: string) {
   await fetchAPI(`/api/templates/${id}`, { method: "DELETE" });
 }
 
-export async function uploadWorkoutPhoto(workoutId: string, file: File): Promise<{ url: string }> {
+export async function uploadWorkoutPhoto(workoutId: string, file: File): Promise<{ id: string; url: string }> {
   const formData = new FormData();
   formData.append("photo", file);
   const res = await fetchWithTimeout(`/api/workouts/${workoutId}/photos`, {

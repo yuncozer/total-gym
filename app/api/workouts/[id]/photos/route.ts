@@ -112,18 +112,20 @@ export async function POST(
 
     if (uploadError) throw uploadError;
 
-    const { error: dbError } = await admin
+    const { data: inserted, error: dbError } = await admin
       .from("workout_photos")
       .insert({
         workout_id: workoutId,
         storage_path: storagePath,
-      });
+      })
+      .select("id")
+      .single();
 
     if (dbError) throw dbError;
 
     const { data: urlData } = admin.storage.from(BUCKET).getPublicUrl(storagePath);
 
-    return NextResponse.json({ url: urlData.publicUrl });
+    return NextResponse.json({ id: inserted.id, url: urlData.publicUrl });
   } catch (error) {
     console.error("Error uploading workout photo:", error);
     return NextResponse.json({ error: "Failed to upload photo" }, { status: 500 });
