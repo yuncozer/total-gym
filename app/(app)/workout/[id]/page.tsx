@@ -273,8 +273,8 @@ const handleCompleteSet = () => {
     }
     setUploadingPhoto(true);
     try {
-      const { url } = await service.uploadWorkoutPhoto(workoutId, file);
-      setWorkoutPhotos(prev => [...prev, { id: crypto.randomUUID(), url }]);
+      const { id, url } = await service.uploadWorkoutPhoto(workoutId, file);
+      setWorkoutPhotos(prev => [...prev, { id, url }]);
     } catch {
       toast.error(t("workout.photoError"));
     } finally {
