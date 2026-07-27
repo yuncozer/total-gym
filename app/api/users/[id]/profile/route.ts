@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
 import { levelFromXp } from "@/lib/gamification";
 
@@ -9,10 +10,46 @@ export async function GET(
   try {
     const { id } = await params;
 
+    const authClient = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
+      {
+        cookies: {
+          getAll() { return request.cookies.getAll(); },
+          setAll() {},
+        },
+      }
+    );
+
+    const { data: { session } } = await authClient.auth.getSession();
+    if (!session?.user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const adminClient: any = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
+
+    if (session.user.id !== id) {
+      const { data: friendRow } = await adminClient
+        .from("friends")
+        .select("id")
+        .eq("user_id", session.user.id)
+        .eq("friend_id", id)
+        .maybeSingle();
+
+      const { data: clientRow } = await adminClient
+        .from("trainer_clients")
+        .select("id")
+        .eq("trainer_id", session.user.id)
+        .eq("user_id", id)
+        .maybeSingle();
+
+      if (!friendRow && !clientRow) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
 
     const { data: profile, error } = await adminClient
       .from("profiles")
