@@ -1,25 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkTrainerAccess } from "@/lib/trainer/route";
 import { getTrainerAdminClient } from "@/lib/trainer/client";
-
-function mapClient(row: any) {
-  return {
-    id: row.id,
-    userId: row.user_id,
-    displayName: row.display_name,
-    email: row.email,
-    phone: row.phone,
-    status: row.status,
-    goal: row.goal,
-    level: row.level,
-    startDate: row.start_date,
-    notes: row.notes,
-    invitedAt: row.invited_at,
-    acceptedAt: row.accepted_at,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at,
-  };
-}
+import { mapTrainerClient as mapClient } from "@/lib/trainer/mapClient";
 
 const EDITABLE_FIELDS: Record<string, string> = {
   displayName: "display_name",

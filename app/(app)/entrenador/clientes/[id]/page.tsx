@@ -6,6 +6,7 @@ import { useLanguage } from "@/lib/i18n";
 import { Flame, Zap, Trophy, Dumbbell, ArrowLeft, Loader2, Mail, Phone, Target, Save, Check } from "lucide-react";
 import Link from "next/link";
 import { xpForLevel } from "@/lib/gamification";
+import { TrainerInviteShare } from "@/app/components/TrainerInviteShare";
 
 interface TrainerClient {
   id: string;
@@ -17,6 +18,7 @@ interface TrainerClient {
   goal: string | null;
   level: string | null;
   notes: string | null;
+  inviteToken: string | null;
   createdAt: string;
 }
 
@@ -160,6 +162,10 @@ export default function TrainerClientDetailPage() {
             </div>
           </div>
         </div>
+
+        {client.status === "invited" && client.inviteToken && (
+          <TrainerInviteShare inviteToken={client.inviteToken} clientName={client.displayName} />
+        )}
 
         {profile && (
           <div className="grid grid-cols-2 gap-3 mb-4">

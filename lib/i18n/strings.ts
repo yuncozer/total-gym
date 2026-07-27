@@ -586,6 +586,28 @@ export const strings = {
   "trainer.createError": { es: "Error al crear el cliente", en: "Error creating client" },
   "trainer.nameRequired": { es: "El nombre es obligatorio", en: "Name is required" },
   "trainer.back": { es: "Volver", en: "Back" },
+  "trainer.celebrationBadge": { es: "Nuevo Cliente", en: "New Client" },
+  "trainer.celebrationFirstClient": { es: "¡Tu primer cliente! Así arranca tu cartera.", en: "Your first client! Your roster starts here." },
+  "trainer.celebrationCount": { es: "Ya tienes {count} clientes en tu cartera. ¡Seguí así!", en: "You now have {count} clients in your roster. Keep going!" },
+  "trainer.celebrationViewClient": { es: "Ver ficha del cliente", en: "View client" },
+  "trainer.celebrationAddAnother": { es: "Agregar otro cliente", en: "Add another client" },
+  "trainer.shareInviteTitle": { es: "Invita a tu cliente", en: "Invite your client" },
+  "trainer.shareInviteSubtitle": {
+    es: "Este cliente todavía no tiene cuenta. Compártele el link o el código QR para que se registre y quede vinculado automáticamente.",
+    en: "This client doesn't have an account yet. Share the link or QR code so they can sign up and get linked automatically.",
+  },
+  "trainer.shareInviteCopy": { es: "Copiar", en: "Copy" },
+  "trainer.shareInviteCopied": { es: "Copiado", en: "Copied" },
+  "trainer.shareInviteNative": { es: "Compartir vía...", en: "Share via..." },
+  "trainer.shareInviteWhatsapp": { es: "WhatsApp", en: "WhatsApp" },
+  "trainer.shareInviteTelegram": { es: "Telegram", en: "Telegram" },
+  "trainer.shareInviteShowQr": { es: "Mostrar código QR", en: "Show QR code" },
+  "trainer.shareInviteHideQr": { es: "Ocultar código QR", en: "Hide QR code" },
+  "trainer.shareInviteMessage": {
+    es: "💪 Te invito a entrenar conmigo en TOTAL GYM. Regístrate con este link:",
+    en: "💪 I'm inviting you to train with me on TOTAL GYM. Sign up with this link:",
+  },
+  "trainer.shareInvitePending": { es: "Pendiente de registro", en: "Pending sign-up" },
 } as const;
 
 export type StringKey = keyof typeof strings;

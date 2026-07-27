@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
 import { UserPlus, Loader2, AlertCircle, ChevronLeft } from "lucide-react";
+import { TrainerClientAddedCelebration } from "@/app/components/TrainerClientAddedCelebration";
 
 export default function NewTrainerClientPage() {
   const router = useRouter();
@@ -14,6 +15,15 @@ export default function NewTrainerClientPage() {
   const [goal, setGoal] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [created, setCreated] = useState<{ id: string; displayName: string; clientCount: number } | null>(null);
+
+  const resetForm = () => {
+    setDisplayName("");
+    setEmail("");
+    setPhone("");
+    setGoal("");
+    setCreated(null);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,9 +53,19 @@ export default function NewTrainerClientPage() {
       }
 
       const data = await res.json();
-      router.push(`/entrenador/clientes/${data.client.id}`);
-    } catch (err: any) {
-      setError(err.message);
+
+      let clientCount = 1;
+      try {
+        const listRes = await fetch("/api/trainer/clients");
+        if (listRes.ok) {
+          const listData = await listRes.json();
+          clientCount = (listData.clients || []).length || 1;
+        }
+      } catch {}
+
+      setCreated({ id: data.client.id, displayName: data.client.displayName, clientCount });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : t("trainer.createError"));
     } finally {
       setSubmitting(false);
     }
@@ -53,6 +73,16 @@ export default function NewTrainerClientPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      {created && (
+        <TrainerClientAddedCelebration
+          clientName={created.displayName}
+          clientCount={created.clientCount}
+          onViewClient={() => router.push(`/entrenador/clientes/${created.id}`)}
+          onAddAnother={resetForm}
+          onClose={() => router.push(`/entrenador/clientes/${created.id}`)}
+        />
+      )}
+
       <main className="max-w-lg mx-auto px-4 py-8 pt-24">
         <button
           onClick={() => router.push("/entrenador")}
