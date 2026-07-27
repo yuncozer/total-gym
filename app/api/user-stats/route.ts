@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
+import { resolveIsPremium } from "@/lib/premium/server";
 
 function createSupabaseClient(request: NextRequest) {
   return createServerClient(
@@ -38,7 +39,7 @@ export async function GET(request: NextRequest) {
       .eq("user_id", userId)
       .maybeSingle();
 
-    const isPremium = !sub || (sub.plan === "premium" && sub.status === "active");
+    const isPremium = resolveIsPremium(sub);
 
     let workoutQuery = supabase
       .from("workouts")
