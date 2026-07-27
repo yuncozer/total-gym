@@ -2,11 +2,13 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { claimInviteToken } from "@/lib/trainer/claim";
 
 export async function GET(request: NextRequest) {
   const requestUrl = new URL(request.url);
   const code = requestUrl.searchParams.get("code");
   const next = requestUrl.searchParams.get("redirect") || "/entrenamiento";
+  const inviteToken = requestUrl.searchParams.get("invite");
   
   if (!code) {
     return NextResponse.redirect(new URL("/login?error=no_code", requestUrl.origin));
@@ -64,6 +66,8 @@ export async function GET(request: NextRequest) {
       provider: data.user.app_metadata?.provider || "google",
     });
   }
+
+  await claimInviteToken(adminClient, data.user.id, inviteToken);
 
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || requestUrl.origin;
   return NextResponse.redirect(new URL(next, baseUrl));

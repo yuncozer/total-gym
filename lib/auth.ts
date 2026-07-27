@@ -34,21 +34,22 @@ export function subscribeToAuthChanges(callback: (session: Session | null) => vo
   return () => subscription.unsubscribe();
 }
 
-export async function signInWithGoogle(redirectTo = "/entrenamiento"): Promise<{ error: string | null }> {
+export async function signInWithGoogle(redirectTo = "/entrenamiento", inviteToken?: string): Promise<{ error: string | null }> {
   const supabase = getSupabaseClient();
-  
-  const isLocalhost = typeof window !== "undefined" && 
+
+  const isLocalhost = typeof window !== "undefined" &&
                       (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-  
-  const baseUrl = isLocalhost 
-    ? window.location.origin 
+
+  const baseUrl = isLocalhost
+    ? window.location.origin
     : (process.env.NEXT_PUBLIC_APP_URL || window.location.origin);
 
+  const inviteParam = inviteToken ? `&invite=${encodeURIComponent(inviteToken)}` : "";
 
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}`,
+      redirectTo: `${baseUrl}/auth/callback?redirect=${encodeURIComponent(redirectTo)}${inviteParam}`,
     },
   });
   
