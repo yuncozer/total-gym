@@ -608,6 +608,15 @@ export const strings = {
     en: "💪 I'm inviting you to train with me on TOTAL GYM. Sign up with this link:",
   },
   "trainer.shareInvitePending": { es: "Pendiente de registro", en: "Pending sign-up" },
+  "trainer.neverTrained": { es: "Nunca entrenó", en: "Never trained" },
+  "trainer.trainedToday": { es: "Entrenó hoy", en: "Trained today" },
+  "trainer.trainedYesterday": { es: "Entrenó ayer", en: "Trained yesterday" },
+  "trainer.trainedDaysAgo": { es: "Hace {days} días", en: "{days} days ago" },
+  "trainer.adherenceTitle": { es: "Adherencia", en: "Adherence" },
+  "trainer.adherenceGreen": { es: "Al día", en: "On track" },
+  "trainer.adherenceAmber": { es: "Se está enfriando", en: "Cooling off" },
+  "trainer.adherenceRed": { es: "En riesgo", en: "At risk" },
+  "trainer.adherenceUnknown": { es: "Sin cuenta vinculada", en: "No linked account" },
 } as const;
 
 export type StringKey = keyof typeof strings;

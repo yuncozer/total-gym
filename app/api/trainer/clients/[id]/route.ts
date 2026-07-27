@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { checkTrainerAccess } from "@/lib/trainer/route";
 import { getTrainerAdminClient } from "@/lib/trainer/client";
 import { mapTrainerClient as mapClient } from "@/lib/trainer/mapClient";
+import { enrichWithAdherence } from "@/lib/trainer/enrichAdherence";
 
 const EDITABLE_FIELDS: Record<string, string> = {
   displayName: "display_name",
@@ -35,7 +36,9 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     return NextResponse.json({ error: "Client not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ client: mapClient(data) });
+  const [enriched] = await enrichWithAdherence(supabase, [mapClient(data)]);
+
+  return NextResponse.json({ client: enriched });
 }
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {

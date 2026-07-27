@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
-import { Flame, Zap, Trophy, Dumbbell, ArrowLeft, Loader2, Mail, Phone, Target, Save, Check } from "lucide-react";
+import { Flame, Zap, Trophy, Dumbbell, ArrowLeft, Loader2, Mail, Phone, Target, Save, Check, Activity } from "lucide-react";
 import Link from "next/link";
 import { xpForLevel } from "@/lib/gamification";
 import { TrainerInviteShare } from "@/app/components/TrainerInviteShare";
+import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
 
 interface TrainerClient {
   id: string;
@@ -19,6 +20,8 @@ interface TrainerClient {
   level: string | null;
   notes: string | null;
   inviteToken: string | null;
+  lastWorkoutAt: string | null;
+  adherenceStatus: AdherenceStatus;
   createdAt: string;
 }
 
@@ -38,6 +41,33 @@ function statusLabel(status: TrainerClient["status"], t: (key: string) => string
     case "paused": return t("trainer.statusPaused");
     case "archived": return t("trainer.statusArchived");
   }
+}
+
+function adherenceStyle(status: AdherenceStatus): string {
+  switch (status) {
+    case "green": return "bg-green-500/15 text-green-400 border-green-500/30";
+    case "amber": return "bg-amber-500/15 text-amber-400 border-amber-500/30";
+    case "red": return "bg-red-500/15 text-red-400 border-red-500/30";
+    case "unknown": return "bg-zinc-600/20 text-zinc-400 border-zinc-500/30";
+  }
+}
+
+function adherenceLabel(status: AdherenceStatus, t: (key: string) => string): string {
+  switch (status) {
+    case "green": return t("trainer.adherenceGreen");
+    case "amber": return t("trainer.adherenceAmber");
+    case "red": return t("trainer.adherenceRed");
+    case "unknown": return t("trainer.adherenceUnknown");
+  }
+}
+
+function adherenceActivityText(client: TrainerClient, t: (key: string) => string): string {
+  if (!client.userId) return t("trainer.adherenceUnknown");
+  if (!client.lastWorkoutAt) return t("trainer.neverTrained");
+  const days = daysSince(client.lastWorkoutAt);
+  if (days <= 0) return t("trainer.trainedToday");
+  if (days === 1) return t("trainer.trainedYesterday");
+  return t("trainer.trainedDaysAgo").replace("{days}", String(days));
 }
 
 function getLevelTitle(level: number): string {
@@ -161,6 +191,23 @@ export default function TrainerClientDetailPage() {
               )}
             </div>
           </div>
+        </div>
+
+        <div className="bg-card/60 border border rounded-xl p-4 mb-4 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 min-w-0">
+            <Activity className="w-4 h-4 text-icon shrink-0" />
+            <div className="min-w-0">
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block">
+                {t("trainer.adherenceTitle")}
+              </span>
+              <span className="text-xs text-icon">
+                {adherenceActivityText(client, t)}
+              </span>
+            </div>
+          </div>
+          <span className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${adherenceStyle(client.adherenceStatus)}`}>
+            {adherenceLabel(client.adherenceStatus, t)}
+          </span>
         </div>
 
         {client.status === "invited" && client.inviteToken && (

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { checkTrainerAccess } from "@/lib/trainer/route";
 import { getTrainerAdminClient } from "@/lib/trainer/client";
 import { mapTrainerClient as mapClient } from "@/lib/trainer/mapClient";
+import { enrichWithAdherence } from "@/lib/trainer/enrichAdherence";
+import { adherenceSeverity } from "@/lib/trainer/adherence";
 
 export async function GET(request: NextRequest) {
   const { trainerId, error } = await checkTrainerAccess(request);
@@ -19,7 +21,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: fetchError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ clients: (data || []).map(mapClient) });
+  const enriched = await enrichWithAdherence(supabase, (data || []).map(mapClient));
+  enriched.sort((a, b) => adherenceSeverity(a.adherenceStatus) - adherenceSeverity(b.adherenceStatus));
+
+  return NextResponse.json({ clients: enriched });
 }
 
 export async function POST(request: NextRequest) {

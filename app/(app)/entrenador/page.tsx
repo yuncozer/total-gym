@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
 import { Users, Plus, ChevronRight, Mail, Clock } from "lucide-react";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
+import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
 
 interface TrainerClient {
   id: string;
@@ -14,6 +15,8 @@ interface TrainerClient {
   status: "invited" | "active" | "paused" | "archived";
   goal: string | null;
   createdAt: string;
+  lastWorkoutAt: string | null;
+  adherenceStatus: AdherenceStatus;
 }
 
 function formatDate(dateStr: string, lang: string): string {
@@ -55,6 +58,24 @@ export default function TrainerRosterPage() {
       case "paused": return "bg-zinc-600/20 text-zinc-400 border-zinc-500/30";
       case "archived": return "bg-red-500/10 text-red-400 border-red-500/30";
     }
+  };
+
+  const adherenceDotColor = (status: AdherenceStatus) => {
+    switch (status) {
+      case "green": return "bg-green-500";
+      case "amber": return "bg-amber-500";
+      case "red": return "bg-red-500";
+      case "unknown": return "bg-zinc-600";
+    }
+  };
+
+  const adherenceText = (client: TrainerClient) => {
+    if (!client.userId) return null;
+    if (!client.lastWorkoutAt) return t("trainer.neverTrained");
+    const days = daysSince(client.lastWorkoutAt);
+    if (days <= 0) return t("trainer.trainedToday");
+    if (days === 1) return t("trainer.trainedYesterday");
+    return t("trainer.trainedDaysAgo").replace("{days}", String(days));
   };
 
   if (loading) {
@@ -104,8 +125,16 @@ export default function TrainerRosterPage() {
                 href={`/entrenador/clientes/${client.id}`}
                 className="bg-card/60 border border rounded-xl p-4 flex items-center gap-3 hover:border-accent/30 hover:shadow-[0_0_12px_rgba(234,179,8,0.1)] transition-all duration-200 cursor-pointer group"
               >
-                <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0 text-accent font-bold">
-                  {client.displayName.charAt(0).toUpperCase()}
+                <div className="relative shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center text-accent font-bold">
+                    {client.displayName.charAt(0).toUpperCase()}
+                  </div>
+                  {client.userId && (
+                    <span
+                      className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${adherenceDotColor(client.adherenceStatus)}`}
+                      title={adherenceText(client) || undefined}
+                    />
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-white font-medium truncate">{client.displayName}</p>
@@ -118,7 +147,7 @@ export default function TrainerRosterPage() {
                     )}
                     <span className="flex items-center gap-1 shrink-0">
                       <Clock className="w-3 h-3" />
-                      {t("trainer.clientSince")} {formatDate(client.createdAt, lang)}
+                      {adherenceText(client) || `${t("trainer.clientSince")} ${formatDate(client.createdAt, lang)}`}
                     </span>
                   </div>
                 </div>

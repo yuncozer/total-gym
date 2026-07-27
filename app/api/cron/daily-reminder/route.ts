@@ -43,6 +43,29 @@ export async function POST(request: NextRequest) {
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
     const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999).toISOString();
 
+    interface TrainerLinkRow {
+      user_id: string;
+      trainers: { display_name: string } | { display_name: string }[] | null;
+    }
+
+    const trainerNameByClientUserId = new Map<string, string>();
+    const userIds = users.map((u) => u.id);
+    if (userIds.length > 0) {
+      const { data: links } = await supabase
+        .from("trainer_clients")
+        .select("user_id, trainers(display_name)")
+        .eq("status", "active")
+        .in("user_id", userIds);
+
+      for (const link of (links || []) as unknown as TrainerLinkRow[]) {
+        const rel = link.trainers;
+        const trainerName = Array.isArray(rel) ? rel[0]?.display_name : rel?.display_name;
+        if (link.user_id && trainerName) {
+          trainerNameByClientUserId.set(link.user_id, trainerName);
+        }
+      }
+    }
+
   let sentCount = 0;
 
   for (const user of users) {
@@ -68,7 +91,10 @@ export async function POST(request: NextRequest) {
       continue;
     }
 
-    const message = getDailyNotification();
+    const trainerName = trainerNameByClientUserId.get(user.id);
+    const message = trainerName
+      ? `${trainerName} te espera hoy. ¡No le falles! 💪`
+      : getDailyNotification();
 
     for (const sub of subscriptions) {
       try {
