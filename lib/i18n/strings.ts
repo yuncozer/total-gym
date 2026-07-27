@@ -446,6 +446,16 @@ export const strings = {
   "admin.error": { es: "Error al cargar datos del dashboard", en: "Error loading dashboard data" },
   "admin.confirmDelete": { es: "¿Eliminar este administrador?", en: "Remove this administrator?" },
   "admin.addError": { es: "Error al agregar admin", en: "Error adding admin" },
+  "admin.trainers": { es: "Entrenadores", en: "Trainers" },
+  "admin.noTrainers": { es: "No hay entrenadores dados de alta", en: "No trainers yet" },
+  "admin.newTrainerEmailPlaceholder": { es: "Email del entrenador", en: "Trainer email" },
+  "admin.newTrainerNamePlaceholder": { es: "Nombre a mostrar", en: "Display name" },
+  "admin.addTrainer": { es: "Agregar entrenador", en: "Add trainer" },
+  "admin.deleteTrainer": { es: "Eliminar entrenador", en: "Remove trainer" },
+  "admin.confirmDeleteTrainer": { es: "¿Eliminar este entrenador?", en: "Remove this trainer?" },
+  "admin.trainerSince": { es: "Entrenador desde", en: "Trainer since" },
+  "admin.addTrainerSuccess": { es: "Entrenador agregado correctamente", en: "Trainer added successfully" },
+  "admin.addTrainerError": { es: "Error al agregar entrenador", en: "Error adding trainer" },
 
   // --- Login page ---
   "login.title": { es: "INICIAR SESIÓN", en: "SIGN IN" },

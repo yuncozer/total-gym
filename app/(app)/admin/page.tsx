@@ -45,11 +45,21 @@ interface AdminEntry {
   createdAt: string;
 }
 
+interface TrainerEntry {
+  userId: string;
+  email: string;
+  displayName: string;
+  specialty: string | null;
+  isActive: boolean;
+  createdAt: string;
+}
+
 export default function AdminPage() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [topExercises, setTopExercises] = useState<TopExercise[]>([]);
   const [admins, setAdmins] = useState<AdminEntry[]>([]);
+  const [trainers, setTrainers] = useState<TrainerEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [newAdminEmail, setNewAdminEmail] = useState("");
@@ -57,6 +67,12 @@ export default function AdminPage() {
   const [addError, setAddError] = useState<string | null>(null);
   const [addSuccess, setAddSuccess] = useState(false);
   const [deletingAdminId, setDeletingAdminId] = useState<string | null>(null);
+  const [newTrainerEmail, setNewTrainerEmail] = useState("");
+  const [newTrainerName, setNewTrainerName] = useState("");
+  const [addingTrainer, setAddingTrainer] = useState(false);
+  const [addTrainerError, setAddTrainerError] = useState<string | null>(null);
+  const [addTrainerSuccess, setAddTrainerSuccess] = useState(false);
+  const [deletingTrainerId, setDeletingTrainerId] = useState<string | null>(null);
   const { t, lang } = useLanguage();
 
   useEffect(() => {
@@ -68,11 +84,12 @@ export default function AdminPage() {
     setError(null);
 
     try {
-      const [statsRes, usersRes, exercisesRes, adminsRes] = await Promise.all([
+      const [statsRes, usersRes, exercisesRes, adminsRes, trainersRes] = await Promise.all([
         fetch("/api/admin/stats"),
         fetch("/api/admin/users"),
         fetch("/api/admin/exercises-top"),
         fetch("/api/admin/admins"),
+        fetch("/api/admin/trainers"),
       ]);
 
       if (!statsRes.ok) throw new Error("Failed to load admin data");
@@ -81,6 +98,7 @@ export default function AdminPage() {
       setUsers(await usersRes.json());
       setTopExercises(await exercisesRes.json());
       setAdmins(await adminsRes.json());
+      setTrainers(await trainersRes.json());
     } catch (err) {
       setError(t("admin.error"));
       console.error(err);
@@ -136,6 +154,57 @@ export default function AdminPage() {
       console.error(err);
     } finally {
       setDeletingAdminId(null);
+    }
+  };
+
+  const handleAddTrainer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTrainerEmail.trim() || !newTrainerName.trim()) return;
+
+    setAddingTrainer(true);
+    setAddTrainerError(null);
+    setAddTrainerSuccess(false);
+
+    try {
+      const res = await fetch("/api/admin/trainers", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: newTrainerEmail.trim(), displayName: newTrainerName.trim() }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error || t("admin.addTrainerError"));
+      }
+
+      setAddTrainerSuccess(true);
+      setNewTrainerEmail("");
+      setNewTrainerName("");
+      loadData();
+    } catch (err: any) {
+      setAddTrainerError(err.message);
+    } finally {
+      setAddingTrainer(false);
+    }
+  };
+
+  const handleRemoveTrainer = async (userId: string) => {
+    if (!confirm(t("admin.confirmDeleteTrainer"))) return;
+
+    setDeletingTrainerId(userId);
+
+    try {
+      await fetch("/api/admin/trainers", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+
+      loadData();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDeletingTrainerId(null);
     }
   };
 
@@ -354,6 +423,84 @@ export default function AdminPage() {
             {addSuccess && (
               <p className="flex items-center gap-1 text-green-400 text-xs mt-2">
                 <CheckCircle2 className="w-3 h-3" />{t("admin.addSuccess")}
+              </p>
+            )}
+          </div>
+
+          <div className="bg-card rounded-2xl p-5">
+            <h2 className="text-white font-semibold mb-4 flex items-center gap-2">
+              <Dumbbell className="w-4 h-4 text-accent" />
+              {t("admin.trainers")}
+            </h2>
+
+            <div className="space-y-2 mb-4">
+              {trainers.map((trainer) => (
+                <div
+                  key={trainer.userId}
+                  className="flex items-center justify-between py-2 border-b border/50 last:border-0"
+                >
+                  <div>
+                    <p className="text-white text-sm">{trainer.displayName}</p>
+                    <p className="text-icon text-xs">{trainer.email} · {t("admin.trainerSince")} {formatDate(trainer.createdAt)}</p>
+                  </div>
+                  <button
+                    onClick={() => handleRemoveTrainer(trainer.userId)}
+                    disabled={deletingTrainerId === trainer.userId}
+                    className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                    title={t("admin.deleteTrainer")}
+                  >
+                    {deletingTrainerId === trainer.userId ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-4 h-4" />
+                    )}
+                  </button>
+                </div>
+              ))}
+              {trainers.length === 0 && (
+                <p className="text-icon text-sm py-2">{t("admin.noTrainers")}</p>
+              )}
+            </div>
+
+            <form onSubmit={handleAddTrainer} className="flex flex-col sm:flex-row gap-2 pt-2 border-t border">
+              <input
+                type="text"
+                value={newTrainerName}
+                onChange={(e) => { setNewTrainerName(e.target.value); setAddTrainerError(null); setAddTrainerSuccess(false); }}
+                placeholder={t("admin.newTrainerNamePlaceholder")}
+                className="flex-1 bg-muted text-white rounded-xl px-4 py-2.5 text-sm border border focus:border-accent outline-none"
+                disabled={addingTrainer}
+              />
+              <input
+                type="email"
+                value={newTrainerEmail}
+                onChange={(e) => { setNewTrainerEmail(e.target.value); setAddTrainerError(null); setAddTrainerSuccess(false); }}
+                placeholder={t("admin.newTrainerEmailPlaceholder")}
+                className="flex-1 bg-muted text-white rounded-xl px-4 py-2.5 text-sm border border focus:border-accent outline-none"
+                disabled={addingTrainer}
+              />
+              <button
+                type="submit"
+                disabled={addingTrainer || !newTrainerEmail.trim() || !newTrainerName.trim()}
+                className="flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-black font-semibold rounded-xl hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer text-sm"
+              >
+                {addingTrainer ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Plus className="w-4 h-4" />
+                )}
+                {t("admin.addTrainer")}
+              </button>
+            </form>
+
+            {addTrainerError && (
+              <p className="flex items-center gap-1 text-red-400 text-xs mt-2">
+                <AlertCircle className="w-3 h-3" />{addTrainerError}
+              </p>
+            )}
+            {addTrainerSuccess && (
+              <p className="flex items-center gap-1 text-green-400 text-xs mt-2">
+                <CheckCircle2 className="w-3 h-3" />{t("admin.addTrainerSuccess")}
               </p>
             )}
           </div>
