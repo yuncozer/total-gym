@@ -560,6 +560,32 @@ export const strings = {
   "friends.searchMinChars": { es: "Ingresá el email exacto de la persona que querés agregar", en: "Enter the exact email of the person you want to add" },
   "friends.friendSince": { es: "Amigos desde", en: "Friends since" },
   "friends.tabLeaderboard": { es: "Ranking", en: "Leaderboard" },
+
+  // --- Trainer (roster) ---
+  "trainer.rosterTitle": { es: "Mis Clientes", en: "My Clients" },
+  "trainer.rosterSubtitle": { es: "Gestiona tu cartera de clientes", en: "Manage your client roster" },
+  "trainer.addClient": { es: "Nuevo Cliente", en: "New Client" },
+  "trainer.noClients": { es: "Todavía no tienes clientes. Agrega el primero.", en: "You don't have any clients yet. Add your first one." },
+  "trainer.statusInvited": { es: "Invitado", en: "Invited" },
+  "trainer.statusActive": { es: "Activo", en: "Active" },
+  "trainer.statusPaused": { es: "Pausado", en: "Paused" },
+  "trainer.statusArchived": { es: "Archivado", en: "Archived" },
+  "trainer.clientSince": { es: "Desde", en: "Since" },
+  "trainer.loadError": { es: "Error al cargar tus clientes", en: "Error loading your clients" },
+  "trainer.newClientTitle": { es: "Nuevo Cliente", en: "New Client" },
+  "trainer.newClientNamePlaceholder": { es: "Nombre del cliente", en: "Client name" },
+  "trainer.newClientEmailPlaceholder": { es: "Email (opcional)", en: "Email (optional)" },
+  "trainer.newClientEmailHint": {
+    es: "Si ya tiene cuenta en Total Gym, se vincula al instante. Si no, queda pendiente hasta que se registre con ese email.",
+    en: "If they already have a Total Gym account, they're linked instantly. Otherwise they stay pending until they sign up with that email.",
+  },
+  "trainer.newClientPhonePlaceholder": { es: "Teléfono (opcional)", en: "Phone (optional)" },
+  "trainer.newClientGoalPlaceholder": { es: "Objetivo (opcional)", en: "Goal (optional)" },
+  "trainer.create": { es: "Crear cliente", en: "Create client" },
+  "trainer.creating": { es: "Creando...", en: "Creating..." },
+  "trainer.createError": { es: "Error al crear el cliente", en: "Error creating client" },
+  "trainer.nameRequired": { es: "El nombre es obligatorio", en: "Name is required" },
+  "trainer.back": { es: "Volver", en: "Back" },
 } as const;
 
 export type StringKey = keyof typeof strings;
