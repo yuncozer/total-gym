@@ -3,9 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3, Globe, Users } from "lucide-react";
+import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3, Globe, Users, Dumbbell } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
+import { useTrainer } from "@/lib/trainer/hooks";
 
 interface UserHeaderProps {
   showBack?: boolean;
@@ -19,6 +20,7 @@ function getInitials(email: string): string {
 export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps) {
   const router = useRouter();
   const { lang, setLang, t } = useLanguage();
+  const { isTrainer } = useTrainer();
   const [user, setUser] = useState<{ email: string } | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -235,6 +237,16 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                       <Users className="w-4 h-4" />
                       <span className="text-sm">{t("header.friends")}</span>
                     </Link>
+                    {isTrainer && (
+                      <Link
+                        href="/entrenador"
+                        onClick={() => setShowDropdown(false)}
+                        className="flex items-center gap-3 w-full px-4 py-2.5 text-muted-foreground hover:bg-gradient-to-r hover:from-accent/5 hover:to-transparent hover:text-white transition-all duration-200 cursor-pointer border-l-2 border-transparent hover:border-accent/40"
+                      >
+                        <Dumbbell className="w-4 h-4" />
+                        <span className="text-sm">{t("header.trainer")}</span>
+                      </Link>
+                    )}
                     <Link
                       href="/admin"
                       onClick={() => setShowDropdown(false)}

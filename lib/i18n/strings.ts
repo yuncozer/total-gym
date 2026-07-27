@@ -22,6 +22,7 @@ export const strings = {
   "header.progreso": { es: "Progreso", en: "Progress" },
   "header.estadisticas": { es: "Estadísticas", en: "Stats" },
   "header.friends": { es: "Amigos", en: "Friends" },
+  "header.trainer": { es: "Entrenador", en: "Trainer" },
   "header.admin": { es: "Admin", en: "Admin" },
   "header.perfil": { es: "Mi Perfil", en: "My Profile" },
   "header.language": { es: "Idioma", en: "Language" },
