@@ -224,6 +224,30 @@ export const strings = {
   "workout.setLabel": { es: "SERIE", en: "SET" },
   "workout.repsLabel": { es: "REPETICIONES", en: "REPS" },
   "workout.trainerTarget": { es: "Objetivo de tu entrenador", en: "Your trainer's target" },
+
+  // --- Session comments ---
+  "sessionComments.title": { es: "Comentarios de la sesión", en: "Session comments" },
+  "sessionComments.empty": { es: "Todavía no hay comentarios", en: "No comments yet" },
+  "sessionComments.placeholder": { es: "Escribe un comentario...", en: "Write a comment..." },
+  "sessionComments.unread": { es: "Nuevo comentario", en: "New comment" },
+
+  // --- Check-in ---
+  "checkin.entryTitle": { es: "Check-in con tu entrenador", en: "Check-in with your trainer" },
+  "checkin.entrySubtitle": { es: "Registra tu peso y medidas periódicamente", en: "Log your weight and measurements regularly" },
+  "checkin.title": { es: "Nuevo Check-in", en: "New Check-in" },
+  "checkin.subtitle": { es: "Tu entrenador verá esta información para ajustar tu plan", en: "Your trainer will see this to adjust your plan" },
+  "checkin.weight": { es: "Peso", en: "Weight" },
+  "checkin.waist": { es: "Cintura", en: "Waist" },
+  "checkin.chest": { es: "Pecho", en: "Chest" },
+  "checkin.arm": { es: "Brazo", en: "Arm" },
+  "checkin.thigh": { es: "Muslo", en: "Thigh" },
+  "checkin.notes": { es: "Notas (opcional)", en: "Notes (optional)" },
+  "checkin.notesPlaceholder": { es: "¿Cómo te sentiste esta semana?", en: "How did you feel this week?" },
+  "checkin.saveError": { es: "Error al guardar el check-in", en: "Error saving check-in" },
+  "checkin.savedTitle": { es: "¡Check-in registrado!", en: "Check-in logged!" },
+  "checkin.savedSubtitle": { es: "Tu entrenador ya puede ver tu progreso", en: "Your trainer can now see your progress" },
+  "checkin.backHome": { es: "Volver al inicio", en: "Back home" },
+  "checkin.submit": { es: "Guardar check-in", en: "Save check-in" },
   "workout.weightBarbell": { es: "Peso (kg)", en: "Weight (kg)" },
   "workout.weightPerSide": { es: "PESO TOTAL LEVANTADO (KG)", en: "TOTAL WEIGHT LIFTED (KG)" },
   "workout.distanceLabel": { es: "DISTANCIA (KM)", en: "DISTANCE (KM)" },
@@ -658,6 +682,16 @@ export const strings = {
   "trainer.assignedRoutineBannerFrom": { es: "Asignada por", en: "Assigned by" },
   "trainer.assignedRoutineStart": { es: "Empezar rutina", en: "Start routine" },
   "trainer.assignedRoutineStarting": { es: "Preparando...", en: "Preparing..." },
+  "trainer.recentSessions": { es: "Sesiones recientes", en: "Recent sessions" },
+  "trainer.noSessions": { es: "Este cliente todavía no completó ninguna sesión", en: "This client hasn't completed any sessions yet" },
+  "trainer.checkinHistory": { es: "Check-ins", en: "Check-ins" },
+  "trainer.checkinDate": { es: "Fecha", en: "Date" },
+  "trainer.progressReportTitle": { es: "Informe de progreso", en: "Progress report" },
+  "trainer.progressReportSubtitle": {
+    es: "Genera un link público con el progreso de este cliente, ideal para mostrar resultados o captar nuevos clientes.",
+    en: "Generate a public link with this client's progress — great for showcasing results or attracting new clients.",
+  },
+  "trainer.progressReportGenerate": { es: "Generar informe", en: "Generate report" },
 } as const;
 
 export type StringKey = keyof typeof strings;

@@ -3,11 +3,12 @@
 import { useState, useEffect } from "react";
 import { useLanguage } from "@/lib/i18n";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, Target, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X, Flame, Calendar, Share2 } from "lucide-react";
+import { CheckCircle2, Clock, Target, Dumbbell, ChevronDown, ChevronUp, Scale, Filter, X, Flame, Calendar, Share2, MessageCircle } from "lucide-react";
 import { loadWorkoutHistory, type WorkoutSummary, type WorkoutSet, type ExerciseInWorkout } from "@/lib/workout";
 import { useAuth } from "@/lib/useAuth";
 import { ShareSheet } from "@/app/components/ShareSheet";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
+import { SessionComments } from "@/app/components/SessionComments";
 
 type DateFilter = "all" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year" | "specific_day";
 
@@ -168,6 +169,7 @@ export default function HistorialPage() {
   const { loading: authLoading, authenticated } = useAuth(true);
   const [workouts, setWorkouts] = useState<WorkoutSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [unreadByWorkoutId, setUnreadByWorkoutId] = useState<Record<string, number>>({});
   const [expandedWorkouts, setExpandedWorkouts] = useState<Set<string>>(new Set());
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
   const [activeFilter, setActiveFilter] = useState<DateFilter>("all");
@@ -240,6 +242,14 @@ export default function HistorialPage() {
       } finally {
         setLoading(false);
       }
+
+      try {
+        const res = await fetch("/api/workouts/comments/unread");
+        if (res.ok) {
+          const data = await res.json();
+          setUnreadByWorkoutId(data.unreadByWorkoutId || {});
+        }
+      } catch {}
     }
     if (!authLoading) {
       loadWorkouts();
@@ -265,6 +275,13 @@ export default function HistorialPage() {
       newExpanded.delete(workoutId);
     } else {
       newExpanded.add(workoutId);
+      if (unreadByWorkoutId[workoutId]) {
+        setUnreadByWorkoutId((prev) => {
+          const next = { ...prev };
+          delete next[workoutId];
+          return next;
+        });
+      }
     }
     setExpandedWorkouts(newExpanded);
   };
@@ -460,7 +477,15 @@ export default function HistorialPage() {
                             <button onClick={() => toggleWorkout(workout.id)} className="w-full p-4 text-left cursor-pointer">
                               <div className="flex items-center justify-between mb-2">
                                 <div>
-                                  <span className="font-bold">{workout.name || formatDate(workout.date, lang)}</span>
+                                  <span className="font-bold flex items-center gap-2">
+                                    {workout.name || formatDate(workout.date, lang)}
+                                    {!!unreadByWorkoutId[workout.id] && (
+                                      <span className="flex items-center gap-1 text-[10px] font-semibold text-accent bg-accent/15 border border-accent/30 rounded-full px-2 py-0.5">
+                                        <MessageCircle className="w-3 h-3" />
+                                        {t("sessionComments.unread")}
+                                      </span>
+                                    )}
+                                  </span>
                                   {workout.name && <p className="text-xs text-icon mt-0.5">{formatDate(workout.date, lang)}</p>}
                                 </div>
                                 {completed ? (
@@ -589,6 +614,7 @@ export default function HistorialPage() {
                                   );
                                 })}
                                 {workout.exercises?.length === 0 && <p className="text-center text-icon py-4">{t("historial.noExercises")}</p>}
+                                {isCompleted(workout) && <SessionComments workoutId={workout.id} />}
                               </div>
                             )}
                           </div>

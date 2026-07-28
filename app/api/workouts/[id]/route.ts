@@ -91,7 +91,29 @@ export async function GET(
           .eq("workout_id", workoutId)
           .then(() => {}, () => {});
       } else {
-        return NextResponse.json({ error: "Workout not found" }, { status: 404 });
+        const admin = createAdminClient();
+        const { data: anyWorkout } = await admin
+          .from("workouts")
+          .select("*")
+          .eq("id", workoutId)
+          .maybeSingle();
+
+        const { data: trainerLink } = anyWorkout?.user_id
+          ? await admin
+              .from("trainer_clients")
+              .select("id")
+              .eq("trainer_id", session.user.id)
+              .eq("user_id", anyWorkout.user_id)
+              .eq("status", "active")
+              .maybeSingle()
+          : { data: null };
+
+        if (anyWorkout && trainerLink) {
+          isSharedAccess = true;
+          workout = anyWorkout;
+        } else {
+          return NextResponse.json({ error: "Workout not found" }, { status: 404 });
+        }
       }
     }
 

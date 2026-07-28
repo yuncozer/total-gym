@@ -8,6 +8,9 @@ import Link from "next/link";
 import { xpForLevel } from "@/lib/gamification";
 import { TrainerInviteShare } from "@/app/components/TrainerInviteShare";
 import { TrainerAssignRoutine } from "@/app/components/TrainerAssignRoutine";
+import { TrainerRecentSessions } from "@/app/components/TrainerRecentSessions";
+import { TrainerCheckinHistory } from "@/app/components/TrainerCheckinHistory";
+import { TrainerProgressShare } from "@/app/components/TrainerProgressShare";
 import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
 
 interface TrainerClient {
@@ -216,6 +219,10 @@ export default function TrainerClientDetailPage() {
         )}
 
         <TrainerAssignRoutine clientId={client.id} hasAccount={!!client.userId} />
+
+        {client.userId && <TrainerRecentSessions clientId={client.id} />}
+        {client.userId && <TrainerCheckinHistory clientId={client.id} />}
+        {client.userId && <TrainerProgressShare clientId={client.id} />}
 
         {profile && (
           <div className="grid grid-cols-2 gap-3 mb-4">
