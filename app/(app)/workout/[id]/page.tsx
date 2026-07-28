@@ -714,9 +714,9 @@ const handleCompleteSet = () => {
                         value={weightInputText !== null ? weightInputText : (set.weight_kg && set.weight_kg > 0 ? String(set.weight_kg) : "")}
                         onChange={(e) => {
                           const raw = e.target.value;
-                          if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
+                          if (raw === "" || /^\d*[.,]?\d*$/.test(raw)) {
                             setWeightInputText(raw);
-                            updateSet('weight_kg', parseFloat(raw) || 0);
+                            updateSet('weight_kg', parseFloat(raw.replace(',', '.')) || 0);
                             if (set.is_bodyweight) updateSet('is_bodyweight', 0);
                           }
                         }}
