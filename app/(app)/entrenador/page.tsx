@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
-import { Users, Plus, ChevronRight, Mail, Clock } from "lucide-react";
+import { Users, Plus, ChevronRight, Mail, Clock, CreditCard } from "lucide-react";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { TrainerSubnav } from "@/app/components/TrainerSubnav";
 import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
@@ -18,6 +18,7 @@ interface TrainerClient {
   createdAt: string;
   lastWorkoutAt: string | null;
   adherenceStatus: AdherenceStatus;
+  paymentStatus: "current" | "due_soon" | "overdue" | "none";
 }
 
 function formatDate(dateStr: string, lang: string): string {
@@ -153,6 +154,18 @@ export default function TrainerRosterPage() {
                     </span>
                   </div>
                 </div>
+                {(client.paymentStatus === "due_soon" || client.paymentStatus === "overdue") && (
+                  <span
+                    className={`p-1.5 rounded-full border shrink-0 ${
+                      client.paymentStatus === "overdue"
+                        ? "bg-red-500/15 text-red-400 border-red-500/30"
+                        : "bg-amber-500/15 text-amber-400 border-amber-500/30"
+                    }`}
+                    title={client.paymentStatus === "overdue" ? t("trainer.paymentOverdue") : t("trainer.paymentDueSoon")}
+                  >
+                    <CreditCard className="w-3.5 h-3.5" />
+                  </span>
+                )}
                 <span className={`text-xs font-medium px-2 py-1 rounded-full border shrink-0 ${statusStyle(client.status)}`}>
                   {statusLabel(client.status)}
                 </span>

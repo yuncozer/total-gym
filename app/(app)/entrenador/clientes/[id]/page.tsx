@@ -11,6 +11,7 @@ import { TrainerAssignRoutine } from "@/app/components/TrainerAssignRoutine";
 import { TrainerRecentSessions } from "@/app/components/TrainerRecentSessions";
 import { TrainerCheckinHistory } from "@/app/components/TrainerCheckinHistory";
 import { TrainerProgressShare } from "@/app/components/TrainerProgressShare";
+import { TrainerPaymentHistory } from "@/app/components/TrainerPaymentHistory";
 import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
 
 interface TrainerClient {
@@ -26,6 +27,7 @@ interface TrainerClient {
   inviteToken: string | null;
   lastWorkoutAt: string | null;
   adherenceStatus: AdherenceStatus;
+  paymentStatus: "current" | "due_soon" | "overdue" | "none";
   createdAt: string;
 }
 
@@ -62,6 +64,24 @@ function adherenceLabel(status: AdherenceStatus, t: (key: string) => string): st
     case "amber": return t("trainer.adherenceAmber");
     case "red": return t("trainer.adherenceRed");
     case "unknown": return t("trainer.adherenceUnknown");
+  }
+}
+
+function paymentStyle(status: TrainerClient["paymentStatus"]): string {
+  switch (status) {
+    case "current": return "bg-green-500/15 text-green-400 border-green-500/30";
+    case "due_soon": return "bg-amber-500/15 text-amber-400 border-amber-500/30";
+    case "overdue": return "bg-red-500/15 text-red-400 border-red-500/30";
+    case "none": return "bg-zinc-600/20 text-zinc-400 border-zinc-500/30";
+  }
+}
+
+function paymentLabel(status: TrainerClient["paymentStatus"], t: (key: string) => string): string {
+  switch (status) {
+    case "current": return t("trainer.paymentCurrent");
+    case "due_soon": return t("trainer.paymentDueSoon");
+    case "overdue": return t("trainer.paymentOverdue");
+    case "none": return "";
   }
 }
 
@@ -214,9 +234,19 @@ export default function TrainerClientDetailPage() {
           </span>
         </div>
 
+        {client.paymentStatus !== "none" && (
+          <div className="flex items-center justify-end mb-4 -mt-2">
+            <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${paymentStyle(client.paymentStatus)}`}>
+              {paymentLabel(client.paymentStatus, t)}
+            </span>
+          </div>
+        )}
+
         {client.status === "invited" && client.inviteToken && (
           <TrainerInviteShare inviteToken={client.inviteToken} clientName={client.displayName} />
         )}
+
+        <TrainerPaymentHistory clientId={client.id} />
 
         <TrainerAssignRoutine clientId={client.id} hasAccount={!!client.userId} />
 

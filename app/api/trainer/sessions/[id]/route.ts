@@ -1,47 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkTrainerAccess } from "@/lib/trainer/route";
 import { getTrainerAdminClient } from "@/lib/trainer/client";
-import { mapTrainerClient as mapClient } from "@/lib/trainer/mapClient";
-import { enrichWithAdherence } from "@/lib/trainer/enrichAdherence";
-import { enrichWithPaymentStatus } from "@/lib/trainer/enrichPaymentStatus";
 
 const EDITABLE_FIELDS: Record<string, string> = {
-  displayName: "display_name",
-  email: "email",
-  phone: "phone",
+  scheduledAt: "scheduled_at",
+  durationMinutes: "duration_minutes",
   status: "status",
-  goal: "goal",
-  level: "level",
-  startDate: "start_date",
+  location: "location",
   notes: "notes",
 };
-
-export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const { trainerId, error } = await checkTrainerAccess(request);
-  if (error) return error;
-
-  const supabase = getTrainerAdminClient();
-
-  const { data, error: fetchError } = await supabase
-    .from("trainer_clients")
-    .select("*")
-    .eq("id", id)
-    .eq("trainer_id", trainerId)
-    .maybeSingle();
-
-  if (fetchError) {
-    return NextResponse.json({ error: fetchError.message }, { status: 500 });
-  }
-  if (!data) {
-    return NextResponse.json({ error: "Client not found" }, { status: 404 });
-  }
-
-  const [withAdherence] = await enrichWithAdherence(supabase, [mapClient(data)]);
-  const [enriched] = await enrichWithPaymentStatus(supabase, [withAdherence]);
-
-  return NextResponse.json({ client: enriched });
-}
 
 export async function PATCH(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -57,21 +24,31 @@ export async function PATCH(request: NextRequest, { params }: { params: Promise<
   }
 
   const { data, error: updateError } = await supabase
-    .from("trainer_clients")
+    .from("training_sessions")
     .update(updates)
     .eq("id", id)
     .eq("trainer_id", trainerId)
-    .select()
+    .select("id, client_id, scheduled_at, duration_minutes, status, location, notes")
     .maybeSingle();
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
   if (!data) {
-    return NextResponse.json({ error: "Client not found" }, { status: 404 });
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  return NextResponse.json({ client: mapClient(data) });
+  return NextResponse.json({
+    session: {
+      id: data.id,
+      clientId: data.client_id,
+      scheduledAt: data.scheduled_at,
+      durationMinutes: data.duration_minutes,
+      status: data.status,
+      location: data.location,
+      notes: data.notes,
+    },
+  });
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -82,7 +59,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
   const supabase = getTrainerAdminClient();
 
   const { error: deleteError } = await supabase
-    .from("trainer_clients")
+    .from("training_sessions")
     .delete()
     .eq("id", id)
     .eq("trainer_id", trainerId);

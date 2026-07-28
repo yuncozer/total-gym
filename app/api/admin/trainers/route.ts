@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkAdminAccess } from "@/lib/admin/route";
 import { getAdminClient } from "@/lib/admin/client";
+import { slugify } from "@/lib/trainer/slug";
 
 export async function GET(request: NextRequest) {
   const { error } = await checkAdminAccess(request);
@@ -65,7 +66,12 @@ export async function POST(request: NextRequest) {
 
   const { error: insertError } = await supabase
     .from("trainers")
-    .insert({ user_id: users[0].id, display_name: displayName, specialty: specialty || null });
+    .insert({
+      user_id: users[0].id,
+      display_name: displayName,
+      specialty: specialty || null,
+      public_slug: slugify(displayName),
+    });
 
   if (insertError) {
     if (insertError.code === "23505") {

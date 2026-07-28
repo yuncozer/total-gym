@@ -4,6 +4,7 @@ import { getTrainerAdminClient } from "@/lib/trainer/client";
 import { mapTrainerClient as mapClient } from "@/lib/trainer/mapClient";
 import { enrichWithAdherence } from "@/lib/trainer/enrichAdherence";
 import { adherenceSeverity } from "@/lib/trainer/adherence";
+import { enrichWithPaymentStatus } from "@/lib/trainer/enrichPaymentStatus";
 
 export async function GET(request: NextRequest) {
   const { trainerId, error } = await checkTrainerAccess(request);
@@ -21,7 +22,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: fetchError.message }, { status: 500 });
   }
 
-  const enriched = await enrichWithAdherence(supabase, (data || []).map(mapClient));
+  const withAdherence = await enrichWithAdherence(supabase, (data || []).map(mapClient));
+  const enriched = await enrichWithPaymentStatus(supabase, withAdherence);
   enriched.sort((a, b) => adherenceSeverity(a.adherenceStatus) - adherenceSeverity(b.adherenceStatus));
 
   return NextResponse.json({ clients: enriched });
