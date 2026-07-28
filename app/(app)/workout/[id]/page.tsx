@@ -150,6 +150,13 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [profileWeightKg, setProfileWeightKg] = useState<number | null>(null);
   const [showProfileWeightModal, setShowProfileWeightModal] = useState(false);
   const [profileWeightInput, setProfileWeightInput] = useState("");
+  const [weightInputText, setWeightInputText] = useState<string | null>(null);
+  const currentSetKey = selectedExercise ? `${selectedExercise.exerciseId}-${currentSetIndex}` : null;
+  const prevSetKeyRef = useRef<string | null>(currentSetKey);
+  if (prevSetKeyRef.current !== currentSetKey) {
+    prevSetKeyRef.current = currentSetKey;
+    if (weightInputText !== null) setWeightInputText(null);
+  }
 
   useEffect(() => {
     if (!selectedExercise) return;
@@ -704,8 +711,15 @@ const handleCompleteSet = () => {
                       <input
                         type="text"
                         inputMode="decimal"
-                        value={set.weight_kg && set.weight_kg > 0 ? String(set.weight_kg) : ""}
-                        onChange={(e) => { updateSet('weight_kg', parseFloat(e.target.value) || 0); if (set.is_bodyweight) updateSet('is_bodyweight', 0); }}
+                        value={weightInputText !== null ? weightInputText : (set.weight_kg && set.weight_kg > 0 ? String(set.weight_kg) : "")}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === "" || /^\d*\.?\d*$/.test(raw)) {
+                            setWeightInputText(raw);
+                            updateSet('weight_kg', parseFloat(raw) || 0);
+                            if (set.is_bodyweight) updateSet('is_bodyweight', 0);
+                          }
+                        }}
                         disabled={set.is_completed || set.is_bodyweight}
                         placeholder={(() => {
                           const lastW = getLastWeight(selectedExercise.exerciseId);
@@ -717,6 +731,7 @@ const handleCompleteSet = () => {
                         <button
                           type="button"
                           onClick={() => {
+                            setWeightInputText(null);
                             if (set.is_bodyweight) {
                               updateSet('is_bodyweight', 0);
                             } else {
