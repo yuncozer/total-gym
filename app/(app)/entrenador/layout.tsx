@@ -1,0 +1,52 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/lib/useAuth";
+import { ShieldAlert } from "lucide-react";
+import { LoadingScreen } from "@/app/components/LoadingScreen";
+
+export default function TrainerLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const router = useRouter();
+  const { loading: authLoading, authenticated } = useAuth(true);
+  const [checking, setChecking] = useState(true);
+  const [isTrainer, setIsTrainer] = useState(false);
+
+  useEffect(() => {
+    if (authLoading) return;
+    if (!authenticated) return;
+
+    fetch("/api/trainer/me")
+      .then((res) => setIsTrainer(res.ok))
+      .catch(() => setIsTrainer(false))
+      .finally(() => setChecking(false));
+  }, [authLoading, authenticated]);
+
+  if (authLoading || checking) {
+    return <LoadingScreen />;
+  }
+
+  if (!authenticated || !isTrainer) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center px-4">
+        <div className="text-center">
+          <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-white mb-2">Acceso denegado</h1>
+          <p className="text-muted-foreground mb-6">No tienes permisos de entrenador.</p>
+          <button
+            onClick={() => router.push("/")}
+            className="px-6 py-3 bg-accent text-black font-semibold rounded-xl hover:bg-accent-hover transition-colors cursor-pointer"
+          >
+            Volver al inicio
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}

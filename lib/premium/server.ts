@@ -1,5 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import type { RequestCookies } from "next/dist/compiled/@edge-runtime/cookies";
+import type { SubscriptionPlan, SubscriptionStatus } from "./types";
+
+export function resolveIsPremium(sub: { plan: SubscriptionPlan; status: SubscriptionStatus } | null): boolean {
+  return sub != null && sub.plan === "premium" && sub.status === "active";
+}
 
 export async function isUserPremium(cookies: RequestCookies | { getAll: () => { name: string; value: string }[] }): Promise<boolean> {
   const supabase = createServerClient(
@@ -26,9 +31,7 @@ export async function isUserPremium(cookies: RequestCookies | { getAll: () => { 
     .eq("user_id", session.user.id)
     .maybeSingle();
 
-  if (!sub) return true;
-
-  return sub.plan === "premium" && sub.status === "active";
+  return resolveIsPremium(sub);
 }
 
 export function getDateLimit(days: number): string {

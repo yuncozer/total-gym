@@ -4,13 +4,16 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target, RefreshCw, Sparkles, Brain } from "lucide-react";
+import { Dumbbell, Flame, Zap, ArrowRight, Calendar, User, Loader2, Play, Smartphone, History, Timer, ChevronDown, Activity, TrendingUp, Target, RefreshCw, Sparkles, Brain, Users, CreditCard, Globe } from "lucide-react";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
 import { NotificationButton } from "@/app/components/NotificationButton";
 import { SmartCoach } from "@/app/components/SmartCoach";
+import { AssignedRoutineBanner } from "@/app/components/AssignedRoutineBanner";
+import { UpcomingSessionBanner } from "@/app/components/UpcomingSessionBanner";
+import { useTrainer } from "@/lib/trainer/hooks";
 import { CoachMarks } from "@/app/components/CoachMarks";
 import { useInstallPrompt } from "@/lib/use-install-prompt";
 import { useLanguage, strings, type StringKey, type Lang } from "@/lib/i18n";
@@ -104,6 +107,7 @@ function UserDashboard({ stats, loading }: { stats: DashboardStats | null; loadi
 
 export default function Home() {
   const router = useRouter();
+  const { isTrainer } = useTrainer();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [user, setUser] = useState<{ email: string; id: string } | null>(null);
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
@@ -337,6 +341,8 @@ export default function Home() {
 
           <div className={`relative z-10 max-w-4xl mx-auto px-4 text-center ${user ? 'py-12' : ''}`}>
             {user && <UserDashboard stats={stats} loading={loadingStats} />}
+            {user && <AssignedRoutineBanner />}
+            {user && <UpcomingSessionBanner />}
 
             <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-full px-4 py-2 mb-6 sm:mb-8">
               <Calendar className="w-4 h-4 text-accent" />
@@ -588,6 +594,29 @@ export default function Home() {
               </p>
             </div>
           </div>
+
+          {!isTrainer && (
+            <a
+              href="#modo-entrenador"
+              className="group md:col-span-2 flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-accent/20 rounded-xl p-6 hover:border-accent/50 transition-all duration-300 cursor-pointer"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-accent/20 transition-colors">
+                  <Users className="w-7 h-7 text-accent" />
+                </div>
+                <div>
+                  <h3 className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-oswald)" }}>
+                    {t("home.features.trainerBlurbTitle")}
+                  </h3>
+                  <p className="text-muted-foreground text-sm">{t("home.features.trainerBlurbDesc")}</p>
+                </div>
+              </div>
+              <span className="flex items-center gap-1.5 text-accent font-semibold text-sm shrink-0 whitespace-nowrap">
+                {t("home.features.trainerBlurbCta")}
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </span>
+            </a>
+          )}
             </div>
           </div>
         </section>
@@ -685,6 +714,88 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {!isTrainer && (
+        <section id="modo-entrenador" className="py-28 bg-card relative overflow-hidden scroll-mt-20">
+          <div className="absolute inset-0 opacity-[0.02]" style={{
+            backgroundImage: `radial-gradient(circle at 1px 1px, var(--accent) 1px, transparent 0)`,
+            backgroundSize: '20px 20px',
+          }} />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-accent/5 rounded-full blur-[130px]" />
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/40 to-transparent" />
+
+          <div className="max-w-6xl mx-auto px-4 relative z-10">
+            <div className="text-center mb-5">
+              <div className="inline-flex items-center gap-2.5 bg-accent/10 border border-accent/30 rounded-full px-5 py-2">
+                <Users className="w-4 h-4 text-accent" />
+                <span className="text-accent text-sm font-bold uppercase tracking-wider" style={{ fontFamily: "var(--font-oswald)" }}>
+                  {t("home.trainerPromo.badge")}
+                </span>
+              </div>
+            </div>
+
+            <h2
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-center mb-4"
+              style={{ fontFamily: "var(--font-oswald)" }}
+            >
+              <span className="text-white">{t("home.trainerPromo.title1")}</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-accent to-amber-400">{t("home.trainerPromo.title2")}</span>
+            </h2>
+            <p className="text-muted-foreground text-center text-lg mb-16 max-w-2xl mx-auto">
+              {t("home.trainerPromo.subtitle")}
+            </p>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-5 mb-16">
+              {[
+                { icon: Users, label: t("home.trainerPromo.card1Title"), desc: t("home.trainerPromo.card1Desc"), color: "text-blue-500", border: "border-blue-500/30", bg: "bg-blue-500/10" },
+                { icon: Dumbbell, label: t("home.trainerPromo.card2Title"), desc: t("home.trainerPromo.card2Desc"), color: "text-accent", border: "border-accent/30", bg: "bg-accent/10" },
+                { icon: Calendar, label: t("home.trainerPromo.card3Title"), desc: t("home.trainerPromo.card3Desc"), color: "text-green-500", border: "border-green-500/30", bg: "bg-green-500/10" },
+                { icon: Globe, label: t("home.trainerPromo.card4Title"), desc: t("home.trainerPromo.card4Desc"), color: "text-purple-400", border: "border-purple-400/30", bg: "bg-purple-400/10" },
+              ].map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <div key={i} className="group relative">
+                    <div className={`absolute -inset-0.5 ${item.bg} rounded-2xl blur-sm opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
+                    <div className={`relative bg-background border ${item.border} rounded-2xl p-5 md:p-6 text-center hover:border-white/20 transition-all duration-300 h-full`}>
+                      <div className={`w-12 h-12 ${item.bg} rounded-xl flex items-center justify-center mx-auto mb-3 group-hover:scale-110 transition-transform duration-300`}>
+                        <Icon className={`w-6 h-6 ${item.color}`} />
+                      </div>
+                      <h3 className="text-white font-bold text-sm md:text-base mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
+                        {item.label}
+                      </h3>
+                      <p className="text-muted-foreground text-xs md:text-sm leading-relaxed">
+                        {item.desc}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <div className="flex flex-col md:flex-row items-center justify-between gap-6 max-w-4xl mx-auto p-6 md:p-8 bg-background border border-accent/10 rounded-2xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center shrink-0">
+                  <CreditCard className="w-6 h-6 text-accent" />
+                </div>
+                <p className="text-muted-foreground text-sm md:text-base max-w-sm">
+                  {t("home.trainerPromo.ctaHint")}
+                </p>
+              </div>
+              {!user && (
+                <Link
+                  href="/register"
+                  className="group relative flex items-center justify-center gap-2.5 shrink-0 w-full md:w-auto bg-gradient-to-b from-accent to-amber-500 hover:to-amber-400 text-black font-bold px-7 py-3.5 rounded-xl transition-all hover:scale-105 active:scale-[0.97] cursor-pointer shadow-lg shadow-accent/30"
+                  style={{ fontFamily: "var(--font-oswald)" }}
+                >
+                  {t("home.trainerPromo.ctaGuest")}
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              )}
+            </div>
+          </div>
+        </section>
+        )}
 
         {!installed && (
         <section className="py-28 bg-background relative overflow-hidden">

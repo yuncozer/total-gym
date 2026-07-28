@@ -39,6 +39,14 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
       highlight: t("carousel.slide4.highlight"),
       image: "https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=800&q=80",
     },
+    {
+      title: t("carousel.slide5.title"),
+      description: t("carousel.slide5.desc"),
+      highlight: t("carousel.slide5.highlight"),
+      image: "https://images.unsplash.com/photo-1518611012118-696072aa579a?w=800&q=80",
+      ctaTarget: "modo-entrenador",
+      primaryLabel: t("carousel.slide5.cta"),
+    },
   ];
 
   useEffect(() => {
@@ -92,12 +100,12 @@ export function GuestCarousel({ onAuth }: GuestCarouselProps) {
 
               <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center lg:justify-start w-full">
                 <button
-                  onClick={() => document.getElementById('daily-section')?.scrollIntoView({ behavior: 'smooth' })}
+                  onClick={() => document.getElementById(current.ctaTarget ?? 'daily-section')?.scrollIntoView({ behavior: 'smooth' })}
                   className="group flex items-center justify-center gap-2 sm:gap-3 bg-muted hover:bg-zinc-700 text-white text-base sm:text-lg font-bold px-6 sm:px-8 py-4 sm:py-5 rounded-xl transition-all hover:scale-105 cursor-pointer w-full sm:w-auto"
                   style={{ fontFamily: "var(--font-oswald)" }}
                 >
                   <Play className="w-5 h-5" />
-                  {t("carousel.tryNow")}
+                  {current.primaryLabel ?? t("carousel.tryNow")}
                   <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
                 <button

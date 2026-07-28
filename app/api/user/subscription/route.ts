@@ -40,9 +40,9 @@ export async function GET() {
 
     if (!sub) {
       return NextResponse.json<SubscriptionResponse>({
-        plan: "premium",
+        plan: "free",
         status: "active",
-        isPremium: true,
+        isPremium: false,
         daysLeft: null,
         periodEnd: null,
       });

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Bell, BellOff, Trophy, Flame, Zap, Crown, Share2, Users2, Dumbbell } from "lucide-react";
+import Link from "next/link";
+import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Bell, BellOff, Trophy, Flame, Zap, Crown, Share2, Users2, Dumbbell, ChevronRight } from "lucide-react";
 import { usePushNotifications, updateNotificationSettings, saveSubscription } from "@/lib/push";
 import { useAuth } from "@/lib/useAuth";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
@@ -184,7 +185,19 @@ export default function PerfilPage() {
             </div>
           )}
 
-
+          <Link
+            href="/checkin"
+            className="flex items-center gap-3 p-4 mb-6 bg-card border border-accent/30 rounded-xl hover:border-accent/60 transition-colors cursor-pointer group"
+          >
+            <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center shrink-0">
+              <Scale className="w-5 h-5 text-accent" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-white font-semibold text-sm">{t("checkin.entryTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("checkin.entrySubtitle")}</p>
+            </div>
+            <ChevronRight className="w-4 h-4 text-icon group-hover:text-accent transition-colors shrink-0" />
+          </Link>
 
           <div className="space-y-6">
             <div>

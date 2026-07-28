@@ -667,6 +667,22 @@ const handleCompleteSet = () => {
                 </div>
               ) : (
                 <div className="space-y-4 mb-4">
+                  {(set.target_reps || set.target_weight_kg || set.target_rpe) && (
+                    <div className="flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-xl px-3 py-2 text-xs text-accent">
+                      <Target className="w-3.5 h-3.5 shrink-0" />
+                      <span>
+                        {t("workout.trainerTarget")}:{" "}
+                        {[
+                          set.target_reps ? `${set.target_reps} ${t("workout.repsLabel").toLowerCase()}` : null,
+                          set.target_weight_kg ? `${set.target_weight_kg} kg` : null,
+                          set.target_rpe ? `RPE ${set.target_rpe}` : null,
+                        ].filter(Boolean).join(" · ")}
+                      </span>
+                    </div>
+                  )}
+                  {set.trainer_note && (
+                    <p className="text-xs text-icon italic">&ldquo;{set.trainer_note}&rdquo;</p>
+                  )}
                   <div>
                     <label className="block text-sm text-icon mb-2">{t("workout.repsLabel")}</label>
                     <div className="flex items-center gap-2">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, UserPlus, ArrowLeft, AlertCircle, CheckCircle, XCircle } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -12,8 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("invite") || undefined;
   const { t } = useLanguage();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -74,7 +76,7 @@ router.push("/login");
       const response = await fetch("/api/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password })
+        body: JSON.stringify({ email, password, inviteToken })
       });
 
       const data = await response.json();
@@ -95,7 +97,7 @@ router.push("/login");
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError(null);
-    const result = await signInWithGoogle();
+    const result = await signInWithGoogle("/entrenamiento", inviteToken);
     if (result.error) {
       setError(result.error);
       setGoogleLoading(false);

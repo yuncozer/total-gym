@@ -1,9 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { claimInviteToken } from "@/lib/trainer/claim";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password } = await request.json();
+    const { email, password, inviteToken } = await request.json();
 
     if (!email || !password) {
       return NextResponse.json(
@@ -25,6 +26,10 @@ export async function POST(request: NextRequest) {
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+
+    if (data.user) {
+      await claimInviteToken(supabase, data.user.id, inviteToken);
     }
 
     return NextResponse.json({ user: data.user });

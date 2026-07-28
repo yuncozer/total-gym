@@ -66,7 +66,7 @@ export function ExerciseCard({ exercise, selected, onSelect, onImageClick, lastW
   };
 
   return (
-    <button
+    <button type="button"
       onClick={onSelect}
       className={`
         group w-full p-3 rounded-xl border-2 transition-all duration-300 text-left cursor-pointer
@@ -228,7 +228,7 @@ export function ImageModal({ imageUrl, exerciseName, exerciseDescription, galler
       className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
       onClick={onClose}
     >
-      <button
+      <button type="button"
         className="absolute top-4 right-4 z-20 w-10 h-10 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-full flex items-center justify-center text-white transition-colors cursor-pointer"
         onClick={onClose}
       >
@@ -238,7 +238,7 @@ export function ImageModal({ imageUrl, exerciseName, exerciseDescription, galler
       </button>
 
       {gallery && currentIndex > 0 && (
-        <button
+        <button type="button"
           onClick={(e) => { e.stopPropagation(); goTo(currentIndex - 1); }}
           className="absolute left-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer backdrop-blur-sm"
         >
@@ -246,7 +246,7 @@ export function ImageModal({ imageUrl, exerciseName, exerciseDescription, galler
         </button>
       )}
       {gallery && currentIndex < gallery.length - 1 && (
-        <button
+        <button type="button"
           onClick={(e) => { e.stopPropagation(); goTo(currentIndex + 1); }}
           className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-10 h-10 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white/80 hover:text-white transition-all cursor-pointer backdrop-blur-sm"
         >
@@ -275,7 +275,7 @@ export function ImageModal({ imageUrl, exerciseName, exerciseDescription, galler
           {gallery && (
             <div className="flex items-center justify-center gap-1.5">
               {gallery.map((_, i) => (
-                <button
+                <button type="button"
                   key={i}
                   onClick={() => goTo(i)}
                   className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${

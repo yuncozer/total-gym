@@ -177,14 +177,14 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
       <div className="bg-card border border rounded-t-2xl sm:rounded-2xl w-full max-w-lg max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col animate-slide-up">
         <div className="flex items-center justify-between p-4 border-b border">
           <h2 className="text-lg font-bold text-white">{t("train.newExercise")}</h2>
-          <button onClick={onClose} className="p-1 text-icon hover:text-white transition-colors cursor-pointer">
+          <button type="button" onClick={onClose} className="p-1 text-icon hover:text-white transition-colors cursor-pointer">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="flex gap-1.5 p-3 overflow-x-auto shrink-0 bg-background/50">
           {muscleGroupsData.map(m => (
-            <button
+            <button type="button"
               key={m.id}
               onClick={() => selectMuscle(m.id)}
               className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
@@ -212,7 +212,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
             </div>
             <div className="flex gap-1.5 overflow-x-auto pb-2">
               {EQUIPMENT_TABS.map(tab => (
-                <button
+                <button type="button"
                   key={tab.id}
                   onClick={() => { setSelectedEquipment(tab.id); setAddedIds(new Set()); }}
                   className={`px-2.5 py-1 rounded-full text-[10px] font-medium whitespace-nowrap transition-all cursor-pointer ${
@@ -256,7 +256,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
                     }`}
                   >
                     {ex.imageUrl && (
-                      <button
+                      <button type="button"
                         onClick={(e) => { e.stopPropagation(); setExerciseImage(ex.imageUrl!); }}
                         className="relative block shrink-0"
                         title={t("train.imageView")}
@@ -279,7 +279,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <div className="flex items-center gap-1">
-                        <button
+                        <button type="button"
                           onClick={() => setSetCounts(prev => ({ ...prev, [id]: Math.max(1, count - 1) }))}
                           disabled={count <= 1 || isAdded}
                           className="w-6 h-6 rounded-md bg-muted text-icon hover:text-white flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
@@ -287,7 +287,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
                           <Minus className="w-3 h-3" />
                         </button>
                         <span className="text-white text-xs font-medium w-4 text-center">{count}</span>
-                        <button
+                        <button type="button"
                           onClick={() => setSetCounts(prev => ({ ...prev, [id]: count + 1 }))}
                           disabled={count >= 8 || isAdded}
                           className="w-6 h-6 rounded-md bg-muted text-icon hover:text-white flex items-center justify-center transition-colors cursor-pointer disabled:opacity-30 disabled:cursor-not-allowed"
@@ -295,7 +295,7 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
-                      <button
+                      <button type="button"
                         onClick={() => handleAdd(ex)}
                         disabled={adding || isAdded}
                         className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all cursor-pointer shrink-0 ${
