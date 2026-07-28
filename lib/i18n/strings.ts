@@ -189,6 +189,10 @@ export const strings = {
   "carousel.slide4.title": { es: "TU GYMBRO DIGITAL", en: "YOUR DIGITAL GYMBRO" },
   "carousel.slide4.desc": { es: "Un compañero que te exige más. Disciplina y seguimiento sin excepciones.", en: "A partner that pushes you more. Discipline and tracking with no exceptions." },
   "carousel.slide4.highlight": { es: "DISCIPLINA = RESULTADOS", en: "DISCIPLINE = RESULTS" },
+  "carousel.slide5.title": { es: "¿ERES ENTRENADOR?", en: "ARE YOU A TRAINER?" },
+  "carousel.slide5.desc": { es: "Gestiona tu cartera de clientes, asigna rutinas con objetivos y controla pagos, todo desde un solo lugar.", en: "Manage your client roster, assign routines with targets, and track payments, all in one place." },
+  "carousel.slide5.highlight": { es: "TU NEGOCIO, ORGANIZADO", en: "YOUR BUSINESS, ORGANIZED" },
+  "carousel.slide5.cta": { es: "VER PARA ENTRENADORES", en: "SEE FOR TRAINERS" },
 
   // --- Footer ---
   "footer.description": { es: "Entrena como un campeón. Tu gymbro digital que te acompaña en cada serie.", en: "Train like a champion. Your digital gymbro that accompanies you on every set." },
