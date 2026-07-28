@@ -75,9 +75,10 @@ export default function TrainerProfileSettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="max-w-lg mx-auto px-4 py-8 pt-24">
+      <main className="max-w-4xl mx-auto px-4 py-8 pt-24">
         <TrainerSubnav />
 
+        <div className="max-w-lg mx-auto">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
             <UserCircle className="w-5 h-5 text-accent" />
@@ -172,6 +173,7 @@ export default function TrainerProfileSettingsPage() {
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t("trainer.profileSave")}
           </button>
         </form>
+        </div>
       </main>
     </div>
   );

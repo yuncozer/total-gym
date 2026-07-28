@@ -20,6 +20,24 @@ interface TrainerPaymentHistoryProps {
   clientId: string;
 }
 
+const FIXED_CURRENCY_METHODS: Record<string, string> = {
+  zelle: "USD",
+  binance: "USD",
+  bancolombia_nequi: "COP",
+  pago_movil: "BS",
+};
+
+function paymentMethodLabel(method: string | null, t: (key: string) => string): string {
+  switch (method) {
+    case "zelle": return t("trainer.paymentMethodZelle");
+    case "binance": return t("trainer.paymentMethodBinance");
+    case "bancolombia_nequi": return t("trainer.paymentMethodBancolombiaNequi");
+    case "pago_movil": return t("trainer.paymentMethodPagoMovil");
+    case "efectivo": return t("trainer.paymentMethodEfectivo");
+    default: return method || "";
+  }
+}
+
 export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) {
   const { t, lang } = useLanguage();
   const [payments, setPayments] = useState<Payment[]>([]);
@@ -31,6 +49,7 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
   const [periodStart, setPeriodStart] = useState("");
   const [periodEnd, setPeriodEnd] = useState("");
   const [method, setMethod] = useState("");
+  const [cashCurrency, setCashCurrency] = useState("USD");
   const [sessionsIncluded, setSessionsIncluded] = useState("");
 
   const load = () => {
@@ -49,9 +68,11 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString(lang === "es" ? "es-ES" : "en-US", { day: "numeric", month: "short", year: "numeric" });
 
+  const currency = method === "efectivo" ? cashCurrency : (FIXED_CURRENCY_METHODS[method] || "USD");
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount) return;
+    if (!amount || !method) return;
     setSubmitting(true);
     try {
       const res = await fetch(`/api/trainer/clients/${clientId}/payments`, {
@@ -59,9 +80,10 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount: Number(amount),
+          currency,
           periodStart: periodStart || undefined,
           periodEnd: periodEnd || undefined,
-          method: method.trim() || undefined,
+          method,
           sessionsIncluded: sessionsIncluded ? Number(sessionsIncluded) : undefined,
         }),
       });
@@ -70,6 +92,7 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
         setPeriodStart("");
         setPeriodEnd("");
         setMethod("");
+        setCashCurrency("USD");
         setSessionsIncluded("");
         setShowForm(false);
         load();
@@ -120,15 +143,35 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
               className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-accent/50"
               disabled={submitting}
             />
-            <input
-              type="text"
+            <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
-              placeholder={t("trainer.paymentMethod")}
-              className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-accent/50"
+              required
+              className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-accent/50"
               disabled={submitting}
-            />
+            >
+              <option value="">{t("trainer.paymentMethodPlaceholder")}</option>
+              <option value="zelle">{t("trainer.paymentMethodZelle")}</option>
+              <option value="binance">{t("trainer.paymentMethodBinance")}</option>
+              <option value="bancolombia_nequi">{t("trainer.paymentMethodBancolombiaNequi")}</option>
+              <option value="pago_movil">{t("trainer.paymentMethodPagoMovil")}</option>
+              <option value="efectivo">{t("trainer.paymentMethodEfectivo")}</option>
+            </select>
           </div>
+          {method === "efectivo" && (
+            <div>
+              <label className="text-[10px] text-icon uppercase tracking-wider block mb-1">{t("trainer.paymentCashCurrency")}</label>
+              <select
+                value={cashCurrency}
+                onChange={(e) => setCashCurrency(e.target.value)}
+                className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-accent/50"
+                disabled={submitting}
+              >
+                <option value="USD">USD</option>
+                <option value="COP">COP</option>
+              </select>
+            </div>
+          )}
           <div className="grid grid-cols-2 gap-2">
             <div>
               <label className="text-[10px] text-icon uppercase tracking-wider block mb-1">{t("trainer.paymentPeriodStart")}</label>
@@ -162,7 +205,7 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
           />
           <button
             type="submit"
-            disabled={submitting || !amount}
+            disabled={submitting || !amount || !method}
             className="w-full flex items-center justify-center gap-2 py-2.5 bg-accent text-black font-semibold rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors cursor-pointer text-sm"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t("trainer.paymentSave")}
@@ -182,7 +225,7 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
             <div key={p.id} className="flex items-center justify-between text-xs">
               <div>
                 <span className="text-white font-medium">{p.currency} {p.amount}</span>
-                {p.method && <span className="text-icon"> · {p.method}</span>}
+                {p.method && <span className="text-icon"> · {paymentMethodLabel(p.method, t)}</span>}
               </div>
               <span className="text-icon">
                 {p.periodEnd ? `${t("trainer.paymentUntil")} ${formatDate(p.periodEnd)}` : formatDate(p.paidAt)}

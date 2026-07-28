@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
       goal,
       level,
       notes,
-      status: email ? "invited" : "active",
+      status: "invited",
     })
     .select()
     .single();

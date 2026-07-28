@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useLanguage } from "@/lib/i18n";
-import { Flame, Zap, Trophy, Dumbbell, ArrowLeft, Loader2, Mail, Phone, Target, Save, Check, Activity } from "lucide-react";
+import { Flame, Zap, Trophy, Dumbbell, ArrowLeft, Loader2, Mail, Phone, Target, Save, Check, Activity, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { xpForLevel } from "@/lib/gamification";
 import { TrainerInviteShare } from "@/app/components/TrainerInviteShare";
@@ -105,6 +105,7 @@ function getLevelTitle(level: number): string {
 
 export default function TrainerClientDetailPage() {
   const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const { t } = useLanguage();
   const [client, setClient] = useState<TrainerClient | null>(null);
   const [profile, setProfile] = useState<LinkedProfile | null>(null);
@@ -113,6 +114,7 @@ export default function TrainerClientDetailPage() {
   const [notes, setNotes] = useState("");
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -150,6 +152,17 @@ export default function TrainerClientDetailPage() {
       setNotesSaved(true);
     } finally {
       setSavingNotes(false);
+    }
+  };
+
+  const handleDeleteClient = async () => {
+    if (!confirm(t("trainer.confirmDeleteClient"))) return;
+    setDeleting(true);
+    try {
+      await fetch(`/api/trainer/clients/${id}`, { method: "DELETE" });
+      router.push("/entrenador");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -363,6 +376,15 @@ export default function TrainerClientDetailPage() {
             VOLVER A CLIENTES
           </span>
         </Link>
+
+        <button
+          onClick={handleDeleteClient}
+          disabled={deleting}
+          className="mt-3 w-full flex items-center justify-center gap-2 border border-red-500/30 text-red-400 hover:bg-red-500/10 rounded-xl py-3 cursor-pointer transition-colors text-sm font-semibold disabled:opacity-50"
+        >
+          {deleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+          {t("trainer.deleteClient")}
+        </button>
       </div>
     </div>
   );
