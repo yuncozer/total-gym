@@ -58,6 +58,34 @@ export const strings = {
   "home.features.title1": { es: "POR QUÉ", en: "WHY" },
   "home.features.title2": { es: "ELEGIRNOS", en: "CHOOSE US" },
   "home.features.subtitle": { es: "Esto no es una app más. Es tu weapon para transformar tu físico.", en: "This isn't just another app. It's your weapon to transform your physique." },
+  "home.features.trainerBlurbTitle": { es: "¿Eres entrenador?", en: "Are you a trainer?" },
+  "home.features.trainerBlurbDesc": {
+    es: "Gestiona a tus clientes, asígnales rutinas y haz crecer tu negocio desde Total Gym.",
+    en: "Manage your clients, assign routines, and grow your business right from Total Gym.",
+  },
+  "home.features.trainerBlurbCta": { es: "Ver Modo Entrenador", en: "See Trainer Mode" },
+
+  // --- Home: Trainer promo ---
+  "home.trainerPromo.badge": { es: "PARA ENTRENADORES", en: "FOR TRAINERS" },
+  "home.trainerPromo.title1": { es: "Tu talento, ", en: "Your talent, " },
+  "home.trainerPromo.title2": { es: "tu negocio", en: "your business" },
+  "home.trainerPromo.subtitle": {
+    es: "Organiza a tus clientes, programa sus rutinas con objetivos y haz crecer tu cartera — todo desde la misma app en la que ya entrenás.",
+    en: "Organize your clients, program their routines with real targets, and grow your roster — all from the same app you already train with.",
+  },
+  "home.trainerPromo.card1Title": { es: "Cartera de clientes", en: "Client roster" },
+  "home.trainerPromo.card1Desc": { es: "Un semáforo automático te avisa quién se está enfriando antes de que se dé de baja.", en: "An automatic traffic light flags who's cooling off before they quit." },
+  "home.trainerPromo.card2Title": { es: "Rutinas con objetivos", en: "Goal-based routines" },
+  "home.trainerPromo.card2Desc": { es: "Asigna reps, peso y RPE por ejercicio. Tu cliente los ve en cada serie que entrena.", en: "Assign reps, weight and RPE per exercise. Your client sees them on every set." },
+  "home.trainerPromo.card3Title": { es: "Agenda y pagos", en: "Schedule & payments" },
+  "home.trainerPromo.card3Desc": { es: "Programa sesiones y controla vencimientos sin salir de la app.", en: "Schedule sessions and track due dates without leaving the app." },
+  "home.trainerPromo.card4Title": { es: "Tu página pública", en: "Your public page" },
+  "home.trainerPromo.card4Desc": { es: "Comparte tu link y consigue nuevos clientes con un formulario listo para usar.", en: "Share your link and land new clients with a ready-made lead form." },
+  "home.trainerPromo.ctaGuest": { es: "Crear cuenta gratis", en: "Create free account" },
+  "home.trainerPromo.ctaHint": {
+    es: "¿Ya tienes cuenta? Escríbenos para activar tu perfil de entrenador.",
+    en: "Already have an account? Reach out to activate your trainer profile.",
+  },
 
   // --- Feature cards ---
   "feature.card1.title1": { es: "TU GYM", en: "YOUR GYM" },
