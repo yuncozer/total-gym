@@ -1,6 +1,7 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import webpush from "web-push";
+import { verifyCronSecret } from "@/lib/cron/auth";
 
 webpush.setVapidDetails(
   "mailto:notifications@totalgym.app",
@@ -10,7 +11,10 @@ webpush.setVapidDetails(
 
 const STREAK_HIGHLIGHT_THRESHOLD = 3;
 
-export async function POST() {
+export async function POST(request: NextRequest) {
+  const authError = verifyCronSecret(request);
+  if (authError) return authError;
+
   try {
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL || "",
