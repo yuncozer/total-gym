@@ -17,6 +17,11 @@ export interface WorkoutSet {
   is_completed: boolean;
   exercise_order?: number;
   muscle_group?: string;
+  target_reps?: number | null;
+  target_weight_kg?: number | null;
+  target_rpe?: number | null;
+  rest_seconds?: number | null;
+  trainer_note?: string | null;
 }
 
 export interface ExerciseInWorkout {

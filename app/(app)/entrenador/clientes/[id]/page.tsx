@@ -7,6 +7,7 @@ import { Flame, Zap, Trophy, Dumbbell, ArrowLeft, Loader2, Mail, Phone, Target, 
 import Link from "next/link";
 import { xpForLevel } from "@/lib/gamification";
 import { TrainerInviteShare } from "@/app/components/TrainerInviteShare";
+import { TrainerAssignRoutine } from "@/app/components/TrainerAssignRoutine";
 import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
 
 interface TrainerClient {
@@ -213,6 +214,8 @@ export default function TrainerClientDetailPage() {
         {client.status === "invited" && client.inviteToken && (
           <TrainerInviteShare inviteToken={client.inviteToken} clientName={client.displayName} />
         )}
+
+        <TrainerAssignRoutine clientId={client.id} hasAccount={!!client.userId} />
 
         {profile && (
           <div className="grid grid-cols-2 gap-3 mb-4">

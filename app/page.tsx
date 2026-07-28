@@ -11,6 +11,7 @@ import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
 import { NotificationButton } from "@/app/components/NotificationButton";
 import { SmartCoach } from "@/app/components/SmartCoach";
+import { AssignedRoutineBanner } from "@/app/components/AssignedRoutineBanner";
 import { CoachMarks } from "@/app/components/CoachMarks";
 import { useInstallPrompt } from "@/lib/use-install-prompt";
 import { useLanguage, strings, type StringKey, type Lang } from "@/lib/i18n";
@@ -337,6 +338,7 @@ export default function Home() {
 
           <div className={`relative z-10 max-w-4xl mx-auto px-4 text-center ${user ? 'py-12' : ''}`}>
             {user && <UserDashboard stats={stats} loading={loadingStats} />}
+            {user && <AssignedRoutineBanner />}
 
             <div className="inline-flex items-center gap-2 bg-accent/10 border border-accent/30 rounded-full px-4 py-2 mb-6 sm:mb-8">
               <Calendar className="w-4 h-4 text-accent" />

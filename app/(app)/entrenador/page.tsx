@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
 import { Users, Plus, ChevronRight, Mail, Clock } from "lucide-react";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
+import { TrainerSubnav } from "@/app/components/TrainerSubnav";
 import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
 
 interface TrainerClient {
@@ -85,6 +86,7 @@ export default function TrainerRosterPage() {
   return (
     <div className="min-h-screen bg-background">
       <main className="max-w-4xl mx-auto px-4 py-8 pt-24">
+        <TrainerSubnav />
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
