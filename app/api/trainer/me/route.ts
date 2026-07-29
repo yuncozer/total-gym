@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
   const supabase = getTrainerAdminClient();
   const { data } = await supabase
     .from("trainers")
-    .select("display_name, bio, specialty, public_slug")
+    .select("display_name, bio, specialty, public_slug, avatar_url")
     .eq("user_id", trainerId)
     .maybeSingle();
 
@@ -20,6 +20,7 @@ export async function GET(request: NextRequest) {
     bio: data?.bio ?? null,
     specialty: data?.specialty ?? null,
     publicSlug: data?.public_slug ?? null,
+    avatarUrl: data?.avatar_url ?? null,
   });
 }
 
@@ -53,7 +54,7 @@ export async function PATCH(request: NextRequest) {
     .from("trainers")
     .update(updates)
     .eq("user_id", trainerId)
-    .select("display_name, bio, specialty, public_slug")
+    .select("display_name, bio, specialty, public_slug, avatar_url")
     .single();
 
   if (updateError) {
@@ -65,5 +66,6 @@ export async function PATCH(request: NextRequest) {
     bio: data.bio,
     specialty: data.specialty,
     publicSlug: data.public_slug,
+    avatarUrl: data.avatar_url ?? null,
   });
 }

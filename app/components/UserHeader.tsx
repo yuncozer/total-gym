@@ -7,6 +7,7 @@ import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2,
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
 import { useTrainer } from "@/lib/trainer/hooks";
+import { AVATAR_UPDATED_EVENT } from "./AvatarUpload";
 import { TrainerPendingInvitesModal } from "./TrainerPendingInvitesModal";
 
 interface UserHeaderProps {
@@ -31,6 +32,7 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
   const [unreadShares, setUnreadShares] = useState(0);
   const [pendingInvites, setPendingInvites] = useState(0);
   const [showPendingModal, setShowPendingModal] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -55,6 +57,23 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
       setLoading(false);
     });
   }, [supabase]);
+
+  useEffect(() => {
+    if (!user) return;
+
+    async function fetchAvatar() {
+      try {
+        const res = await fetch("/api/profile/avatar");
+        if (!res.ok) return;
+        const data = await res.json();
+        setAvatarUrl(data.avatarUrl || null);
+      } catch {}
+    }
+
+    fetchAvatar();
+    window.addEventListener(AVATAR_UPDATED_EVENT, fetchAvatar);
+    return () => window.removeEventListener(AVATAR_UPDATED_EVENT, fetchAvatar);
+  }, [user]);
 
   useEffect(() => {
     if (!user) return;
@@ -215,10 +234,14 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
                       : "border hover:border-accent/50 hover:shadow-[0_0_14px_rgba(234,179,8,0.2)]"
                   }`}
                 >
-                  <div className="relative w-7 h-7 rounded-full bg-[#0a0a0b] border-2 border-accent/80 flex items-center justify-center shrink-0 transition-all duration-300 group-hover:border-accent group-hover:shadow-[0_0_10px_rgba(234,179,8,0.35)]">
-                    <span className="text-accent font-bold text-[11px] leading-none" style={{ fontFamily: "var(--font-oswald)" }}>
-                      {getInitials(user.email)}
-                    </span>
+                  <div className="relative w-7 h-7 rounded-full bg-[#0a0a0b] border-2 border-accent/80 flex items-center justify-center shrink-0 overflow-hidden transition-all duration-300 group-hover:border-accent group-hover:shadow-[0_0_10px_rgba(234,179,8,0.35)]">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-accent font-bold text-[11px] leading-none" style={{ fontFamily: "var(--font-oswald)" }}>
+                        {getInitials(user.email)}
+                      </span>
+                    )}
                     {showDropdown && (
                       <span className="absolute inset-0 rounded-full animate-[medallion-pulse_2s_ease-in-out_infinite]" />
                     )}

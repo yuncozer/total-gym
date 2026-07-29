@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { UserCircle, Loader2, AlertCircle, CheckCircle2, Copy, Check, ExternalLink } from "lucide-react";
 import { TrainerSubnav } from "@/app/components/TrainerSubnav";
+import { AvatarUpload } from "@/app/components/AvatarUpload";
 import { useLanguage } from "@/lib/i18n";
 
 export default function TrainerProfileSettingsPage() {
@@ -11,6 +12,7 @@ export default function TrainerProfileSettingsPage() {
   const [bio, setBio] = useState("");
   const [specialty, setSpecialty] = useState("");
   const [publicSlug, setPublicSlug] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -26,6 +28,7 @@ export default function TrainerProfileSettingsPage() {
         setBio(data.bio || "");
         setSpecialty(data.specialty || "");
         setPublicSlug(data.publicSlug || "");
+        setAvatarUrl(data.avatarUrl || null);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -104,6 +107,15 @@ export default function TrainerProfileSettingsPage() {
             </div>
           </div>
         )}
+
+        <div className="bg-card border border rounded-2xl p-5 mb-4">
+          <AvatarUpload
+            endpoint="/api/trainer/avatar"
+            currentUrl={avatarUrl}
+            fallback={displayName || "?"}
+            onChange={setAvatarUrl}
+          />
+        </div>
 
         <form onSubmit={handleSubmit} className="bg-card border border rounded-2xl p-5 space-y-4">
           <div>

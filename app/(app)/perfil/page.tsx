@@ -7,6 +7,7 @@ import { User, Scale, Ruler, Target, Loader2, Save, AlertCircle, Bell, BellOff, 
 import { usePushNotifications, updateNotificationSettings, saveSubscription } from "@/lib/push";
 import { useAuth } from "@/lib/useAuth";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
+import { AvatarUpload } from "@/app/components/AvatarUpload";
 import { useLanguage } from "@/lib/i18n";
 
 interface ProfileData {
@@ -17,6 +18,7 @@ interface ProfileData {
   level: string;
   goal: string;
   notify_enabled: boolean;
+  avatar_url: string | null;
 }
 
 export default function PerfilPage() {
@@ -39,6 +41,7 @@ export default function PerfilPage() {
     level: "",
     goal: "",
     notify_enabled: false,
+    avatar_url: null,
   });
 
   const { supported, subscribe, unsubscribe, loading: subLoading, permission } = usePushNotifications();
@@ -73,6 +76,7 @@ export default function PerfilPage() {
             level: profileData.level || "",
             goal: profileData.goal || "",
             notify_enabled: profileData.notify_enabled || false,
+            avatar_url: profileData.avatar_url || null,
           }));
         }
       }
@@ -192,6 +196,15 @@ export default function PerfilPage() {
               <span className="text-sm">{t("perfil.saveSuccess")}</span>
             </div>
           )}
+
+          <div className="bg-card border border rounded-xl p-4 mb-6">
+            <AvatarUpload
+              endpoint="/api/profile/avatar"
+              currentUrl={profile.avatar_url}
+              fallback={profile.email || "?"}
+              onChange={(url) => setProfile((p) => ({ ...p, avatar_url: url }))}
+            />
+          </div>
 
           <Link
             href="/checkin"

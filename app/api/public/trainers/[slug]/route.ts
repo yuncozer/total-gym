@@ -11,7 +11,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const { data: trainer } = await admin
     .from("trainers")
-    .select("user_id, display_name, bio, specialty, is_active")
+    .select("user_id, display_name, bio, specialty, is_active, avatar_url")
     .eq("public_slug", slug)
     .maybeSingle();
 
@@ -25,10 +25,21 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .eq("trainer_id", trainer.user_id)
     .eq("status", "active");
 
+  let avatarUrl = trainer.avatar_url as string | null;
+  if (!avatarUrl) {
+    const { data: ownerProfile } = await admin
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", trainer.user_id)
+      .maybeSingle();
+    avatarUrl = ownerProfile?.avatar_url || null;
+  }
+
   return NextResponse.json({
     displayName: trainer.display_name,
     bio: trainer.bio,
     specialty: trainer.specialty,
+    avatarUrl,
     activeClientCount: activeClientCount || 0,
   });
 }
