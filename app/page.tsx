@@ -9,7 +9,7 @@ import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { AuthModal } from "@/app/components/AuthModal";
 import { UserHeader } from "@/app/components/UserHeader";
 import { GuestCarousel } from "@/app/components/GuestCarousel";
-import { NotificationButton } from "@/app/components/NotificationButton";
+import { NotificationBanner, type NotificationBannerReason } from "@/app/components/NotificationBanner";
 import { SmartCoach } from "@/app/components/SmartCoach";
 import { AssignedRoutineBanner } from "@/app/components/AssignedRoutineBanner";
 import { UpcomingSessionBanner } from "@/app/components/UpcomingSessionBanner";
@@ -120,6 +120,15 @@ export default function Home() {
   const [showCoach, setShowCoach] = useState(false);
   const [receivedShares, setReceivedShares] = useState<any[]>([]);
   const [showSharesModal, setShowSharesModal] = useState(false);
+  const [notifReason] = useState<NotificationBannerReason>(() => {
+    if (typeof window === "undefined") return "generic";
+    const flag = sessionStorage.getItem("tg_push_reason");
+    if (flag === "trainerLinked" || flag === "newClient") {
+      sessionStorage.removeItem("tg_push_reason");
+      return flag;
+    }
+    return "generic";
+  });
   const modalShownRef = useRef(false);
 
   const { canInstall, installed, install } = useInstallPrompt();
@@ -967,9 +976,9 @@ export default function Home() {
         )}
       </main>
 
-      {user && !loadingStats && stats && !stats.todayWorkout && (
+      {user && !loadingStats && (notifReason !== "generic" || (stats && !stats.todayWorkout)) && (
         <div className="mt-6">
-          <NotificationButton userId={user.id} />
+          <NotificationBanner reason={notifReason} />
         </div>
       )}
       {showSmartCoach && (

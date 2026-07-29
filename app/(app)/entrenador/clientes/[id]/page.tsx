@@ -12,6 +12,7 @@ import { TrainerRecentSessions } from "@/app/components/TrainerRecentSessions";
 import { TrainerCheckinHistory } from "@/app/components/TrainerCheckinHistory";
 import { TrainerProgressShare } from "@/app/components/TrainerProgressShare";
 import { TrainerPaymentHistory } from "@/app/components/TrainerPaymentHistory";
+import { NotificationBanner } from "@/app/components/NotificationBanner";
 import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
 
 interface TrainerClient {
@@ -115,6 +116,14 @@ export default function TrainerClientDetailPage() {
   const [savingNotes, setSavingNotes] = useState(false);
   const [notesSaved, setNotesSaved] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [showNewClientNotifPrompt] = useState(() => {
+    if (typeof window === "undefined") return false;
+    if (sessionStorage.getItem("tg_push_reason") === "newClient") {
+      sessionStorage.removeItem("tg_push_reason");
+      return true;
+    }
+    return false;
+  });
 
   useEffect(() => {
     async function load() {
@@ -386,6 +395,8 @@ export default function TrainerClientDetailPage() {
           {t("trainer.deleteClient")}
         </button>
       </div>
+
+      {showNewClientNotifPrompt && <NotificationBanner reason="newClient" />}
     </div>
   );
 }

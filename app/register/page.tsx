@@ -87,6 +87,9 @@ router.push("/login");
         return;
       }
 
+      if (inviteToken) {
+        sessionStorage.setItem("tg_push_reason", "trainerLinked");
+      }
       router.push("/entrenamiento");
     } catch (err) {
       setError(t("register.errorConnection"));

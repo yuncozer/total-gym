@@ -41,7 +41,7 @@ export default function PerfilPage() {
     notify_enabled: false,
   });
 
-  const { supported, subscribe, unsubscribe, loading: subLoading } = usePushNotifications();
+  const { supported, subscribe, unsubscribe, loading: subLoading, permission } = usePushNotifications();
 
   useEffect(() => {
     if (authLoading) return;
@@ -132,12 +132,19 @@ export default function PerfilPage() {
     if (!supported || notifyLoading) return;
 
     setNotifyLoading(true);
+    setError(null);
     try {
       if (!profile.notify_enabled) {
         const sub = await subscribe();
         if (sub) {
           await saveSubscription(sub);
           setProfile(p => ({ ...p, notify_enabled: true }));
+          setSuccess(true);
+          setTimeout(() => setSuccess(false), 3000);
+        } else if (Notification.permission === "denied") {
+          setError(t("notif.deniedTitle"));
+        } else {
+          setError(t("perfil.notifError"));
         }
       } else {
         await updateNotificationSettings(false);
@@ -145,6 +152,7 @@ export default function PerfilPage() {
       }
     } catch (error) {
       console.error("Error toggling notifications:", error);
+      setError(t("perfil.notifError"));
     } finally {
       setNotifyLoading(false);
     }
@@ -372,22 +380,8 @@ export default function PerfilPage() {
                   </div>
                 </div>
                 <button
-                  onClick={async () => {
-                    if (notifyLoading) return;
-                    const newValue = !profile.notify_enabled;
-                    setNotifyLoading(true);
-                    try {
-                      await updateNotificationSettings(newValue);
-                      setProfile(p => ({ ...p, notify_enabled: newValue }));
-                      setSuccess(true);
-                      setTimeout(() => setSuccess(false), 3000);
-                    } catch (err) {
-                      setError(t("perfil.notifError"));
-                    } finally {
-                      setNotifyLoading(false);
-                    }
-                  }}
-                  disabled={notifyLoading}
+                  onClick={handleNotifyToggle}
+                  disabled={notifyLoading || (!profile.notify_enabled && permission === "denied")}
                   className={`px-4 py-2 rounded-lg font-medium transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
                     profile.notify_enabled
                       ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
@@ -404,6 +398,9 @@ export default function PerfilPage() {
                   )}
                 </button>
               </div>
+              {!profile.notify_enabled && permission === "denied" && (
+                <p className="text-amber-400 text-xs mt-3 leading-relaxed">{t("notif.deniedSteps")}</p>
+              )}
             </div>
 
             <div className="bg-card border border rounded-xl p-4">
