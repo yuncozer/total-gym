@@ -251,14 +251,14 @@ export default function TrainerClientDetailPage() {
               </span>
             </div>
           </div>
-          <span className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${adherenceStyle(client.adherenceStatus)}`}>
+          <span className={`text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border shrink-0 ${adherenceStyle(client.adherenceStatus)}`}>
             {adherenceLabel(client.adherenceStatus, t)}
           </span>
         </div>
 
         {client.paymentStatus !== "none" && (
           <div className="flex items-center justify-end mb-4 -mt-2">
-            <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${paymentStyle(client.paymentStatus)}`}>
+            <span className={`text-xs sm:text-sm font-medium px-3 sm:px-3.5 py-1.5 sm:py-2 rounded-full border ${paymentStyle(client.paymentStatus)}`}>
               {paymentLabel(client.paymentStatus, t)}
             </span>
           </div>

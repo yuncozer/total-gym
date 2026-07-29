@@ -35,6 +35,11 @@ export function TrainerRecentSessions({ clientId }: TrainerRecentSessionsProps) 
   const formatDate = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString(lang === "es" ? "es-ES" : "en-US", { day: "numeric", month: "short" });
 
+  const getSessionName = (name: string | null, date: string | null) => {
+    if (name && name.trim()) return name;
+    return date ? `Sesión ${formatDate(date)}` : "Sesión";
+  };
+
   return (
     <div className="bg-card/60 border border rounded-xl p-4 mb-4">
       <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider block mb-3">
@@ -59,7 +64,7 @@ export function TrainerRecentSessions({ clientId }: TrainerRecentSessionsProps) 
                 <Dumbbell className="w-3.5 h-3.5 text-accent" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm text-white truncate">{s.name || t("trainer.rosterTitle")}</p>
+                <p className="text-sm text-white truncate">{getSessionName(s.name, s.date)}</p>
                 <p className="text-[10px] text-icon">{formatDate(s.completedAt || s.date)}</p>
               </div>
               {s.commentCount > 0 && (
