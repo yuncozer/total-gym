@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { X, Link2, ImageIcon, Copy, Check, Share2, Loader2, Clock, ChevronLeft, Users, UserPlus } from "lucide-react";
 import { WorkoutPhotoOverlay } from "./WorkoutPhotoOverlay";
+import { Avatar } from "./Avatar";
 import type { ExerciseInWorkout } from "@/lib/workout/types";
 
 interface ShareSheetProps {
@@ -38,7 +39,7 @@ export function ShareSheet({
   const [error, setError] = useState<string | null>(null);
   const [showPhotoOverlay, setShowPhotoOverlay] = useState(false);
   const [showFriendPicker, setShowFriendPicker] = useState(false);
-  const [friends, setFriends] = useState<{ id: string; email: string }[]>([]);
+  const [friends, setFriends] = useState<{ id: string; email: string; avatarUrl?: string | null }[]>([]);
   const [sharingToFriend, setSharingToFriend] = useState<string | null>(null);
   const [alreadyShared, setAlreadyShared] = useState<Set<string>>(new Set());
 
@@ -366,11 +367,12 @@ export function ShareSheet({
                                     disabled={alreadySent || sharingToFriend === friend.id}
                                     className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted transition-colors cursor-pointer disabled:opacity-40"
                                   >
-                                    <div className="w-7 h-7 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
-                                      <span className="text-[10px] font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                                        {friend.email.charAt(0).toUpperCase()}
-                                      </span>
-                                    </div>
+                                    <Avatar
+                                      src={friend.avatarUrl}
+                                      fallback={friend.email}
+                                      className="w-7 h-7 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0"
+                                      textClassName="text-[10px] font-black text-accent"
+                                    />
                                     <span className="text-sm text-left text-white flex-1 truncate">{friend.email}</span>
                                     {alreadySent ? (
                                       <span className="text-[10px] text-green-500 font-semibold shrink-0">Compartida</span>

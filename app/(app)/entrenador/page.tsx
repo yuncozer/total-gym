@@ -6,6 +6,7 @@ import { useLanguage } from "@/lib/i18n";
 import { Users, Plus, ChevronRight, Mail, Clock, CreditCard } from "lucide-react";
 import { LoadingScreen } from "@/app/components/LoadingScreen";
 import { TrainerSubnav } from "@/app/components/TrainerSubnav";
+import { Avatar } from "@/app/components/Avatar";
 import { daysSince, type AdherenceStatus } from "@/lib/trainer/adherence";
 
 interface TrainerClient {
@@ -19,6 +20,7 @@ interface TrainerClient {
   lastWorkoutAt: string | null;
   adherenceStatus: AdherenceStatus;
   paymentStatus: "current" | "due_soon" | "overdue" | "none";
+  avatarUrl: string | null;
 }
 
 function formatDate(dateStr: string, lang: string): string {
@@ -129,9 +131,11 @@ export default function TrainerRosterPage() {
                 className="bg-card/60 border border rounded-xl p-4 flex items-center gap-3 hover:border-accent/30 hover:shadow-[0_0_12px_rgba(234,179,8,0.1)] transition-all duration-200 cursor-pointer group"
               >
                 <div className="relative shrink-0">
-                  <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center text-accent font-bold">
-                    {client.displayName.charAt(0).toUpperCase()}
-                  </div>
+                  <Avatar
+                    src={client.avatarUrl}
+                    fallback={client.displayName}
+                    className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center text-accent font-bold"
+                  />
                   {client.userId && (
                     <span
                       className={`absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full border-2 border-card ${adherenceDotColor(client.adherenceStatus)}`}

@@ -37,8 +37,15 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     .maybeSingle();
 
   let stats = null;
+  let avatarUrl: string | null = null;
   if (client.user_id) {
     stats = await computeUserStats(admin, client.user_id);
+    const { data: clientProfile } = await admin
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", client.user_id)
+      .maybeSingle();
+    avatarUrl = clientProfile?.avatar_url || null;
   }
 
   const { data: checkins } = await admin
@@ -59,6 +66,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   return NextResponse.json({
     clientName: client.display_name,
     goal: client.goal,
+    avatarUrl,
     memberSince: client.created_at,
     trainerName: trainer?.display_name || null,
     trainerSpecialty: trainer?.specialty || null,

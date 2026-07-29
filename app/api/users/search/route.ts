@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     const { data: profiles, error } = await adminClient
       .from("profiles")
-      .select("id, email, level, xp")
+      .select("id, email, level, xp, avatar_url")
       .neq("id", userId)
       .eq("email", q)
       .limit(5);
@@ -68,6 +68,7 @@ export async function GET(request: NextRequest) {
       email: p.email,
       level: friendIds.has(p.id) ? p.level : null,
       xp: friendIds.has(p.id) ? p.xp : null,
+      avatarUrl: p.avatar_url || null,
       isFriend: friendIds.has(p.id),
       requestStatus: requestMap.get(p.id) || null,
     }));
