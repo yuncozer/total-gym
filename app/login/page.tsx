@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Mail, Lock, LogIn, ArrowLeft, AlertCircle } from "lucide-react";
 import type { Session } from "@supabase/supabase-js";
@@ -12,8 +12,10 @@ export const dynamic = "force-dynamic";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const inviteToken = searchParams.get("invite") || undefined;
   const { t } = useLanguage();
-  
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -59,6 +61,15 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
+      if (inviteToken) {
+        try {
+          await fetch("/api/trainer/claim-invite", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inviteToken }),
+          });
+        } catch {}
+      }
       router.push("/entrenamiento");
     }
   };
@@ -66,7 +77,7 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     setError(null);
-    const result = await signInWithGoogle();
+    const result = await signInWithGoogle("/entrenamiento", inviteToken);
     if (result.error) {
       setError(result.error);
       setGoogleLoading(false);

@@ -130,8 +130,8 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
       )}
 
       {showForm && (
-        <form onSubmit={handleSubmit} className="space-y-2 mb-3 pb-3 border-b border">
-          <div className="grid grid-cols-2 gap-2">
+        <form onSubmit={handleSubmit} className="space-y-3 mb-3 pb-3 border-b border">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             <input
               type="number"
               min={0}
@@ -140,14 +140,14 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
               onChange={(e) => setAmount(e.target.value)}
               placeholder={t("trainer.paymentAmount")}
               required
-              className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-accent/50"
+              className="w-full bg-background border border rounded-lg text-white px-3 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-accent/50"
               disabled={submitting}
             />
             <select
               value={method}
               onChange={(e) => setMethod(e.target.value)}
               required
-              className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-accent/50"
+              className="w-full bg-background border border rounded-lg text-white px-3 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-accent/50"
               disabled={submitting}
             >
               <option value="">{t("trainer.paymentMethodPlaceholder")}</option>
@@ -160,11 +160,11 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
           </div>
           {method === "efectivo" && (
             <div>
-              <label className="text-[10px] text-icon uppercase tracking-wider block mb-1">{t("trainer.paymentCashCurrency")}</label>
+              <label className="text-xs sm:text-sm text-icon uppercase tracking-wider block mb-2">{t("trainer.paymentCashCurrency")}</label>
               <select
                 value={cashCurrency}
                 onChange={(e) => setCashCurrency(e.target.value)}
-                className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-accent/50"
+                className="w-full bg-background border border rounded-lg text-white px-3 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-accent/50"
                 disabled={submitting}
               >
                 <option value="USD">USD</option>
@@ -172,24 +172,24 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
               </select>
             </div>
           )}
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
             <div>
-              <label className="text-[10px] text-icon uppercase tracking-wider block mb-1">{t("trainer.paymentPeriodStart")}</label>
+              <label className="text-xs sm:text-sm text-icon uppercase tracking-wider block mb-2">{t("trainer.paymentPeriodStart")}</label>
               <input
                 type="date"
                 value={periodStart}
                 onChange={(e) => setPeriodStart(e.target.value)}
-                className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-accent/50"
+                className="w-full bg-background border border rounded-lg text-white px-3 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-accent/50"
                 disabled={submitting}
               />
             </div>
             <div>
-              <label className="text-[10px] text-icon uppercase tracking-wider block mb-1">{t("trainer.paymentPeriodEnd")}</label>
+              <label className="text-xs sm:text-sm text-icon uppercase tracking-wider block mb-2">{t("trainer.paymentPeriodEnd")}</label>
               <input
                 type="date"
                 value={periodEnd}
                 onChange={(e) => setPeriodEnd(e.target.value)}
-                className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm focus:outline-none focus:border-accent/50"
+                className="w-full bg-background border border rounded-lg text-white px-3 py-2.5 sm:py-3 text-sm sm:text-base focus:outline-none focus:border-accent/50"
                 disabled={submitting}
               />
             </div>
@@ -200,13 +200,13 @@ export function TrainerPaymentHistory({ clientId }: TrainerPaymentHistoryProps) 
             value={sessionsIncluded}
             onChange={(e) => setSessionsIncluded(e.target.value)}
             placeholder={t("trainer.paymentSessionsIncluded")}
-            className="w-full bg-background border border rounded-lg text-white px-3 py-2 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-accent/50"
+            className="w-full bg-background border border rounded-lg text-white px-3 py-2.5 sm:py-3 text-sm sm:text-base placeholder:text-zinc-600 focus:outline-none focus:border-accent/50"
             disabled={submitting}
           />
           <button
             type="submit"
             disabled={submitting || !amount || !method}
-            className="w-full flex items-center justify-center gap-2 py-2.5 bg-accent text-black font-semibold rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors cursor-pointer text-sm"
+            className="w-full flex items-center justify-center gap-2 py-2.5 sm:py-3 bg-accent text-black font-semibold rounded-lg hover:bg-accent-hover disabled:opacity-50 transition-colors cursor-pointer text-sm sm:text-base"
           >
             {submitting ? <Loader2 className="w-4 h-4 animate-spin" /> : t("trainer.paymentSave")}
           </button>

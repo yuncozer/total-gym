@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3, Globe, Users, Dumbbell } from "lucide-react";
+import { LogOut, LogIn, ChevronDown, User, History, TrendingUp, Shield, Loader2, BarChart3, Globe, Users, Dumbbell, Bell } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n";
 import { useTrainer } from "@/lib/trainer/hooks";
+import { TrainerPendingInvitesModal } from "./TrainerPendingInvitesModal";
 
 interface UserHeaderProps {
   showBack?: boolean;
@@ -28,6 +29,8 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
   const [pendingRequests, setPendingRequests] = useState(0);
   const [unreadShares, setUnreadShares] = useState(0);
+  const [pendingInvites, setPendingInvites] = useState(0);
+  const [showPendingModal, setShowPendingModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -57,9 +60,10 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
     if (!user) return;
     async function fetchPending() {
       try {
-        const [friendsRes, sharesRes] = await Promise.all([
+        const [friendsRes, sharesRes, invitesRes] = await Promise.all([
           fetch("/api/friends"),
           fetch("/api/friends/shares"),
+          isTrainer ? fetch("/api/trainer/pending-invites") : Promise.resolve(new Response('{"count": 0}')),
         ]);
         if (friendsRes.ok) {
           const data = await friendsRes.json();
@@ -69,12 +73,16 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
           const sharesData = await sharesRes.json();
           setUnreadShares(sharesData.received?.length || 0);
         }
+        if (invitesRes.ok) {
+          const invitesData = await invitesRes.json();
+          setPendingInvites(invitesData.count || 0);
+        }
       } catch {}
     }
     fetchPending();
     const interval = setInterval(fetchPending, 30000);
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, isTrainer]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -145,6 +153,26 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
         <div className="flex items-center gap-2 justify-end" ref={dropdownRef}>
           {user ? (
             <>
+              {isTrainer && (
+                <button
+                  onClick={() => setShowPendingModal(true)}
+                  className={`relative flex items-center justify-center sm:gap-2 w-9 h-9 sm:w-auto sm:pl-2.5 sm:pr-3.5 bg-gradient-to-b from-card to-[#0e0e10] border rounded-full transition-all duration-300 cursor-pointer group ${
+                    pendingInvites > 0
+                      ? "border-accent/40"
+                      : "border hover:border-accent/50 hover:shadow-[0_0_14px_rgba(234,179,8,0.2)]"
+                  }`}
+                >
+                  <Bell className="w-4 h-4 text-icon group-hover:text-accent transition-colors duration-300" />
+                  <span className="hidden sm:inline text-xs font-semibold text-muted-foreground group-hover:text-white transition-colors duration-300" style={{ fontFamily: "var(--font-oswald)", letterSpacing: "0.05em" }}>
+                    {t("trainer.invites") || "Invitaciones"}
+                  </span>
+                  {pendingInvites > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] flex items-center justify-center bg-accent text-black text-[10px] font-bold rounded-full px-1 leading-none animate-[friends-pulse_2s_ease-in-out_infinite] shadow-[0_0_8px_rgba(234,179,8,0.5)]">
+                      {pendingInvites > 9 ? "9+" : pendingInvites}
+                    </span>
+                  )}
+                </button>
+              )}
               <Link
                 href="/amigos"
                 className={`relative flex items-center justify-center sm:gap-2 w-9 h-9 sm:w-auto sm:pl-2.5 sm:pr-3.5 bg-gradient-to-b from-card to-[#0e0e10] border rounded-full transition-all duration-300 cursor-pointer group ${
@@ -322,6 +350,14 @@ export function UserHeader({ showBack = false, backHref = "/" }: UserHeaderProps
           </div>
         </div>
       )}
+
+      <TrainerPendingInvitesModal
+        isOpen={showPendingModal}
+        onClose={() => setShowPendingModal(false)}
+        onRefresh={() => {
+          setPendingInvites((prev) => Math.max(0, prev - 1));
+        }}
+      />
     </header>
   );
 }
