@@ -38,13 +38,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const { data: existingLead } = await admin
     .from("trainer_clients")
-    .select("id")
+    .select("id, invite_token, user_id")
     .eq("trainer_id", trainer.user_id)
     .eq("email", email)
     .maybeSingle();
 
   if (existingLead) {
-    return NextResponse.json({ alreadyRequested: true });
+    if (existingLead.user_id) {
+      return NextResponse.json({ alreadyRequested: true, alreadyClient: true });
+    }
+    return NextResponse.json({ alreadyRequested: true, inviteToken: existingLead.invite_token });
   }
 
   const { data: created, error: insertError } = await admin

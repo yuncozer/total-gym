@@ -23,6 +23,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [emailExists, setEmailExists] = useState(false);
   const [passwordMatch, setPasswordMatch] = useState<boolean | null>(null);
   const [supabase, setSupabase] = useState<ReturnType<typeof import("@supabase/ssr").createBrowserClient> | null>(null);
 
@@ -53,6 +54,7 @@ router.push("/login");
     
     setLoading(true);
     setError(null);
+    setEmailExists(false);
 
     if (confirmPassword.length > 0 && passwordMatch === false) {
       setError(t("register.errorMismatch"));
@@ -82,7 +84,9 @@ router.push("/login");
       const data = await response.json();
 
       if (!response.ok) {
-        setError(data.error || t("register.errorGeneric"));
+        const message = data.error || t("register.errorGeneric");
+        setError(message);
+        setEmailExists(/already|ya (existe|est.)/i.test(message));
         setLoading(false);
         return;
       }
@@ -250,6 +254,14 @@ router.push("/login");
                 <AlertCircle className="w-5 h-5 flex-shrink-0" />
                 <span className="text-sm">{error}</span>
               </div>
+            )}
+            {emailExists && (
+              <Link
+                href={inviteToken ? `/login?invite=${inviteToken}` : "/login"}
+                className="block text-center text-sm text-accent hover:underline cursor-pointer"
+              >
+                Ya tengo cuenta, iniciar sesión
+              </Link>
             )}
 
             <button

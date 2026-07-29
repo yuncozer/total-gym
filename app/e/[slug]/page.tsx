@@ -21,7 +21,7 @@ export default function PublicTrainerPage() {
   const [email, setEmail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [result, setResult] = useState<{ alreadyRequested?: boolean; inviteToken?: string } | null>(null);
+  const [result, setResult] = useState<{ alreadyRequested?: boolean; alreadyClient?: boolean; inviteToken?: string } | null>(null);
 
   useEffect(() => {
     fetch(`/api/public/trainers/${slug}`)
@@ -115,21 +115,33 @@ export default function PublicTrainerPage() {
         {result ? (
           <div className="bg-card border border-accent/30 rounded-2xl p-6 text-center">
             <CheckCircle2 className="w-8 h-8 text-accent mx-auto mb-3" />
-            {result.alreadyRequested ? (
-              <p className="text-sm text-white">Ya enviaste tu solicitud a {trainer.displayName}. Te contactará pronto.</p>
-            ) : (
+            {result.alreadyClient ? (
+              <p className="text-sm text-white">Ya eres cliente de {trainer.displayName}. Abre la app e inicia sesión para ver tu progreso.</p>
+            ) : result.inviteToken ? (
               <>
                 <p className="text-sm text-white mb-4">
-                  ¡Listo! Crea tu cuenta para que {trainer.displayName} pueda armar tu plan.
+                  {result.alreadyRequested
+                    ? `Ya habías enviado tu solicitud a ${trainer.displayName}. Si ya tienes cuenta, inicia sesión para vincularte; si no, crea una.`
+                    : `¡Listo! Crea tu cuenta (o inicia sesión si ya tienes una) para que ${trainer.displayName} pueda armar tu plan.`}
                 </p>
-                <Link
-                  href={`/register?invite=${result.inviteToken}`}
-                  className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-black font-bold px-6 py-3 rounded-xl transition-colors cursor-pointer"
-                  style={{ fontFamily: "var(--font-oswald)" }}
-                >
-                  CREAR MI CUENTA
-                </Link>
+                <div className="flex flex-col gap-2">
+                  <Link
+                    href={`/register?invite=${result.inviteToken}`}
+                    className="inline-flex items-center justify-center gap-2 bg-accent hover:bg-accent-hover text-black font-bold px-6 py-3 rounded-xl transition-colors cursor-pointer"
+                    style={{ fontFamily: "var(--font-oswald)" }}
+                  >
+                    CREAR MI CUENTA
+                  </Link>
+                  <Link
+                    href={`/login?invite=${result.inviteToken}`}
+                    className="inline-flex items-center justify-center gap-2 text-accent hover:text-accent-hover text-sm font-semibold px-6 py-2 transition-colors cursor-pointer"
+                  >
+                    Ya tengo cuenta, iniciar sesión
+                  </Link>
+                </div>
               </>
+            ) : (
+              <p className="text-sm text-white">Ya enviaste tu solicitud a {trainer.displayName}. Te contactará pronto.</p>
             )}
           </div>
         ) : showForm ? (
