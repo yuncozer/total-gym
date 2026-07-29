@@ -797,6 +797,11 @@ export const strings = {
   "trainer.profileSaveError": { es: "Error al guardar el perfil", en: "Error saving profile" },
   "trainer.profileSaved": { es: "Perfil guardado", en: "Profile saved" },
   "trainer.profileSave": { es: "Guardar perfil", en: "Save profile" },
+  "trainer.pendingInvites": { es: "Invitaciones pendientes", en: "Pending invites" },
+  "trainer.noPendingInvites": { es: "No hay invitaciones pendientes", en: "No pending invites" },
+  "trainer.invites": { es: "Invitaciones", en: "Invites" },
+  "trainer.approve": { es: "Aprobar", en: "Approve" },
+  "trainer.reject": { es: "Rechazar", en: "Reject" },
 } as const;
 
 export type StringKey = keyof typeof strings;
