@@ -13,6 +13,7 @@ import { NotificationBanner, type NotificationBannerReason } from "@/app/compone
 import { SmartCoach } from "@/app/components/SmartCoach";
 import { AssignedRoutineBanner } from "@/app/components/AssignedRoutineBanner";
 import { UpcomingSessionBanner } from "@/app/components/UpcomingSessionBanner";
+import { TrainerHomeDashboard } from "@/app/components/TrainerHomeDashboard";
 import { useTrainer } from "@/lib/trainer/hooks";
 import { CoachMarks } from "@/app/components/CoachMarks";
 import { useInstallPrompt } from "@/lib/use-install-prompt";
@@ -349,7 +350,7 @@ export default function Home() {
           )}
 
           <div className={`relative z-10 max-w-4xl mx-auto px-4 text-center ${user ? 'py-12' : ''}`}>
-            {user && <UserDashboard stats={stats} loading={loadingStats} />}
+            {user && !isTrainer && <UserDashboard stats={stats} loading={loadingStats} />}
             {user && <AssignedRoutineBanner />}
             {user && <UpcomingSessionBanner />}
 
@@ -408,6 +409,13 @@ export default function Home() {
                   <Play className="w-4 h-4 sm:w-5 sm:h-5" />
                   {t("home.cta.continue")} ({pendingWorkout.completed}/{pendingWorkout.total})
                   <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
+                </button>
+              ) : isTrainer ? (
+                <button
+                  onClick={handleStartTraining}
+                  className="flex items-center justify-center gap-1 text-xs text-muted-foreground hover:text-white transition-colors cursor-pointer py-1"
+                >
+                  {t("trainer.homeSelfTrainLink")} <ArrowRight className="w-3 h-3" />
                 </button>
               ) : user && stats && (stats.totalWorkouts ?? 0) === 0 ? (
                 <>
@@ -477,7 +485,7 @@ export default function Home() {
               )}
             </div>
 
-            {user && !pendingWorkout && !checkingPending && stats && !stats.todayWorkout && stats.totalWorkouts > 0 && (
+            {user && !isTrainer && !pendingWorkout && !checkingPending && stats && !stats.todayWorkout && stats.totalWorkouts > 0 && (
               <p className="text-icon text-xs sm:text-sm mt-3">
                 {t("home.cta.notTrainedToday")}
               </p>
@@ -485,6 +493,9 @@ export default function Home() {
           </div>
         </section>
 
+        {user && isTrainer && <TrainerHomeDashboard />}
+
+        {!isTrainer && (
         <section className="py-24 bg-background relative overflow-hidden">
           <div className="absolute inset-0 opacity-30">
             <div className="absolute inset-0" style={{
@@ -604,32 +615,32 @@ export default function Home() {
             </div>
           </div>
 
-          {!isTrainer && (
-            <a
-              href="#modo-entrenador"
-              className="group md:col-span-2 flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-accent/20 rounded-xl p-6 hover:border-accent/50 transition-all duration-300 cursor-pointer"
-            >
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-accent/20 transition-colors">
-                  <Users className="w-7 h-7 text-accent" />
-                </div>
-                <div>
-                  <h3 className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-oswald)" }}>
-                    {t("home.features.trainerBlurbTitle")}
-                  </h3>
-                  <p className="text-muted-foreground text-sm">{t("home.features.trainerBlurbDesc")}</p>
-                </div>
+          <a
+            href="#modo-entrenador"
+            className="group md:col-span-2 flex flex-col sm:flex-row items-center justify-between gap-4 bg-card border border-accent/20 rounded-xl p-6 hover:border-accent/50 transition-all duration-300 cursor-pointer"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center shrink-0 group-hover:bg-accent/20 transition-colors">
+                <Users className="w-7 h-7 text-accent" />
               </div>
-              <span className="flex items-center gap-1.5 text-accent font-semibold text-sm shrink-0 whitespace-nowrap">
-                {t("home.features.trainerBlurbCta")}
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </span>
-            </a>
-          )}
+              <div>
+                <h3 className="text-white font-bold text-lg" style={{ fontFamily: "var(--font-oswald)" }}>
+                  {t("home.features.trainerBlurbTitle")}
+                </h3>
+                <p className="text-muted-foreground text-sm">{t("home.features.trainerBlurbDesc")}</p>
+              </div>
+            </div>
+            <span className="flex items-center gap-1.5 text-accent font-semibold text-sm shrink-0 whitespace-nowrap">
+              {t("home.features.trainerBlurbCta")}
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </a>
             </div>
           </div>
         </section>
+        )}
 
+        {!isTrainer && (
         <section className="py-28 bg-background relative overflow-hidden">
           <div className="absolute inset-0 opacity-[0.02]" style={{
             backgroundImage: `radial-gradient(circle at 1px 1px, var(--accent) 1px, transparent 0)`,
@@ -723,6 +734,7 @@ export default function Home() {
             </div>
           </div>
         </section>
+        )}
 
         {!isTrainer && (
         <section id="modo-entrenador" className="py-28 bg-card relative overflow-hidden scroll-mt-20">
