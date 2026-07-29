@@ -14,6 +14,7 @@ import { SmartCoach } from "@/app/components/SmartCoach";
 import { AssignedRoutineBanner } from "@/app/components/AssignedRoutineBanner";
 import { UpcomingSessionBanner } from "@/app/components/UpcomingSessionBanner";
 import { TrainerHomeDashboard } from "@/app/components/TrainerHomeDashboard";
+import { Avatar } from "@/app/components/Avatar";
 import { useTrainer } from "@/lib/trainer/hooks";
 import { CoachMarks } from "@/app/components/CoachMarks";
 import { useInstallPrompt } from "@/lib/use-install-prompt";
@@ -1024,11 +1025,12 @@ export default function Home() {
             <div className="space-y-2 max-h-48 overflow-y-auto mb-4">
               {receivedShares.map((share: any) => (
                 <div key={share.id} className="flex items-center gap-3 px-3 py-2.5 bg-muted rounded-xl">
-                  <div className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
-                    <span className="text-xs font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                      {(share.senderEmail || "?").charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  <Avatar
+                    src={share.senderAvatarUrl}
+                    fallback={share.senderEmail || "?"}
+                    className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0"
+                    textClassName="text-xs font-black text-accent"
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-white truncate">{share.senderEmail}</p>
                     <p className="text-xs text-icon truncate">{share.workoutName}</p>

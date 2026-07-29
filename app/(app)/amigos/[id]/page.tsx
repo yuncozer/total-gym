@@ -6,6 +6,7 @@ import { useLanguage } from "@/lib/i18n";
 import { Flame, Zap, Trophy, Calendar, Dumbbell, ArrowLeft, Loader2, ChevronRight, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { xpForLevel } from "@/lib/gamification";
+import { Avatar } from "@/app/components/Avatar";
 
 interface FriendProfile {
   id: string;
@@ -16,6 +17,7 @@ interface FriendProfile {
   longestStreak: number;
   weekWorkouts: number;
   totalVolume: number;
+  avatarUrl: string | null;
 }
 
 function getLevelTitle(level: number): string {
@@ -98,11 +100,12 @@ export default function FriendProfilePage() {
         {/* Hero */}
         <div className="bg-gradient-to-b from-card to-[#0e0e10] border border rounded-2xl p-6 mb-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(234,179,8,0.2)]">
-              <span className="text-2xl font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                {profile.email.charAt(0).toUpperCase()}
-              </span>
-            </div>
+            <Avatar
+              src={profile.avatarUrl}
+              fallback={profile.email}
+              className="w-16 h-16 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(234,179,8,0.2)]"
+              textClassName="text-2xl font-black text-accent"
+            />
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-bold text-white truncate" style={{ fontFamily: "var(--font-oswald)" }}>
                 {profile.email}

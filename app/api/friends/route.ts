@@ -63,7 +63,7 @@ export async function GET(request: NextRequest) {
     const { data: friendProfiles } = friendIds.length > 0
       ? await adminClient
           .from("profiles")
-          .select("id, email, level, xp, current_streak")
+          .select("id, email, level, xp, current_streak, avatar_url")
           .in("id", friendIds)
       : { data: [] };
 
@@ -149,7 +149,7 @@ export async function GET(request: NextRequest) {
     const { data: senderProfiles } = senderIds.length > 0
       ? await adminClient
           .from("profiles")
-          .select("id, email, level, xp")
+          .select("id, email, level, xp, avatar_url")
           .in("id", senderIds)
       : { data: [] };
 
@@ -166,6 +166,7 @@ export async function GET(request: NextRequest) {
         level: profile?.level || 1,
         xp: profile?.xp || 0,
         streak: profile?.current_streak ?? 0,
+        avatarUrl: profile?.avatar_url || null,
         friendSince: f.created_at,
       };
     });
@@ -178,6 +179,7 @@ export async function GET(request: NextRequest) {
         email: profile?.email || "Unknown",
         level: profile?.level || 1,
         xp: profile?.xp || 0,
+        avatarUrl: profile?.avatar_url || null,
         createdAt: r.created_at,
       };
     });
@@ -193,20 +195,24 @@ export async function GET(request: NextRequest) {
     const { data: receiverProfiles } = receiverIds.length > 0
       ? await adminClient
           .from("profiles")
-          .select("id, email")
+          .select("id, email, avatar_url")
           .in("id", receiverIds)
       : { data: [] };
 
     await fillMissingEmails(adminClient, receiverProfiles || []);
 
-    const receiverMap = new Map((receiverProfiles || []).map(p => [p.id, p.email]));
+    const receiverProfileMap = new Map((receiverProfiles || []).map(p => [p.id, p]));
 
-    const outgoing = (outgoingRequests || []).map(r => ({
-      requestId: r.id,
-      receiverId: r.receiver_id,
-      email: receiverMap.get(r.receiver_id) || "Unknown",
-      createdAt: r.created_at,
-    }));
+    const outgoing = (outgoingRequests || []).map(r => {
+      const profile = receiverProfileMap.get(r.receiver_id);
+      return {
+        requestId: r.id,
+        receiverId: r.receiver_id,
+        email: profile?.email || "Unknown",
+        avatarUrl: profile?.avatar_url || null,
+        createdAt: r.created_at,
+      };
+    });
 
     return NextResponse.json({ friends, incoming, outgoing });
   } catch (error) {

@@ -8,6 +8,7 @@ import {
   Loader2, AlertTriangle, Share2, Eye,
 } from "lucide-react";
 import { LEVEL_TITLES } from "@/lib/gamification";
+import { Avatar } from "@/app/components/Avatar";
 
 interface ReportStats {
   level: number;
@@ -27,6 +28,7 @@ interface ReportProgress {
 interface Report {
   clientName: string;
   goal: string | null;
+  avatarUrl: string | null;
   memberSince: string;
   trainerName: string | null;
   trainerSpecialty: string | null;
@@ -104,11 +106,12 @@ export default function ProgressReportPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6 pb-16">
         <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center mx-auto mb-4 shadow-[0_0_24px_rgba(234,179,8,0.25)]">
-            <span className="text-2xl font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-              {data.clientName.charAt(0).toUpperCase()}
-            </span>
-          </div>
+          <Avatar
+            src={data.avatarUrl}
+            fallback={data.clientName}
+            className="w-16 h-16 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center mx-auto mb-4 shadow-[0_0_24px_rgba(234,179,8,0.25)]"
+            textClassName="text-2xl font-black text-accent"
+          />
           <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
             {data.clientName}
           </h1>

@@ -5,6 +5,7 @@ import { useLanguage } from "@/lib/i18n";
 import { UserPlus, Users, Mail, Clock, UserMinus, Check, X, Search, Loader2, UserCheck, Ban, ChevronRight, Trophy, Flame, ChevronDown } from "lucide-react";
 import toast from "react-hot-toast";
 import Link from "next/link";
+import { Avatar } from "@/app/components/Avatar";
 
 type Tab = "friends" | "requests" | "search" | "leaderboard";
 
@@ -14,6 +15,7 @@ interface Friend {
   level: number;
   xp: number;
   streak: number;
+  avatarUrl: string | null;
   friendSince: string;
 }
 
@@ -23,6 +25,7 @@ interface IncomingRequest {
   email: string;
   level: number;
   xp: number;
+  avatarUrl: string | null;
   createdAt: string;
 }
 
@@ -30,6 +33,7 @@ interface OutgoingRequest {
   requestId: string;
   receiverId: string;
   email: string;
+  avatarUrl: string | null;
   createdAt: string;
 }
 
@@ -38,6 +42,7 @@ interface SearchUser {
   email: string;
   level: number | null;
   xp: number | null;
+  avatarUrl: string | null;
   isFriend: boolean;
   requestStatus: string | null;
 }
@@ -245,11 +250,12 @@ export default function AmigosPage() {
               <div className="divide-y divide border-t border-accent/10">
                 {receivedShares.map((share: any) => (
                   <div key={share.id} className="flex items-center gap-3 px-4 py-3">
-                    <div className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
-                      <span className="text-xs font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                        {(share.senderEmail || "?").charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    <Avatar
+                      src={share.senderAvatarUrl}
+                      fallback={share.senderEmail || "?"}
+                      className="w-8 h-8 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0"
+                      textClassName="text-xs font-black text-accent"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm text-white truncate">{share.senderEmail}</p>
                       <p className="text-xs text-icon truncate">{share.workoutName}</p>
@@ -319,11 +325,12 @@ export default function AmigosPage() {
                   href={`/amigos/${friend.id}`}
                   className="bg-card/60 border border rounded-xl p-4 flex items-center gap-3 hover:border-accent/30 hover:shadow-[0_0_12px_rgba(234,179,8,0.1)] transition-all duration-200 cursor-pointer group"
                 >
-                  <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
-                    <span className="text-sm font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                      {friend.email.charAt(0).toUpperCase()}
-                    </span>
-                  </div>
+                  <Avatar
+                    src={friend.avatarUrl}
+                    fallback={friend.email}
+                    className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0"
+                    textClassName="text-sm font-black text-accent"
+                  />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{friend.email}</p>
                       <div className="flex items-center gap-2 text-[10px] text-icon mt-0.5">
@@ -376,11 +383,12 @@ export default function AmigosPage() {
                       key={req.requestId}
                       className="bg-card/60 border border rounded-xl p-4 flex items-center gap-3"
                     >
-                      <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
-                        <span className="text-sm font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                          {req.email.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      <Avatar
+                        src={req.avatarUrl}
+                        fallback={req.email}
+                        className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0"
+                        textClassName="text-sm font-black text-accent"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">{req.email}</p>
                         <p className="text-[10px] text-icon mt-0.5">
@@ -426,11 +434,12 @@ export default function AmigosPage() {
                       key={req.requestId}
                       className="bg-card/60 border border rounded-xl p-4 flex items-center gap-3"
                     >
-                      <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0">
-                        <span className="text-sm font-black text-zinc-500" style={{ fontFamily: "var(--font-oswald)" }}>
-                          {req.email.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
+                      <Avatar
+                        src={req.avatarUrl}
+                        fallback={req.email}
+                        className="w-10 h-10 rounded-full bg-muted flex items-center justify-center shrink-0"
+                        textClassName="text-sm font-black text-zinc-500"
+                      />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-white truncate">{req.email}</p>
                         <p className="text-[10px] text-icon mt-0.5">{t("friends.pending")}</p>
@@ -485,11 +494,12 @@ export default function AmigosPage() {
                         {index + 1}
                       </span>
                     </div>
-                    <div className="w-9 h-9 rounded-full bg-[#0a0a0b] border-2 border-accent/40 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                        {friend.email.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    <Avatar
+                      src={friend.avatarUrl}
+                      fallback={friend.email}
+                      className="w-9 h-9 rounded-full bg-[#0a0a0b] border-2 border-accent/40 flex items-center justify-center shrink-0"
+                      textClassName="text-sm font-black text-accent"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{friend.email}</p>
                       <div className="flex items-center gap-2 text-[10px] text-icon mt-0.5">
@@ -546,11 +556,12 @@ export default function AmigosPage() {
                     key={user.id}
                     className="bg-card/60 border border rounded-xl p-4 flex items-center gap-3"
                   >
-                    <div className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0">
-                      <span className="text-sm font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                        {user.email.charAt(0).toUpperCase()}
-                      </span>
-                    </div>
+                    <Avatar
+                      src={user.avatarUrl}
+                      fallback={user.email}
+                      className="w-10 h-10 rounded-full bg-accent/15 border border-accent/20 flex items-center justify-center shrink-0"
+                      textClassName="text-sm font-black text-accent"
+                    />
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-white truncate">{user.email}</p>
                       {user.isFriend && user.level !== null && (

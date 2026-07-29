@@ -95,25 +95,26 @@ export async function GET(request: NextRequest) {
     const workoutIds = [...new Set([...(received || []), ...(sent || [])].map(s => s.workout_id))];
 
     const { data: senders } = senderIds.length > 0
-      ? await adminClient.from("profiles").select("id, email").in("id", senderIds)
+      ? await adminClient.from("profiles").select("id, email, avatar_url").in("id", senderIds)
       : { data: [] };
 
     const { data: receivers } = receiverIds.length > 0
-      ? await adminClient.from("profiles").select("id, email").in("id", receiverIds)
+      ? await adminClient.from("profiles").select("id, email, avatar_url").in("id", receiverIds)
       : { data: [] };
 
     const { data: workouts } = workoutIds.length > 0
       ? await adminClient.from("workouts").select("id, started_at, name").in("id", workoutIds)
       : { data: [] };
 
-    const senderMap = new Map((senders || []).map(p => [p.id, p.email]));
-    const receiverMap = new Map((receivers || []).map(p => [p.id, p.email]));
+    const senderMap = new Map((senders || []).map(p => [p.id, p]));
+    const receiverMap = new Map((receivers || []).map(p => [p.id, p]));
 
     const typedReceived = (received || []).map(s => ({
       id: s.id,
       workoutId: s.workout_id,
       senderId: s.sender_id,
-      senderEmail: senderMap.get(s.sender_id) || "Unknown",
+      senderEmail: senderMap.get(s.sender_id)?.email || "Unknown",
+      senderAvatarUrl: senderMap.get(s.sender_id)?.avatar_url || null,
       workoutName: workouts?.find(w => w.id === s.workout_id)?.name || "Workout",
       workoutDate: workouts?.find(w => w.id === s.workout_id)?.started_at,
       createdAt: s.created_at,
@@ -123,7 +124,8 @@ export async function GET(request: NextRequest) {
       id: s.id,
       workoutId: s.workout_id,
       receiverId: s.receiver_id,
-      receiverEmail: receiverMap.get(s.receiver_id) || "Unknown",
+      receiverEmail: receiverMap.get(s.receiver_id)?.email || "Unknown",
+      receiverAvatarUrl: receiverMap.get(s.receiver_id)?.avatar_url || null,
       workoutName: workouts?.find(w => w.id === s.workout_id)?.name || "Workout",
       workoutDate: workouts?.find(w => w.id === s.workout_id)?.started_at,
       createdAt: s.created_at,
