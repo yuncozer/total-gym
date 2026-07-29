@@ -21,8 +21,6 @@ export async function claimInviteToken(
     .from("trainer_clients")
     .update({
       user_id: userId,
-      status: "active",
-      accepted_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     })
     .eq("id", pending.id);

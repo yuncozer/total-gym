@@ -121,8 +121,8 @@ export default function PublicTrainerPage() {
               <>
                 <p className="text-sm text-white mb-4">
                   {result.alreadyRequested
-                    ? `Ya habías enviado tu solicitud a ${trainer.displayName}. Si ya tienes cuenta, inicia sesión para vincularte; si no, crea una.`
-                    : `¡Listo! Crea tu cuenta (o inicia sesión si ya tienes una) para que ${trainer.displayName} pueda armar tu plan.`}
+                    ? `¡Perfecto! Vinculaste tu cuenta. ${trainer.displayName} revisará tu solicitud y te activará pronto.`
+                    : `¡Listo! Crea tu cuenta (o inicia sesión si ya tienes una) para que ${trainer.displayName} te agregue a su cartera.`}
                 </p>
                 <div className="flex flex-col gap-2">
                   <Link
@@ -141,7 +141,7 @@ export default function PublicTrainerPage() {
                 </div>
               </>
             ) : (
-              <p className="text-sm text-white">Ya enviaste tu solicitud a {trainer.displayName}. Te contactará pronto.</p>
+              <p className="text-sm text-white">{trainer.displayName} revisará tu solicitud y te agregará a su cartera pronto.</p>
             )}
           </div>
         ) : showForm ? (
