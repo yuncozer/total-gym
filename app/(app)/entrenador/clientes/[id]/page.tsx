@@ -39,6 +39,7 @@ interface LinkedProfile {
   longestStreak: number;
   weekWorkouts: number;
   totalVolume: number;
+  avatarUrl: string | null;
 }
 
 function statusLabel(status: TrainerClient["status"], t: (key: string) => string): string {
@@ -205,10 +206,14 @@ export default function TrainerClientDetailPage() {
       <div className="max-w-lg mx-auto px-4 pt-24 pb-24">
         <div className="bg-gradient-to-b from-card to-[#0e0e10] border border rounded-2xl p-6 mb-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(234,179,8,0.2)]">
-              <span className="text-2xl font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                {client.displayName.charAt(0).toUpperCase()}
-              </span>
+            <div className="w-16 h-16 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center shrink-0 overflow-hidden shadow-[0_0_20px_rgba(234,179,8,0.2)]">
+              {profile?.avatarUrl ? (
+                <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-2xl font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
+                  {client.displayName.charAt(0).toUpperCase()}
+                </span>
+              )}
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-bold text-white truncate" style={{ fontFamily: "var(--font-oswald)" }}>

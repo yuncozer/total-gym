@@ -53,7 +53,7 @@ export async function GET(
 
     const { data: profile, error } = await adminClient
       .from("profiles")
-      .select("id, email")
+      .select("id, email, avatar_url")
       .eq("id", id)
       .single();
 
@@ -72,6 +72,7 @@ export async function GET(
     return NextResponse.json({
       id: profile.id,
       email: profile.email,
+      avatarUrl: profile.avatar_url || null,
       ...stats,
     });
   } catch (error) {
