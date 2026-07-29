@@ -8,11 +8,15 @@ export function usePushNotifications() {
   const [subscription, setSubscription] = useState<PushSubscription | null>(null);
   const [supported, setSupported] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [permission, setPermission] = useState<NotificationPermission | null>(null);
 
   useEffect(() => {
     if (typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window) {
       setSupported(true);
       registerServiceWorker();
+    }
+    if (typeof window !== "undefined" && "Notification" in window) {
+      setPermission(Notification.permission);
     }
   }, []);
 
@@ -48,10 +52,16 @@ export function usePushNotifications() {
 
       setSubscription(newSub);
       setLoading(false);
+      if (typeof window !== "undefined" && "Notification" in window) {
+        setPermission(Notification.permission);
+      }
       return newSub;
     } catch (error) {
       console.error("Push subscription failed:", error);
       setLoading(false);
+      if (typeof window !== "undefined" && "Notification" in window) {
+        setPermission(Notification.permission);
+      }
       return null;
     }
   };
@@ -67,7 +77,7 @@ export function usePushNotifications() {
     }
   };
 
-  return { subscription, supported, subscribe, unsubscribe, loading };
+  return { subscription, supported, subscribe, unsubscribe, loading, permission };
 }
 
 function urlBase64ToUint8Array(base64String: string) {

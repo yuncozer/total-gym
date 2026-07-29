@@ -450,6 +450,18 @@ export const strings = {
   "perfil.deactivate": { es: "DESACTIVAR", en: "DEACTIVATE" },
   "perfil.activate": { es: "ACTIVAR", en: "ACTIVATE" },
   "perfil.notifError": { es: "Error al actualizar notificaciones", en: "Error updating notifications" },
+
+  // --- Notification prompt banner ---
+  "notif.activate": { es: "ACTIVAR", en: "ENABLE" },
+  "notif.activateError": { es: "No se pudieron activar las notificaciones", en: "Couldn't enable notifications" },
+  "notif.reasonGenericTitle": { es: "Recordatorio vespertino", en: "Evening reminder" },
+  "notif.reasonGenericDesc": { es: "Te avisamos si no has entrenado hoy", en: "We'll let you know if you haven't trained today" },
+  "notif.reasonTrainerLinkedTitle": { es: "No te pierdas a tu entrenador", en: "Don't miss your trainer" },
+  "notif.reasonTrainerLinkedDesc": { es: "Actívalas para enterarte de sus mensajes y las rutinas que te asigne", en: "Enable them to catch their messages and the routines they assign you" },
+  "notif.reasonNewClientTitle": { es: "No te pierdas a tu cartera", en: "Don't miss your roster" },
+  "notif.reasonNewClientDesc": { es: "Entérate al instante cuando un cliente te escriba o se registre", en: "Get notified instantly when a client messages you or signs up" },
+  "notif.deniedTitle": { es: "Notificaciones bloqueadas", en: "Notifications blocked" },
+  "notif.deniedSteps": { es: "Toca el candado 🔒 junto a la URL → Permisos del sitio → Notificaciones → Permitir. En iPhone: Ajustes → Notificaciones → Total Gym.", en: "Tap the 🔒 icon next to the URL → Site permissions → Notifications → Allow. On iPhone: Settings → Notifications → Total Gym." },
   "perfil.achievements": { es: "LOGROS", en: "ACHIEVEMENTS" },
   "perfil.achieved": { es: "OBTENIDO", en: "ACHIEVED" },
 
@@ -761,6 +773,19 @@ export const strings = {
   "trainer.paymentDueSoon": { es: "Vence pronto", en: "Due soon" },
   "trainer.paymentOverdue": { es: "Vencido", en: "Overdue" },
   "trainer.publicProfileLink": { es: "Mi Perfil", en: "My Profile" },
+
+  // --- Trainer home dashboard ---
+  "trainer.homeActiveClients": { es: "Clientes activos", en: "Active clients" },
+  "trainer.homeNeedsAttention": { es: "Necesitan atención", en: "Need attention" },
+  "trainer.homePaymentsDue": { es: "Pagos por atender", en: "Payments due" },
+  "trainer.homeSessionsToday": { es: "Sesiones hoy", en: "Sessions today" },
+  "trainer.homeTodayTitle": { es: "Hoy", en: "Today" },
+  "trainer.homeAttentionTitle": { es: "Necesita tu atención", en: "Needs your attention" },
+  "trainer.homeViewAll": { es: "Ver todos", en: "View all" },
+  "trainer.homeEmptyTitle": { es: "Agrega tu primer cliente", en: "Add your first client" },
+  "trainer.homeEmptyDesc": { es: "Empieza a construir tu cartera de clientes", en: "Start building your client roster" },
+  "trainer.homeEmptyCta": { es: "Agregar", en: "Add" },
+  "trainer.homeSelfTrainLink": { es: "Entrenar tú mismo", en: "Train yourself" },
   "trainer.publicProfileTitle": { es: "Perfil Público", en: "Public Profile" },
   "trainer.publicProfileLinkTitle": { es: "Tu link público", en: "Your public link" },
   "trainer.profileName": { es: "Nombre a mostrar", en: "Display name" },

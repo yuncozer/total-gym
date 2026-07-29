@@ -63,6 +63,9 @@ export default function NewTrainerClientPage() {
         }
       } catch {}
 
+      if (clientCount === 1) {
+        sessionStorage.setItem("tg_push_reason", "newClient");
+      }
       setCreated({ id: data.client.id, displayName: data.client.displayName, clientCount });
     } catch (err) {
       setError(err instanceof Error ? err.message : t("trainer.createError"));
