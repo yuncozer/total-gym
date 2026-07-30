@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { checkTrainerAccess } from "@/lib/trainer/route";
 import { getTrainerAdminClient } from "@/lib/trainer/client";
 import { slugifyCustom } from "@/lib/trainer/slug";
+import {
+  normalizeInstagramHandle,
+  normalizeTikTokHandle,
+  normalizeXHandle,
+  normalizeWhatsappPhone,
+} from "@/lib/trainer/socialLinks";
 
 export async function GET(request: NextRequest) {
   const { trainerId, error } = await checkTrainerAccess(request);
@@ -10,7 +16,7 @@ export async function GET(request: NextRequest) {
   const supabase = getTrainerAdminClient();
   const { data } = await supabase
     .from("trainers")
-    .select("display_name, bio, specialty, public_slug, avatar_url")
+    .select("display_name, bio, specialty, public_slug, avatar_url, instagram_handle, tiktok_handle, x_handle, whatsapp_phone")
     .eq("user_id", trainerId)
     .maybeSingle();
 
@@ -21,6 +27,10 @@ export async function GET(request: NextRequest) {
     specialty: data?.specialty ?? null,
     publicSlug: data?.public_slug ?? null,
     avatarUrl: data?.avatar_url ?? null,
+    instagramHandle: data?.instagram_handle ?? null,
+    tiktokHandle: data?.tiktok_handle ?? null,
+    xHandle: data?.x_handle ?? null,
+    whatsappPhone: data?.whatsapp_phone ?? null,
   });
 }
 
@@ -50,11 +60,16 @@ export async function PATCH(request: NextRequest) {
     updates.public_slug = requestedSlug;
   }
 
+  if ("instagramHandle" in body) updates.instagram_handle = body.instagramHandle ? normalizeInstagramHandle(String(body.instagramHandle)) || null : null;
+  if ("tiktokHandle" in body) updates.tiktok_handle = body.tiktokHandle ? normalizeTikTokHandle(String(body.tiktokHandle)) || null : null;
+  if ("xHandle" in body) updates.x_handle = body.xHandle ? normalizeXHandle(String(body.xHandle)) || null : null;
+  if ("whatsappPhone" in body) updates.whatsapp_phone = body.whatsappPhone ? normalizeWhatsappPhone(String(body.whatsappPhone)) || null : null;
+
   const { data, error: updateError } = await supabase
     .from("trainers")
     .update(updates)
     .eq("user_id", trainerId)
-    .select("display_name, bio, specialty, public_slug, avatar_url")
+    .select("display_name, bio, specialty, public_slug, avatar_url, instagram_handle, tiktok_handle, x_handle, whatsapp_phone")
     .single();
 
   if (updateError) {
@@ -67,5 +82,9 @@ export async function PATCH(request: NextRequest) {
     specialty: data.specialty,
     publicSlug: data.public_slug,
     avatarUrl: data.avatar_url ?? null,
+    instagramHandle: data.instagram_handle ?? null,
+    tiktokHandle: data.tiktok_handle ?? null,
+    xHandle: data.x_handle ?? null,
+    whatsappPhone: data.whatsapp_phone ?? null,
   });
 }

@@ -105,6 +105,7 @@ export default function FriendProfilePage() {
               fallback={profile.email}
               className="w-16 h-16 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center shrink-0 shadow-[0_0_20px_rgba(234,179,8,0.2)]"
               textClassName="text-2xl font-black text-accent"
+              expandable
             />
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-bold text-white truncate" style={{ fontFamily: "var(--font-oswald)" }}>

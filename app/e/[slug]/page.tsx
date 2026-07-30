@@ -3,7 +3,10 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Users, Loader2, AlertTriangle, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, Users, Loader2, AlertTriangle, Sparkles, CheckCircle2, Play } from "lucide-react";
+import { Avatar } from "@/app/components/Avatar";
+import { MediaLightbox } from "@/app/components/MediaLightbox";
+import { InstagramIcon, TikTokIcon, XIcon, WhatsAppIcon } from "@/app/components/SocialIcons";
 
 interface PublicTrainer {
   displayName: string;
@@ -11,6 +14,18 @@ interface PublicTrainer {
   specialty: string | null;
   avatarUrl: string | null;
   activeClientCount: number;
+  social: {
+    instagram: string | null;
+    tiktok: string | null;
+    x: string | null;
+    whatsapp: string | null;
+  };
+}
+
+interface GalleryItem {
+  id: string;
+  mediaType: "image" | "video";
+  url: string;
 }
 
 export default function PublicTrainerPage() {
@@ -23,6 +38,8 @@ export default function PublicTrainerPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ alreadyRequested?: boolean; alreadyClient?: boolean; inviteToken?: string } | null>(null);
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
+  const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
 
   useEffect(() => {
     fetch(`/api/public/trainers/${slug}`)
@@ -31,6 +48,14 @@ export default function PublicTrainerPage() {
         setTrainer(await res.json());
       })
       .finally(() => setLoading(false));
+
+    fetch(`/api/public/trainers/${slug}/gallery`)
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data = await res.json();
+        setGallery(data.items || []);
+      })
+      .catch(() => {});
   }, [slug]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -88,15 +113,13 @@ export default function PublicTrainerPage() {
 
       <main className="max-w-lg mx-auto px-4 py-6 pb-16">
         <div className="text-center mb-6">
-          <div className="w-20 h-20 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center mx-auto mb-4 overflow-hidden shadow-[0_0_28px_rgba(234,179,8,0.25)]">
-            {trainer.avatarUrl ? (
-              <img src={trainer.avatarUrl} alt="" className="w-full h-full object-cover" />
-            ) : (
-              <span className="text-3xl font-black text-accent" style={{ fontFamily: "var(--font-oswald)" }}>
-                {trainer.displayName.charAt(0).toUpperCase()}
-              </span>
-            )}
-          </div>
+          <Avatar
+            src={trainer.avatarUrl}
+            fallback={trainer.displayName}
+            className="w-20 h-20 rounded-full bg-[#0a0a0b] border-2 border-accent/70 flex items-center justify-center mx-auto mb-4 shadow-[0_0_28px_rgba(234,179,8,0.25)]"
+            textClassName="text-3xl font-black text-accent"
+            expandable
+          />
           <h1 className="text-2xl font-bold text-white mb-1" style={{ fontFamily: "var(--font-oswald)" }}>
             {trainer.displayName}
           </h1>
@@ -109,11 +132,58 @@ export default function PublicTrainerPage() {
               {trainer.activeClientCount} {trainer.activeClientCount === 1 ? "persona entrena" : "personas entrenan"} con {trainer.displayName.split(" ")[0]}
             </p>
           )}
+          {(trainer.social.instagram || trainer.social.tiktok || trainer.social.x || trainer.social.whatsapp) && (
+            <div className="flex items-center justify-center gap-3 mt-4">
+              {trainer.social.instagram && (
+                <a href={trainer.social.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="w-9 h-9 rounded-full bg-card border border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors">
+                  <InstagramIcon className="w-4 h-4" />
+                </a>
+              )}
+              {trainer.social.tiktok && (
+                <a href={trainer.social.tiktok} target="_blank" rel="noopener noreferrer" aria-label="TikTok" className="w-9 h-9 rounded-full bg-card border border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors">
+                  <TikTokIcon className="w-4 h-4" />
+                </a>
+              )}
+              {trainer.social.x && (
+                <a href={trainer.social.x} target="_blank" rel="noopener noreferrer" aria-label="X" className="w-9 h-9 rounded-full bg-card border border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors">
+                  <XIcon className="w-4 h-4" />
+                </a>
+              )}
+              {trainer.social.whatsapp && (
+                <a href={trainer.social.whatsapp} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="w-9 h-9 rounded-full bg-card border border flex items-center justify-center text-muted-foreground hover:text-accent hover:border-accent/40 transition-colors">
+                  <WhatsAppIcon className="w-4 h-4" />
+                </a>
+              )}
+            </div>
+          )}
         </div>
 
         {trainer.bio && (
           <div className="bg-card/60 border border rounded-xl p-4 mb-6">
             <p className="text-sm text-white leading-relaxed whitespace-pre-wrap">{trainer.bio}</p>
+          </div>
+        )}
+
+        {gallery.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-6">
+            {gallery.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => setLightboxItem(item)}
+                className="relative aspect-square rounded-xl overflow-hidden bg-card cursor-pointer"
+              >
+                {item.mediaType === "video" ? (
+                  <>
+                    <video src={item.url} className="w-full h-full object-cover" muted />
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/20">
+                      <Play className="w-6 h-6 text-white fill-white" />
+                    </div>
+                  </>
+                ) : (
+                  <img src={item.url} alt="" className="w-full h-full object-cover" />
+                )}
+              </button>
+            ))}
           </div>
         )}
 
@@ -193,6 +263,8 @@ export default function PublicTrainerPage() {
           Impulsado por TOTAL GYM
         </p>
       </main>
+
+      <MediaLightbox item={lightboxItem} onClose={() => setLightboxItem(null)} />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+import { instagramUrl, tiktokUrl, xUrl, whatsappUrl } from "@/lib/trainer/socialLinks";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
@@ -11,7 +12,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
 
   const { data: trainer } = await admin
     .from("trainers")
-    .select("user_id, display_name, bio, specialty, is_active, avatar_url")
+    .select("user_id, display_name, bio, specialty, is_active, avatar_url, instagram_handle, tiktok_handle, x_handle, whatsapp_phone")
     .eq("public_slug", slug)
     .maybeSingle();
 
@@ -41,5 +42,11 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     specialty: trainer.specialty,
     avatarUrl,
     activeClientCount: activeClientCount || 0,
+    social: {
+      instagram: instagramUrl(trainer.instagram_handle),
+      tiktok: tiktokUrl(trainer.tiktok_handle),
+      x: xUrl(trainer.x_handle),
+      whatsapp: whatsappUrl(trainer.whatsapp_phone),
+    },
   });
 }
