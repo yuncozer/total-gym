@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Images, Plus, Loader2, X, Play } from "lucide-react";
 import toast from "react-hot-toast";
 import { createClient } from "@/lib/supabase/client";
+import { reencodeImageAsJpeg } from "@/lib/media/image";
 import { MediaLightbox } from "./MediaLightbox";
 
 interface GalleryItem {
@@ -18,10 +19,8 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
 const BUCKET = "trainer-gallery";
 
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
 const EXT_BY_MIME: Record<string, string> = {
-  "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
   "video/mp4": "mp4", "video/quicktime": "mov", "video/webm": "webm",
 };
 
@@ -84,15 +83,14 @@ export function TrainerGalleryManager() {
     }
 
     const isVideo = VIDEO_TYPES.includes(file.type);
-    const isImage = IMAGE_TYPES.includes(file.type);
+    const isImage = !isVideo && file.type.startsWith("image/");
     if (!isVideo && !isImage) {
-      toast.error("Formato no soportado. Usa JPG, PNG, WEBP, MP4, MOV o WEBM");
+      toast.error("Formato no soportado. Usa una imagen o un video MP4, MOV o WEBM");
       return;
     }
 
-    const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
-    if (file.size > maxSize) {
-      toast.error(`Archivo muy grande (máx ${Math.round(maxSize / 1024 / 1024)}MB)`);
+    if (isVideo && file.size > MAX_VIDEO_SIZE) {
+      toast.error(`Archivo muy grande (máx ${Math.round(MAX_VIDEO_SIZE / 1024 / 1024)}MB)`);
       return;
     }
 
@@ -111,29 +109,49 @@ export function TrainerGalleryManager() {
 
     setUploading(true);
     try {
-      let buffer: ArrayBuffer;
-      try {
-        buffer = await file.arrayBuffer();
-      } catch {
-        toast.error("No se pudo leer el archivo. Vuelve a intentarlo.");
-        return;
+      let uploadBlob: Blob;
+      let ext: string;
+      let contentType: string;
+
+      if (isImage) {
+        const processed = await reencodeImageAsJpeg(file, { maxDimension: 1920, square: false, quality: 0.85 });
+        if (processed.size === 0) {
+          toast.error("El archivo llegó vacío. Si es una foto de iCloud, ábrela en la app Fotos para descargarla por completo y vuelve a intentarlo.");
+          return;
+        }
+        if (processed.size > MAX_IMAGE_SIZE) {
+          toast.error(`Imagen muy grande (máx ${Math.round(MAX_IMAGE_SIZE / 1024 / 1024)}MB)`);
+          return;
+        }
+        uploadBlob = processed;
+        ext = "jpg";
+        contentType = "image/jpeg";
+      } else {
+        let buffer: ArrayBuffer;
+        try {
+          buffer = await file.arrayBuffer();
+        } catch {
+          toast.error("No se pudo leer el archivo. Vuelve a intentarlo.");
+          return;
+        }
+        if (buffer.byteLength === 0) {
+          toast.error("El archivo llegó vacío. Si es un video de iCloud, ábrelo en la app Fotos para descargarlo por completo y vuelve a intentarlo.");
+          return;
+        }
+        uploadBlob = new Blob([buffer], { type: file.type });
+        ext = EXT_BY_MIME[file.type] || "bin";
+        contentType = file.type;
       }
-      if (buffer.byteLength === 0) {
-        toast.error("El archivo llegó vacío. Si es una foto de iCloud, ábrela en la app Fotos para descargarla por completo y vuelve a intentarlo.");
-        return;
-      }
-      const uploadBlob = new Blob([buffer], { type: file.type });
 
       const { data: { session } } = await createClient().auth.getSession();
       if (!session?.user) throw new Error("No autenticado");
 
       const mediaType = isVideo ? "video" : "image";
-      const ext = EXT_BY_MIME[file.type] || "bin";
       const storagePath = `${session.user.id}/${Date.now()}.${ext}`;
 
       const { error: uploadError } = await createClient().storage
         .from(BUCKET)
-        .upload(storagePath, uploadBlob, { contentType: file.type, upsert: false });
+        .upload(storagePath, uploadBlob, { contentType, upsert: false });
 
       if (uploadError) throw new Error(uploadError.message || "Error al subir el archivo");
 
