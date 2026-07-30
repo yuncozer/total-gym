@@ -84,9 +84,18 @@ export function AvatarUpload({ endpoint, folder, currentUrl, fallback, onChange,
       return;
     }
 
+    if (file.size === 0) {
+      toast.error(t("avatar.emptyFile"));
+      return;
+    }
+
     setBusy(true);
     try {
       const processed = await toSquareJpeg(file);
+      if (processed.size === 0) {
+        toast.error(t("avatar.emptyFile"));
+        return;
+      }
       if (processed.size > MAX_AVATAR_SIZE) {
         toast.error(t("avatar.tooLarge"));
         return;
