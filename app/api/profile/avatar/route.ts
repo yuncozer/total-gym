@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
-import { replaceAvatar, removeAvatarFiles } from "@/lib/avatar/storage";
+import { avatarPublicUrl, removeAvatarObject } from "@/lib/avatar/storage";
 
 function createAuthClient(request: NextRequest) {
   return createServerClient(
@@ -48,28 +48,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const formData = await request.formData();
-  const file = formData.get("avatar");
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "No se recibió ninguna imagen" }, { status: 400 });
-  }
-
   const admin = createAdminClient();
-  const result = await replaceAvatar(admin, `users/${session.user.id}`, file);
-  if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: result.status });
-  }
+  const avatarUrl = avatarPublicUrl(admin, "users", session.user.id);
 
   const { error: updateError } = await admin
     .from("profiles")
-    .update({ avatar_url: result.publicUrl })
+    .update({ avatar_url: avatarUrl })
     .eq("id", session.user.id);
 
   if (updateError) {
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
-  return NextResponse.json({ avatarUrl: result.publicUrl });
+  return NextResponse.json({ avatarUrl });
 }
 
 export async function DELETE(request: NextRequest) {
@@ -80,7 +71,7 @@ export async function DELETE(request: NextRequest) {
   }
 
   const admin = createAdminClient();
-  await removeAvatarFiles(admin, `users/${session.user.id}`);
+  await removeAvatarObject(admin, "users", session.user.id);
 
   const { error: updateError } = await admin
     .from("profiles")

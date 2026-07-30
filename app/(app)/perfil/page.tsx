@@ -200,6 +200,7 @@ export default function PerfilPage() {
           <div className="bg-card border border rounded-xl p-4 mb-6">
             <AvatarUpload
               endpoint="/api/profile/avatar"
+              folder="users"
               currentUrl={profile.avatar_url}
               fallback={profile.email || "?"}
               onChange={(url) => setProfile((p) => ({ ...p, avatar_url: url }))}

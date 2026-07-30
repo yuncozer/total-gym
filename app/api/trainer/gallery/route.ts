@@ -3,12 +3,7 @@ import { checkTrainerAccess } from "@/lib/trainer/route";
 import { getTrainerAdminClient } from "@/lib/trainer/client";
 
 const MAX_ITEMS = 12;
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
-const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
 const BUCKET = "trainer-gallery";
-
-const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
-const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
 
 export async function GET(request: NextRequest) {
   const { trainerId, error } = await checkTrainerAccess(request);
@@ -54,38 +49,16 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Máximo ${MAX_ITEMS} elementos en la galería` }, { status: 400 });
   }
 
-  const formData = await request.formData();
-  const file = formData.get("file");
-  if (!(file instanceof File)) {
-    return NextResponse.json({ error: "No se recibió ningún archivo" }, { status: 400 });
+  const body = await request.json();
+  const storagePath = typeof body.storagePath === "string" ? body.storagePath : null;
+  const mediaType = body.mediaType === "video" ? "video" : body.mediaType === "image" ? "image" : null;
+
+  if (!storagePath || !mediaType) {
+    return NextResponse.json({ error: "storagePath y mediaType son requeridos" }, { status: 400 });
   }
 
-  const isImage = IMAGE_TYPES.includes(file.type);
-  const isVideo = VIDEO_TYPES.includes(file.type);
-  if (!isImage && !isVideo) {
-    return NextResponse.json({ error: "Formato no soportado. Usa JPG, PNG, WEBP, MP4, MOV o WEBM" }, { status: 400 });
-  }
-
-  const maxSize = isVideo ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
-  if (file.size > maxSize) {
-    return NextResponse.json({ error: `Archivo muy grande (máx ${Math.round(maxSize / 1024 / 1024)}MB)` }, { status: 400 });
-  }
-
-  const mediaType = isVideo ? "video" : "image";
-  const extByMime: Record<string, string> = {
-    "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
-    "video/mp4": "mp4", "video/quicktime": "mov", "video/webm": "webm",
-  };
-  const ext = extByMime[file.type] || "bin";
-  const storagePath = `${trainerId}/${Date.now()}.${ext}`;
-
-  const bytes = await file.arrayBuffer();
-  const { error: uploadError } = await supabase.storage
-    .from(BUCKET)
-    .upload(storagePath, bytes, { contentType: file.type, upsert: false });
-
-  if (uploadError) {
-    return NextResponse.json({ error: uploadError.message }, { status: 500 });
+  if (!storagePath.startsWith(`${trainerId}/`)) {
+    return NextResponse.json({ error: "Ruta inválida" }, { status: 400 });
   }
 
   const { data: inserted, error: insertError } = await supabase
@@ -95,7 +68,6 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (insertError) {
-    await supabase.storage.from(BUCKET).remove([storagePath]);
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 

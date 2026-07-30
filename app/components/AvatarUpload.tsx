@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 import { Camera, Loader2, Trash2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useLanguage } from "@/lib/i18n";
-import { MAX_AVATAR_SIZE } from "@/lib/avatar/storage";
+import { createClient } from "@/lib/supabase/client";
+import { AVATAR_BUCKET, MAX_AVATAR_SIZE, avatarStoragePath, type AvatarFolder } from "@/lib/avatar/storage";
 
 const OUTPUT_SIZE = 512;
 
@@ -12,6 +13,7 @@ export const AVATAR_UPDATED_EVENT = "tg:avatar-updated";
 
 interface AvatarUploadProps {
   endpoint: string;
+  folder: AvatarFolder;
   currentUrl: string | null;
   fallback: string;
   onChange: (url: string | null) => void;
@@ -47,7 +49,19 @@ async function toSquareJpeg(file: File): Promise<Blob> {
   }
 }
 
-export function AvatarUpload({ endpoint, currentUrl, fallback, onChange, size = "lg" }: AvatarUploadProps) {
+async function parseJsonResponse(res: Response, fallbackError: string): Promise<any> {
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(fallbackError);
+  }
+  try {
+    return await res.json();
+  } catch {
+    throw new Error(fallbackError);
+  }
+}
+
+export function AvatarUpload({ endpoint, folder, currentUrl, fallback, onChange, size = "lg" }: AvatarUploadProps) {
   const { t } = useLanguage();
   const inputRef = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(false);
@@ -69,19 +83,30 @@ export function AvatarUpload({ endpoint, currentUrl, fallback, onChange, size = 
       toast.error(t("avatar.invalidType"));
       return;
     }
-    if (file.size > MAX_AVATAR_SIZE) {
-      toast.error(t("avatar.tooLarge"));
-      return;
-    }
 
     setBusy(true);
     try {
       const processed = await toSquareJpeg(file);
-      const formData = new FormData();
-      formData.append("avatar", processed, "avatar.jpg");
+      if (processed.size > MAX_AVATAR_SIZE) {
+        toast.error(t("avatar.tooLarge"));
+        return;
+      }
 
-      const res = await fetch(endpoint, { method: "POST", body: formData });
-      const data = await res.json();
+      const { data: { session } } = await createClient().auth.getSession();
+      if (!session?.user) {
+        toast.error(t("avatar.uploadError"));
+        return;
+      }
+
+      const path = avatarStoragePath(folder, session.user.id);
+      const { error: uploadError } = await createClient().storage
+        .from(AVATAR_BUCKET)
+        .upload(path, processed, { contentType: "image/jpeg", upsert: true });
+
+      if (uploadError) throw new Error(uploadError.message || t("avatar.uploadError"));
+
+      const res = await fetch(endpoint, { method: "POST" });
+      const data = await parseJsonResponse(res, t("avatar.uploadError"));
       if (!res.ok) throw new Error(data.error || t("avatar.uploadError"));
 
       onChange(data.avatarUrl);
@@ -99,7 +124,7 @@ export function AvatarUpload({ endpoint, currentUrl, fallback, onChange, size = 
     setBusy(true);
     try {
       const res = await fetch(endpoint, { method: "DELETE" });
-      const data = await res.json();
+      const data = await parseJsonResponse(res, t("avatar.removeError"));
       if (!res.ok) throw new Error(data.error || t("avatar.removeError"));
 
       onChange(null);
