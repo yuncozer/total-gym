@@ -12,14 +12,33 @@ interface NotificationBannerProps {
   onEnabled?: () => void;
 }
 
-const DISMISS_KEY = "tg_push_banner_dismissed";
+const SNOOZE_KEY = "tg_push_banner_snoozed_until";
+const SNOOZE_MS = 3 * 24 * 60 * 60 * 1000;
+const REASON_FLAG_KEY = "tg_push_reason";
 
-export function NotificationBanner({ reason = "generic", onEnabled }: NotificationBannerProps) {
+function isSnoozed(): boolean {
+  if (typeof window === "undefined") return false;
+  const until = Number(localStorage.getItem(SNOOZE_KEY) || "0");
+  return until > Date.now();
+}
+
+function detectReason(): NotificationBannerReason {
+  if (typeof window === "undefined") return "generic";
+  const flag = sessionStorage.getItem(REASON_FLAG_KEY);
+  if (flag === "trainerLinked" || flag === "newClient") {
+    sessionStorage.removeItem(REASON_FLAG_KEY);
+    return flag;
+  }
+  return "generic";
+}
+
+export function NotificationBanner({ reason, onEnabled }: NotificationBannerProps) {
   const { t } = useLanguage();
+  const [resolvedReason] = useState<NotificationBannerReason>(() => reason ?? detectReason());
   const [enabled, setEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
-  const [dismissed, setDismissed] = useState(() => typeof window !== "undefined" && localStorage.getItem(DISMISS_KEY) === "1");
+  const [snoozed, setSnoozed] = useState(isSnoozed);
   const [error, setError] = useState<string | null>(null);
   const { supported, subscribe, loading: subLoading, permission } = usePushNotifications();
 
@@ -61,17 +80,17 @@ export function NotificationBanner({ reason = "generic", onEnabled }: Notificati
   };
 
   const handleDismiss = () => {
-    localStorage.setItem(DISMISS_KEY, "1");
-    setDismissed(true);
+    localStorage.setItem(SNOOZE_KEY, String(Date.now() + SNOOZE_MS));
+    setSnoozed(true);
   };
 
-  if (!supported || checking || enabled || (dismissed && permission !== "denied")) return null;
+  if (!supported || checking || enabled || snoozed) return null;
 
   const copy = {
     generic: { title: t("notif.reasonGenericTitle"), desc: t("notif.reasonGenericDesc") },
     trainerLinked: { title: t("notif.reasonTrainerLinkedTitle"), desc: t("notif.reasonTrainerLinkedDesc") },
     newClient: { title: t("notif.reasonNewClientTitle"), desc: t("notif.reasonNewClientDesc") },
-  }[reason];
+  }[resolvedReason];
 
   return (
     <div className="fixed bottom-6 left-4 right-4 z-40 sm:left-1/2 sm:-translate-x-1/2 sm:max-w-md">
