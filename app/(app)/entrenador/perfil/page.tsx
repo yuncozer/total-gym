@@ -124,6 +124,7 @@ export default function TrainerProfileSettingsPage() {
         <div className="bg-card border border rounded-2xl p-5 mb-4">
           <AvatarUpload
             endpoint="/api/trainer/avatar"
+            folder="trainers"
             currentUrl={avatarUrl}
             fallback={displayName || "?"}
             onChange={setAvatarUrl}

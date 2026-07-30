@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Images, Plus, Loader2, X, Play } from "lucide-react";
 import toast from "react-hot-toast";
+import { createClient } from "@/lib/supabase/client";
 import { MediaLightbox } from "./MediaLightbox";
 
 interface GalleryItem {
@@ -15,6 +16,14 @@ const MAX_ITEMS = 12;
 const MAX_VIDEO_SECONDS = 30;
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const MAX_VIDEO_SIZE = 20 * 1024 * 1024;
+const BUCKET = "trainer-gallery";
+
+const IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
+const VIDEO_TYPES = ["video/mp4", "video/quicktime", "video/webm"];
+const EXT_BY_MIME: Record<string, string> = {
+  "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp",
+  "video/mp4": "mp4", "video/quicktime": "mov", "video/webm": "webm",
+};
 
 function getVideoDuration(file: File): Promise<number> {
   return new Promise((resolve, reject) => {
@@ -30,6 +39,18 @@ function getVideoDuration(file: File): Promise<number> {
     };
     video.src = URL.createObjectURL(file);
   });
+}
+
+async function parseJsonResponse(res: Response, fallbackError: string): Promise<any> {
+  const contentType = res.headers.get("content-type") || "";
+  if (!contentType.includes("application/json")) {
+    throw new Error(fallbackError);
+  }
+  try {
+    return await res.json();
+  } catch {
+    throw new Error(fallbackError);
+  }
 }
 
 export function TrainerGalleryManager() {
@@ -62,10 +83,10 @@ export function TrainerGalleryManager() {
       return;
     }
 
-    const isVideo = file.type.startsWith("video/");
-    const isImage = file.type.startsWith("image/");
+    const isVideo = VIDEO_TYPES.includes(file.type);
+    const isImage = IMAGE_TYPES.includes(file.type);
     if (!isVideo && !isImage) {
-      toast.error("Formato no soportado");
+      toast.error("Formato no soportado. Usa JPG, PNG, WEBP, MP4, MOV o WEBM");
       return;
     }
 
@@ -90,11 +111,27 @@ export function TrainerGalleryManager() {
 
     setUploading(true);
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-      const res = await fetch("/api/trainer/gallery", { method: "POST", body: formData });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error al subir el archivo");
+      const { data: { session } } = await createClient().auth.getSession();
+      if (!session?.user) throw new Error("No autenticado");
+
+      const mediaType = isVideo ? "video" : "image";
+      const ext = EXT_BY_MIME[file.type] || "bin";
+      const storagePath = `${session.user.id}/${Date.now()}.${ext}`;
+
+      const { error: uploadError } = await createClient().storage
+        .from(BUCKET)
+        .upload(storagePath, file, { contentType: file.type, upsert: false });
+
+      if (uploadError) throw new Error(uploadError.message || "Error al subir el archivo");
+
+      const res = await fetch("/api/trainer/gallery", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storagePath, mediaType }),
+      });
+      const data = await parseJsonResponse(res, "Error al guardar el archivo");
+      if (!res.ok) throw new Error(data.error || "Error al guardar el archivo");
+
       setItems((prev) => [...prev, { id: data.id, mediaType: data.mediaType, url: data.url }]);
       toast.success("Agregado a la galería");
     } catch (err) {
