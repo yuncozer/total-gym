@@ -15,7 +15,7 @@
 | Toasts | react-hot-toast |
 | Push | Web Push API (VAPID + service worker) |
 | PWA | manifest.json + sw.js, install prompts |
-| Images | wger.de API (exercise images), Supabase Storage (workout photos) |
+| Images | wger.de API (exercise images), Supabase Storage (workout photos, profile avatars, trainer gallery) |
 | Fonts | Oswald (headings), Rajdhani, Barlow Condensed |
 | Deploy | Vercel (via git push workflow) |
 
@@ -40,27 +40,33 @@ app/
   (app)/              # Authenticated route group (shared layout w/ UserHeader)
     admin/            # Admin dashboard (protected)
     amigos/           # Friends: list, search, requests, leaderboard, [id] detail
+    checkin/          # Body weight/waist check-in entry
+    entrenador/       # Trainer mode: roster, client detail, routines, agenda, public profile settings
     entrenamiento/    # Workout creation: pick muscles → exercises → start
     estadisticas/     # User stats dashboard
     historial/        # Workout history with filters
-    perfil/           # Profile + achievements + settings
+    perfil/           # Profile + achievements + settings + avatar upload
     progreso/         # Exercise progress charts (recharts)
     workout/[id]/     # Active workout session (sets, timer, photos, complete)
-  api/                # ~35 API route handlers
-  components/         # 38 shared React components
+  api/                # ~70 API route handlers (includes /api/trainer/* and /api/public/trainers/*)
+  components/         # ~57 shared React components
+  e/[slug]/           # Public trainer landing page (lead capture, social links, gallery)
+  reporte/[token]/    # Public shareable progress report for a trainer's client
   shared/[token]/     # Public shared workout view
   shared-friend/[id]/ # Friend-shared workout view
 lib/
   admin/              # Admin auth (service_role client, route guards)
+  avatar/             # Shared avatar upload/replace/remove helper (Supabase Storage)
   data/               # Static data (muscle groups, cardio, quotes, notifications)
   i18n/               # Spanish/English (~540 strings, LanguageProvider context)
   premium/            # Subscription system (free/premium plans)
   supabase/           # Browser Supabase client singleton
+  trainer/            # Trainer domain: access guard, adherence, invites, slug, social links, mappers
   workout/            # Core: context, types, service, planner, classifier, progress
   auth.ts             # Client auth helpers, Google OAuth
   gamification.ts     # XP/level calculation
   push.ts             # Web Push management
-supabase/migrations/  # 20 SQL migrations (001-020)
+supabase/migrations/  # 33 SQL migrations (001-033)
 scripts/              # 22 admin/dev scripts (seeding, migration, curation)
 public/               # Static assets, manifest, sw.js
 ```
@@ -84,6 +90,16 @@ public/               # Static assets, manifest, sw.js
 | `achievements` | Badge definitions (11 seeded) |
 | `user_achievements` | Earned badges |
 | `workout_photos` | User-uploaded photos (storage_path in Supabase Storage) |
+| `trainers` | Trainer profile (display_name, bio, specialty, avatar_url, public_slug, instagram/tiktok/x handle, whatsapp_phone) |
+| `trainer_clients` | Trainer's roster (status: invited/active/paused/archived, invite_token, goal, level, notes) |
+| `trainer_routines` | Trainer-authored routine templates with goal-based targets |
+| `routine_assignments` | Assigns a `trainer_routines` row to a specific client |
+| `session_comments` | Trainer comments on a client's completed workout |
+| `client_checkins` | Client-submitted weight/waist check-ins |
+| `trainer_progress_shares` | Token-based public progress report links (expiring, view_count) |
+| `training_sessions` | Trainer's scheduled sessions with clients (agenda) |
+| `client_payments` | Payment records per client (amount, currency, period, method) |
+| `trainer_gallery_items` | Photos/videos on a trainer's public page (storage_path, media_type) |
 
 ### Key DB Functions (PL/pgSQL)
 - `calculate_user_xp(uuid)` — XP from sets + workouts
@@ -126,6 +142,21 @@ Rule-based algorithm (NOT LLM) in `lib/workout/exercise-planner.ts`:
 - Upload to Supabase Storage bucket `workout-photos` (max 5 per workout, 5MB each)
 - DB table `workout_photos` for metadata
 - Photos displayed in: completion screen, historial, shared views
+
+### Avatars & Trainer Gallery (Supabase Storage)
+- Bucket `profile-avatars` (public, 5MB, jpeg/png/webp) — one avatar per user or trainer, old file removed on replace (`lib/avatar/storage.ts`)
+- Bucket `trainer-gallery` (public, 20MB, images + video) — up to 12 items per trainer, video capped at 30s (validated client-side before upload)
+- `<Avatar>` component (`app/components/Avatar.tsx`) renders photo or initial fallback; `expandable` prop opens a tap-to-enlarge lightbox
+- `<MediaLightbox>` is the generic image/video viewer reused by the gallery and by `Avatar`'s internal lightbox
+
+### Trainer System
+- **Roles**: a user becomes a trainer via a row in `trainers` (created from `/admin`), gated by `checkTrainerAccess()` in `lib/trainer/route.ts`
+- **Client lifecycle**: `invited` → `active` (trainer approves) → `paused`/`archived`. Trainer-initiated adds (existing user by email) auto-activate; user-initiated requests (public page or invite claim) stay `invited` until the trainer approves via the header's pending-invites bell
+- **Invitation claiming**: `lib/trainer/claim.ts` links a newly registered/logged-in user to a pending `trainer_clients` row by `invite_token` (does not auto-activate)
+- **Adherence**: `lib/trainer/adherence.ts` classifies clients green/amber/red/unknown from `lastWorkoutAt`, shown as a roster traffic-light and in the client detail
+- **Public trainer page** (`/e/[slug]`): lead capture form, avatar, bio, specialty, social icons (Instagram/TikTok/X/WhatsApp via `lib/trainer/socialLinks.ts`), photo/video gallery — served by `/api/public/trainers/[slug]/*` using the service_role client (no RLS)
+- **Routines**: trainer builds goal-based templates (`trainer_routines`) with per-exercise target reps/weight/RPE, assigns one to a client (`routine_assignments`); client sees it as a banner on home
+- **Sessions & payments**: `training_sessions` (agenda) and `client_payments` feed roster badges (payment due/overdue) and the client detail history
 
 ### i18n
 - `lib/i18n/strings.ts`: ~540 keys, `{ es, en }` format

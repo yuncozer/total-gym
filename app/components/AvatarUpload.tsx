@@ -21,25 +21,30 @@ interface AvatarUploadProps {
 async function toSquareJpeg(file: File): Promise<Blob> {
   if (typeof createImageBitmap !== "function") return file;
 
-  const bitmap = await createImageBitmap(file);
-  const side = Math.min(bitmap.width, bitmap.height);
-  const sx = Math.round((bitmap.width - side) / 2);
-  const sy = Math.round((bitmap.height - side) / 2);
-  const target = Math.min(OUTPUT_SIZE, side);
+  try {
+    const bitmap = await createImageBitmap(file);
+    const side = Math.min(bitmap.width, bitmap.height);
+    const sx = Math.round((bitmap.width - side) / 2);
+    const sy = Math.round((bitmap.height - side) / 2);
+    const target = Math.min(OUTPUT_SIZE, side);
 
-  const canvas = document.createElement("canvas");
-  canvas.width = target;
-  canvas.height = target;
-  const ctx = canvas.getContext("2d");
-  if (!ctx) return file;
+    const canvas = document.createElement("canvas");
+    canvas.width = target;
+    canvas.height = target;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return file;
 
-  ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, target, target);
-  bitmap.close?.();
+    ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, target, target);
+    bitmap.close?.();
 
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/jpeg", 0.85)
-  );
-  return blob || file;
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.85)
+    );
+    return blob || file;
+  } catch (err) {
+    console.error("No se pudo recortar la imagen, se sube el original:", err);
+    return file;
+  }
 }
 
 export function AvatarUpload({ endpoint, currentUrl, fallback, onChange, size = "lg" }: AvatarUploadProps) {
