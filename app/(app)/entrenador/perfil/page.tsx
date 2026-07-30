@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { UserCircle, Loader2, AlertCircle, CheckCircle2, Copy, Check, ExternalLink } from "lucide-react";
 import { TrainerSubnav } from "@/app/components/TrainerSubnav";
 import { AvatarUpload } from "@/app/components/AvatarUpload";
+import { TrainerGalleryManager } from "@/app/components/TrainerGalleryManager";
+import { InstagramIcon, TikTokIcon, XIcon, WhatsAppIcon } from "@/app/components/SocialIcons";
 import { useLanguage } from "@/lib/i18n";
 
 export default function TrainerProfileSettingsPage() {
@@ -13,6 +15,10 @@ export default function TrainerProfileSettingsPage() {
   const [specialty, setSpecialty] = useState("");
   const [publicSlug, setPublicSlug] = useState("");
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [instagramHandle, setInstagramHandle] = useState("");
+  const [tiktokHandle, setTiktokHandle] = useState("");
+  const [xHandle, setXHandle] = useState("");
+  const [whatsappPhone, setWhatsappPhone] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -29,6 +35,10 @@ export default function TrainerProfileSettingsPage() {
         setSpecialty(data.specialty || "");
         setPublicSlug(data.publicSlug || "");
         setAvatarUrl(data.avatarUrl || null);
+        setInstagramHandle(data.instagramHandle || "");
+        setTiktokHandle(data.tiktokHandle || "");
+        setXHandle(data.xHandle || "");
+        setWhatsappPhone(data.whatsappPhone || "");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -44,7 +54,10 @@ export default function TrainerProfileSettingsPage() {
       const res = await fetch("/api/trainer/me", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName, bio, specialty, publicSlug: publicSlug || undefined }),
+        body: JSON.stringify({
+          displayName, bio, specialty, publicSlug: publicSlug || undefined,
+          instagramHandle, tiktokHandle, xHandle, whatsappPhone,
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
@@ -166,6 +179,56 @@ export default function TrainerProfileSettingsPage() {
             </div>
           </div>
 
+          <div className="pt-2 border-t border">
+            <p className="text-xs font-semibold text-accent uppercase tracking-wider mb-3 mt-3">Redes sociales</p>
+            <div className="space-y-3">
+              <div className="relative">
+                <InstagramIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-icon" />
+                <input
+                  type="text"
+                  value={instagramHandle}
+                  onChange={(e) => setInstagramHandle(e.target.value)}
+                  placeholder="Instagram (usuario)"
+                  className="w-full bg-background border border rounded-xl text-white pl-11 pr-4 py-3 placeholder:text-zinc-600 focus:outline-none focus:border-accent/50 transition-colors"
+                  disabled={saving}
+                />
+              </div>
+              <div className="relative">
+                <TikTokIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-icon" />
+                <input
+                  type="text"
+                  value={tiktokHandle}
+                  onChange={(e) => setTiktokHandle(e.target.value)}
+                  placeholder="TikTok (usuario)"
+                  className="w-full bg-background border border rounded-xl text-white pl-11 pr-4 py-3 placeholder:text-zinc-600 focus:outline-none focus:border-accent/50 transition-colors"
+                  disabled={saving}
+                />
+              </div>
+              <div className="relative">
+                <XIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-icon" />
+                <input
+                  type="text"
+                  value={xHandle}
+                  onChange={(e) => setXHandle(e.target.value)}
+                  placeholder="X / Twitter (usuario)"
+                  className="w-full bg-background border border rounded-xl text-white pl-11 pr-4 py-3 placeholder:text-zinc-600 focus:outline-none focus:border-accent/50 transition-colors"
+                  disabled={saving}
+                />
+              </div>
+              <div className="relative">
+                <WhatsAppIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-icon" />
+                <input
+                  type="tel"
+                  value={whatsappPhone}
+                  onChange={(e) => setWhatsappPhone(e.target.value)}
+                  placeholder="WhatsApp (con código de país)"
+                  className="w-full bg-background border border rounded-xl text-white pl-11 pr-4 py-3 placeholder:text-zinc-600 focus:outline-none focus:border-accent/50 transition-colors"
+                  disabled={saving}
+                />
+              </div>
+            </div>
+          </div>
+
           {error && (
             <p className="flex items-center gap-1 text-red-400 text-sm">
               <AlertCircle className="w-4 h-4 shrink-0" />{error}
@@ -185,6 +248,8 @@ export default function TrainerProfileSettingsPage() {
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : t("trainer.profileSave")}
           </button>
         </form>
+
+        <TrainerGalleryManager />
         </div>
       </main>
     </div>

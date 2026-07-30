@@ -145,6 +145,26 @@ body {
   background: #18181b;
 }
 
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-height: 2.75rem;
+  line-height: 1.5;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.6);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
 @keyframes fadeInUp {
   from {
     opacity: 0;
