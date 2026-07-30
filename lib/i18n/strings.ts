@@ -807,6 +807,7 @@ export const strings = {
   "avatar.removeError": { es: "No se pudo quitar la foto", en: "Couldn't remove the photo" },
   "avatar.invalidType": { es: "Selecciona un archivo de imagen", en: "Pick an image file" },
   "avatar.tooLarge": { es: "La imagen supera 5MB", en: "The image is over 5MB" },
+  "avatar.emptyFile": { es: "El archivo llegó vacío. Si es una foto de iCloud, ábrela en Fotos para descargarla por completo y vuelve a intentarlo.", en: "The file arrived empty. If it's an iCloud photo, open it in Photos to fully download it and try again." },
   "trainer.pendingInvites": { es: "Invitaciones pendientes", en: "Pending invites" },
   "trainer.noPendingInvites": { es: "No hay invitaciones pendientes", en: "No pending invites" },
   "trainer.invites": { es: "Invitaciones", en: "Invites" },

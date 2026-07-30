@@ -111,6 +111,19 @@ export function TrainerGalleryManager() {
 
     setUploading(true);
     try {
+      let buffer: ArrayBuffer;
+      try {
+        buffer = await file.arrayBuffer();
+      } catch {
+        toast.error("No se pudo leer el archivo. Vuelve a intentarlo.");
+        return;
+      }
+      if (buffer.byteLength === 0) {
+        toast.error("El archivo llegó vacío. Si es una foto de iCloud, ábrela en la app Fotos para descargarla por completo y vuelve a intentarlo.");
+        return;
+      }
+      const uploadBlob = new Blob([buffer], { type: file.type });
+
       const { data: { session } } = await createClient().auth.getSession();
       if (!session?.user) throw new Error("No autenticado");
 
@@ -120,7 +133,7 @@ export function TrainerGalleryManager() {
 
       const { error: uploadError } = await createClient().storage
         .from(BUCKET)
-        .upload(storagePath, file, { contentType: file.type, upsert: false });
+        .upload(storagePath, uploadBlob, { contentType: file.type, upsert: false });
 
       if (uploadError) throw new Error(uploadError.message || "Error al subir el archivo");
 
