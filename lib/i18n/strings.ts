@@ -454,8 +454,8 @@ export const strings = {
   // --- Notification prompt banner ---
   "notif.activate": { es: "ACTIVAR", en: "ENABLE" },
   "notif.activateError": { es: "No se pudieron activar las notificaciones", en: "Couldn't enable notifications" },
-  "notif.reasonGenericTitle": { es: "Recordatorio vespertino", en: "Evening reminder" },
-  "notif.reasonGenericDesc": { es: "Te avisamos si no has entrenado hoy", en: "We'll let you know if you haven't trained today" },
+  "notif.reasonGenericTitle": { es: "Activa tus notificaciones", en: "Turn on notifications" },
+  "notif.reasonGenericDesc": { es: "Así no te pierdes rachas, recordatorios y tu progreso", en: "So you don't miss streaks, reminders, and your progress" },
   "notif.reasonTrainerLinkedTitle": { es: "No te pierdas a tu entrenador", en: "Don't miss your trainer" },
   "notif.reasonTrainerLinkedDesc": { es: "Actívalas para enterarte de sus mensajes y las rutinas que te asigne", en: "Enable them to catch their messages and the routines they assign you" },
   "notif.reasonNewClientTitle": { es: "No te pierdas a tu cartera", en: "Don't miss your roster" },
