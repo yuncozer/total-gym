@@ -178,6 +178,7 @@ export default function TrainerProfileSettingsPage() {
                 disabled={saving}
               />
             </div>
+            <p className="text-xs text-icon mt-1.5">Mínimo 3 caracteres, minúsculas, números y guiones</p>
           </div>
 
           <div className="pt-2 border-t border">
