@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { useLanguage } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { AVATAR_BUCKET, MAX_AVATAR_SIZE, avatarStoragePath, type AvatarFolder } from "@/lib/avatar/storage";
+import { reencodeImageAsJpeg } from "@/lib/media/image";
 
 const OUTPUT_SIZE = 512;
 
@@ -18,35 +19,6 @@ interface AvatarUploadProps {
   fallback: string;
   onChange: (url: string | null) => void;
   size?: "md" | "lg";
-}
-
-async function toSquareJpeg(file: File): Promise<Blob> {
-  if (typeof createImageBitmap !== "function") return file;
-
-  try {
-    const bitmap = await createImageBitmap(file);
-    const side = Math.min(bitmap.width, bitmap.height);
-    const sx = Math.round((bitmap.width - side) / 2);
-    const sy = Math.round((bitmap.height - side) / 2);
-    const target = Math.min(OUTPUT_SIZE, side);
-
-    const canvas = document.createElement("canvas");
-    canvas.width = target;
-    canvas.height = target;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return file;
-
-    ctx.drawImage(bitmap, sx, sy, side, side, 0, 0, target, target);
-    bitmap.close?.();
-
-    const blob = await new Promise<Blob | null>((resolve) =>
-      canvas.toBlob(resolve, "image/jpeg", 0.85)
-    );
-    return blob || file;
-  } catch (err) {
-    console.error("No se pudo recortar la imagen, se sube el original:", err);
-    return file;
-  }
 }
 
 async function parseJsonResponse(res: Response, fallbackError: string): Promise<any> {
@@ -91,7 +63,7 @@ export function AvatarUpload({ endpoint, folder, currentUrl, fallback, onChange,
 
     setBusy(true);
     try {
-      const processed = await toSquareJpeg(file);
+      const processed = await reencodeImageAsJpeg(file, { maxDimension: OUTPUT_SIZE, square: true, quality: 0.85 });
       if (processed.size === 0) {
         toast.error(t("avatar.emptyFile"));
         return;
