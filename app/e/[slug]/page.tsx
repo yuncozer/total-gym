@@ -39,7 +39,7 @@ export default function PublicTrainerPage() {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ alreadyRequested?: boolean; alreadyClient?: boolean; inviteToken?: string } | null>(null);
   const [gallery, setGallery] = useState<GalleryItem[]>([]);
-  const [lightboxItem, setLightboxItem] = useState<GalleryItem | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`/api/public/trainers/${slug}`)
@@ -166,10 +166,10 @@ export default function PublicTrainerPage() {
 
         {gallery.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mb-6">
-            {gallery.map((item) => (
+            {gallery.map((item, index) => (
               <button
                 key={item.id}
-                onClick={() => setLightboxItem(item)}
+                onClick={() => setLightboxIndex(index)}
                 className="relative aspect-square rounded-xl overflow-hidden bg-card cursor-pointer"
               >
                 {item.mediaType === "video" ? (
@@ -264,7 +264,15 @@ export default function PublicTrainerPage() {
         </p>
       </main>
 
-      <MediaLightbox item={lightboxItem} onClose={() => setLightboxItem(null)} />
+      <MediaLightbox
+        item={lightboxIndex !== null ? gallery[lightboxIndex] : null}
+        onClose={() => setLightboxIndex(null)}
+        onNext={() => setLightboxIndex((i) => (i !== null && i < gallery.length - 1 ? i + 1 : i))}
+        onPrev={() => setLightboxIndex((i) => (i !== null && i > 0 ? i - 1 : i))}
+        hasNext={lightboxIndex !== null && lightboxIndex < gallery.length - 1}
+        hasPrev={lightboxIndex !== null && lightboxIndex > 0}
+        position={lightboxIndex !== null ? { index: lightboxIndex, total: gallery.length } : undefined}
+      />
     </div>
   );
 }

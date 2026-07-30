@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { checkTrainerAccess } from "@/lib/trainer/route";
 import { getTrainerAdminClient } from "@/lib/trainer/client";
-import { slugifyCustom } from "@/lib/trainer/slug";
+import { slugifyCustom, validateSlugFormat, SLUG_ERROR_MESSAGES } from "@/lib/trainer/slug";
 import {
   normalizeInstagramHandle,
   normalizeTikTokHandle,
@@ -48,6 +48,12 @@ export async function PATCH(request: NextRequest) {
 
   if ("publicSlug" in body && body.publicSlug) {
     const requestedSlug = slugifyCustom(String(body.publicSlug));
+
+    const formatError = validateSlugFormat(requestedSlug);
+    if (formatError) {
+      return NextResponse.json({ error: SLUG_ERROR_MESSAGES[formatError] }, { status: 400 });
+    }
+
     const { data: existing } = await supabase
       .from("trainers")
       .select("user_id")
@@ -73,6 +79,9 @@ export async function PATCH(request: NextRequest) {
     .single();
 
   if (updateError) {
+    if (updateError.code === "23505") {
+      return NextResponse.json({ error: "Ese link ya está en uso, prueba otro" }, { status: 409 });
+    }
     return NextResponse.json({ error: updateError.message }, { status: 500 });
   }
 
