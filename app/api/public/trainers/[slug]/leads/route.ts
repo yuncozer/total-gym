@@ -1,6 +1,8 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import webpush from "web-push";
+import { normalizeWhatsappPhone } from "@/lib/trainer/socialLinks";
+import { getTrainerEmail, sendTrainerLeadEmail, sendTrainerLeadWhatsapp } from "@/lib/trainer/notifyTrainer";
 
 webpush.setVapidDetails(
   "mailto:notifications@totalgym.app",
@@ -20,7 +22,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
   const { data: trainer } = await admin
     .from("trainers")
-    .select("user_id, display_name, is_active")
+    .select("user_id, display_name, is_active, whatsapp_phone")
     .eq("public_slug", slug)
     .maybeSingle();
 
@@ -50,11 +52,17 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     return NextResponse.json({ alreadyRequested: true, inviteToken: existingLead.invite_token });
   }
 
+  const { data: matchedProfile } = await admin
+    .from("profiles")
+    .select("id")
+    .ilike("email", email)
+    .maybeSingle();
+
   const { data: created, error: insertError } = await admin
     .from("trainer_clients")
     .insert({
       trainer_id: trainer.user_id,
-      user_id: null,
+      user_id: matchedProfile?.id ?? null,
       display_name: name,
       email,
       status: "invited",
@@ -65,6 +73,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   if (insertError) {
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
+
+  const clientDetailUrl = `${process.env.NEXT_PUBLIC_APP_URL}/entrenador/clientes/${created.id}`;
 
   const { data: subs } = await admin.from("push_subs").select("*").eq("user_id", trainer.user_id);
   for (const sub of subs || []) {
@@ -79,6 +89,30 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         })
       );
     } catch {}
+  }
+
+  try {
+    const trainerEmail = await getTrainerEmail(admin, trainer.user_id);
+    if (trainerEmail) {
+      await sendTrainerLeadEmail({
+        to: trainerEmail,
+        trainerName: trainer.display_name,
+        leadName: name,
+        leadEmail: email,
+        clientDetailUrl,
+      });
+    }
+  } catch (e) {
+    console.error("[leads] email notify failed", e);
+  }
+
+  try {
+    const phone = normalizeWhatsappPhone(trainer.whatsapp_phone || "");
+    if (phone) {
+      await sendTrainerLeadWhatsapp({ toPhone: phone, leadName: name, clientDetailUrl });
+    }
+  } catch (e) {
+    console.error("[leads] whatsapp notify failed", e);
   }
 
   return NextResponse.json({ success: true, inviteToken: created.invite_token });

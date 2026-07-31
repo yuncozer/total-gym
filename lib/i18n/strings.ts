@@ -813,6 +813,11 @@ export const strings = {
   "trainer.invites": { es: "Invitaciones", en: "Invites" },
   "trainer.approve": { es: "Aprobar", en: "Approve" },
   "trainer.reject": { es: "Rechazar", en: "Reject" },
+  "trainer.pendingApprovalTitle": { es: "Cliente en espera de aprobación", en: "Client awaiting approval" },
+  "trainer.pendingApprovalBody": {
+    es: "Este cliente ya tiene una cuenta y quiere entrenar contigo. Acepta para activar el seguimiento.",
+    en: "This client already has an account and wants to train with you. Approve to start tracking.",
+  },
 } as const;
 
 export type StringKey = keyof typeof strings;

@@ -7,6 +7,7 @@ import { Flame, Zap, Trophy, Dumbbell, ArrowLeft, Loader2, Mail, Phone, Target, 
 import Link from "next/link";
 import { xpForLevel } from "@/lib/gamification";
 import { TrainerInviteShare } from "@/app/components/TrainerInviteShare";
+import { TrainerPendingApproval } from "@/app/components/TrainerPendingApproval";
 import { TrainerAssignRoutine } from "@/app/components/TrainerAssignRoutine";
 import { TrainerRecentSessions } from "@/app/components/TrainerRecentSessions";
 import { TrainerCheckinHistory } from "@/app/components/TrainerCheckinHistory";
@@ -259,8 +260,17 @@ export default function TrainerClientDetailPage() {
           </div>
         )}
 
-        {client.status === "invited" && client.inviteToken && (
+        {client.status === "invited" && client.inviteToken && !client.userId && (
           <TrainerInviteShare inviteToken={client.inviteToken} clientName={client.displayName} />
+        )}
+
+        {client.status === "invited" && client.userId && (
+          <TrainerPendingApproval
+            clientId={client.id}
+            onResolved={(newStatus) =>
+              setClient((prev) => (prev ? { ...prev, status: newStatus } : prev))
+            }
+          />
         )}
 
         <TrainerPaymentHistory clientId={client.id} />

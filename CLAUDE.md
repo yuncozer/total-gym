@@ -31,6 +31,12 @@ NEXT_PUBLIC_APP_URL               # App base URL
 NEXT_PUBLIC_EXERCISES_DB_API_KEY  # wger.de API key
 NEXT_PUBLIC_VAPID_PUBLIC_KEY      # Web Push public
 VAPID_PRIVATE_KEY                 # Web Push private
+RESEND_API_KEY                    # Resend transactional email
+RESEND_FROM_EMAIL                 # Verified sender address
+WHATSAPP_CLOUD_API_TOKEN          # Meta WhatsApp Cloud API access token
+WHATSAPP_CLOUD_API_PHONE_NUMBER_ID # Meta WhatsApp Business phone number ID
+WHATSAPP_CLOUD_API_TEMPLATE_NAME  # Approved message template name (must be pre-created/approved in Meta Business Manager)
+WHATSAPP_CLOUD_API_TEMPLATE_LANG  # Template language code (e.g. es)
 ```
 
 ## Project Structure
