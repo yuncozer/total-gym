@@ -30,6 +30,17 @@ export default function ResetPasswordPage() {
       const url = new URL(window.location.href);
       const hash = new URLSearchParams(url.hash.replace(/^#/, ""));
 
+      const tokenHash = url.searchParams.get("token_hash") || hash.get("token_hash");
+      if (tokenHash) {
+        const { error } = await supabase.auth.verifyOtp({
+          type: "recovery",
+          token_hash: tokenHash,
+        });
+        window.history.replaceState({}, "", url.pathname);
+        if (!cancelled) setStatus(error ? "invalid" : "ready");
+        return;
+      }
+
       if (url.searchParams.get("error") || hash.get("error")) {
         if (!cancelled) setStatus("invalid");
         return;
