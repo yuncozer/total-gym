@@ -34,6 +34,27 @@ export function subscribeToAuthChanges(callback: (session: Session | null) => vo
   return () => subscription.unsubscribe();
 }
 
+export function getAppBaseUrl(): string {
+  const isLocalhost = typeof window !== "undefined" &&
+                      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+  if (isLocalhost) return window.location.origin;
+  return process.env.NEXT_PUBLIC_APP_URL || (typeof window !== "undefined" ? window.location.origin : "");
+}
+
+export async function sendPasswordResetEmail(email: string): Promise<{ error: string | null }> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${getAppBaseUrl()}/reset-password`,
+  });
+  return { error: error ? error.message : null };
+}
+
+export async function updatePassword(newPassword: string): Promise<{ error: string | null }> {
+  const supabase = getSupabaseClient();
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  return { error: error ? error.message : null };
+}
+
 export async function signInWithGoogle(redirectTo = "/entrenamiento", inviteToken?: string): Promise<{ error: string | null }> {
   const supabase = getSupabaseClient();
 
