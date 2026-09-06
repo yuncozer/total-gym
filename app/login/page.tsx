@@ -149,6 +149,14 @@ export default function LoginPage() {
                   className="w-full pl-12 pr-4 py-3 bg-card border border rounded-xl text-white placeholder-icon focus:outline-none focus:border-accent transition-colors"
                 />
               </div>
+              <div className="mt-2 text-right">
+                <Link
+                  href="/recuperar"
+                  className="text-sm text-muted-foreground hover:text-accent transition-colors cursor-pointer"
+                >
+                  {t("login.forgotPassword")}
+                </Link>
+              </div>
             </div>
 
             {error && (
