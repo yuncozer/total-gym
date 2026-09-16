@@ -80,7 +80,7 @@ update exercises set name = 'Abdominales' where id = 167;
 update exercises set name = 'Elevaciones de Piernas Colgado' where id = 979;
 update exercises set name = 'Elevación de Piernas Acostado' where id = 377;
 update exercises set name = 'Elevación Deltoides Posterior' where id = 829;
-update exercises set name = 'Encogimientos, Dumbbells' where id = 572;
+update exercises set name = 'Encogimientos con Mancuernas' where id = 572;
 update exercises set name = 'Plancha Lateral' where id = 580;
 update exercises set name = 'Elevación de Pantorrilla a una Pierna' where id = 702;
 update exercises set name = 'Empuje de tríceps en Polea' where id = 805;
@@ -93,7 +93,7 @@ update exercises set name = 'Estiramiento del Elevador de la Escápula' where id
 update exercises set name = 'Rotación Torácica en Cuadrupedia' where id = 1028;
 update exercises set name = 'Estiramiento de Tríceps' where id = 1231;
 update exercises set name = 'Estiramiento de Bíceps de Pie' where id = 1233;
-update exercises set name = 'Unilateral Polea Remo' where id = 1636;
+update exercises set name = 'Remo Unilateral en Polea' where id = 1636;
 update exercises set name = 'Supino inclinado' where id = 1778;
 update exercises set name = 'Cuello CARs' where id = 1939;
 
@@ -105,7 +105,7 @@ where id in (select old_id from _merge);
 update exercises set is_active = false, updated_at = now()
 where id in (1114, 1591, 1363);  -- Rest, Respiración profunda, Blackroll
 
--- 7. Grupo muscular donde el nombre lo dice sin ambigüedad (34 filas).
+-- 7. Grupo muscular donde el nombre lo dice sin ambigüedad (35 filas).
 --    NO se usa la columna category: en las filas sin curar es poco fiable
 --    (p. ej. "Burpees" viene como Chest, unos curls femorales como Shoulders).
 update exercises set muscle_group_id = 'cardio', updated_at = now() where id in (57, 132, 996, 997);
@@ -122,39 +122,47 @@ update exercises set muscle_group_id = 'hombros', updated_at = now() where id in
 --   1575: De pie Dowel Hombros press
 --   1707: Elevacion Lateral polea
 --   1716: Inclinado Hombros Press Up
-update exercises set muscle_group_id = 'pecho', updated_at = now() where id in (112, 188, 454, 985, 998, 1778, 1918);
+update exercises set muscle_group_id = 'pecho', updated_at = now() where id in (112, 188, 454, 985, 998, 1228, 1467, 1778, 1918);
 --   112: Plancha Flexión
 --   188: Flexiones Declinadas
 --   454: Flexiones de pica
 --   985: Flexiones rotación
 --   998: Burpees sin Flexión
+--   1228: Mancuernas Cerrado grip Banco press
+--   1467: Inclinado Cerrado Grip Barra Banco Press
 --   1778: Supino inclinado
 --   1918: Legend Pecho Press
-update exercises set muscle_group_id = 'antebrazos', updated_at = now() where id in (182, 279, 820, 821, 1228, 1430, 1467, 1702);
+update exercises set muscle_group_id = 'antebrazos', updated_at = now() where id in (182, 279, 820, 821, 1430);
 --   182: Suspensiones en Regleta
 --   279: Fortalecedor de Agarre
 --   820: Suspensión en regleta de 20 mm
 --   821: Dominadas en Tabla de Multipresas
---   1228: Mancuernas Cerrado grip Banco press
 --   1430: Sostén con pellizco de disco
---   1467: Inclinado Cerrado Grip Barra Banco Press
---   1702: Jalón al pecho con agarre ancho
-update exercises set muscle_group_id = 'espalda', updated_at = now() where id in (1198, 1219, 1971, 1972);
+update exercises set muscle_group_id = 'espalda', updated_at = now() where id in (1198, 1219, 1702, 1971, 1972);
 --   1198: Inverted Rows
 --   1219: Australian Jalón-ups
+--   1702: Jalón al pecho con agarre ancho
 --   1971: Mentzer Pulldown
 --   1972: Unilateral-Brazos Lat Pulldown
+update exercises set muscle_group_id = 'piernas', updated_at = now() where id in (1294, 1833);
+--   1294: Arco femorale una gamba
+--   1833: Suelo Glider Isquiotibiales Curls
 update exercises set muscle_group_id = 'gluteos', updated_at = now() where id in (1686, 1703);
 --   1686: Glúteos Puente Unilateral-Brazos Press
 --   1703: Patadas traseras
-update exercises set muscle_group_id = 'piernas', updated_at = now() where id in (1833);
---   1833: Suelo Glider Isquiotibiales Curls
 
 -- PENDIENTE DE DECISIÓN (no se toca aquí):
 --  · 22 filas de movilidad/estiramiento/cuello sin grupo de fuerza posible.
 --    No existe un grupo "movilidad" en lib/data/ejercicios.ts; asignarles uno de
 --    los 11 actuales ensuciaría el filtro. Opciones: crear el grupo, o desactivarlas.
---  · 27 filas que requieren criterio humano (nombres rotos o ambiguos).
+--  · 26 filas que requieren criterio humano (nombres rotos o ambiguos).
 --    Listado completo en docs/exercise-catalog-audit.md.
+
+-- 8. Restos de la partición izquierda/derecha que el detector no agrupó porque
+--    su pareja no existe (#1020) o estaba escrita de otra forma (#1203, una
+--    tercera variante de la que ya absorbió #702). Ninguno tenía series.
+update exercises set name = 'Pistol Squat', updated_at = now() where id = 1020;
+update workout_sets set exercise_id = '702' where exercise_id = '1203';
+update exercises set is_active = false, updated_at = now() where id = 1203;
 
 commit;

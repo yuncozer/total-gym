@@ -91,6 +91,7 @@
     letter-spacing: .1em; text-transform: uppercase;
   }
   .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .state.ok { background: var(--ok-dim); border-color: var(--ok); color: var(--ok); }
 
   /* ---- radio de impacto ---- */
   .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 1px;
@@ -177,19 +178,19 @@
     <p class="lede">
       Higiene del catálogo: fusiona duplicados, unifica los ejercicios partidos en
       izquierda y derecha, y asigna grupo muscular donde el nombre no deja dudas.
-      Abajo está todo lo que toca, fila por fila, y las comprobaciones que conviene
-      correr antes y después.
+      Abajo está todo lo que tocó, fila por fila, y el resultado de cada comprobación
+      posterior.
     </p>
-    <p class="state">Sin aplicar</p>
+    <p class="state ok">Aplicada · 16 sep 2026</p>
   </header>
 
   <div class="stats">
-    <div class="stat"><b>721 <span class="arrow">→</span> 693</b><span>ejercicios activos</span></div>
+    <div class="stat"><b>721 <span class="arrow">→</span> 692</b><span>ejercicios activos</span></div>
     <div class="stat"><b>25</b><span>filas absorbidas</span></div>
     <div class="stat"><b>18</b><span>series repuntadas</span></div>
     <div class="stat"><b>6</b><span>workouts afectados</span></div>
     <div class="stat"><b>0</b><span>plantillas tocadas</span></div>
-    <div class="stat"><b>97 <span class="arrow">→</span> 63</b><span>sin grupo muscular</span></div>
+    <div class="stat"><b>97 <span class="arrow">→</span> 48</b><span>sin grupo muscular</span></div>
   </div>
 
   <div class="note">
@@ -247,8 +248,7 @@
 
   <h2>6 · Qué probar</h2>
   <p class="sub">
-    En orden. Los tres primeros van antes de aplicar; el resto, después. Las marcas se guardan en
-    este navegador.
+    Esto es lo que se comprobó después de aplicar. Las marcas se guardan en este navegador.
   </p>
   <div id="tests"></div>
 
@@ -343,16 +343,16 @@ const TESTS = [
   { t: 'Probar con rollback', d: 'Pega la migración entera en el SQL editor cambiando el commit final por rollback. Si pasa sin error, la sintaxis es buena y no queda nada escrito.', sql: null, exp: 'sin errores' },
   { t: 'Aplicar y contar', d: 'Ya con commit. Estos dos números son el resultado de toda la migración.',
     sql: "select count(*) filter (where is_active) activos,\n       count(*) filter (where is_active and muscle_group_id is null) sin_grupo\n  from exercises;",
-    exp: 'activos = 693 · sin_grupo = 63' },
-  { t: 'Ninguna serie apunta a una fila muerta', d: 'Es la comprobación importante: si esto no da cero, hay historial huérfano.',
-    sql: "select count(*) from workout_sets ws\n  join exercises e on e.id = ws.exercise_id::bigint\n where not e.is_active;",
-    exp: '0' },
+    exp: 'activos = 692 · sin_grupo = 48' },
+  { t: 'Ninguna serie huérfana nueva', d: 'Da 27, pero todas preexistentes: Sentadillas Hack (#1414) y Polea Jalón through (#1751), desactivados en junio y que la 036 no toca. Ojo con el cast: exercise_id guarda ids no numéricos de ejercicios personalizados, hay que comparar como texto.',
+    sql: "select e.id, e.name, count(ws.id) series\n  from workout_sets ws join exercises e on e.id::text = ws.exercise_id\n where not e.is_active\n group by e.id, e.name;",
+    exp: 'ninguna fila tocada por la 036' },
   { t: 'Los 6 workouts afectados siguen enteros', d: 'Mismo número de series antes y después; solo cambia a qué ejercicio apuntan.',
     sql: "select w.id, w.name, count(ws.id) series\n  from workouts w join workout_sets ws on ws.workout_id = w.id\n where ws.exercise_id in ('129','161','979','829','805','917','988','1231','1233')\n group by w.id, w.name;",
     exp: 'las mismas series que antes de aplicar' },
   { t: 'Los nombres neutros están puestos', d: 'Los nueve renombrados, sin «Izquierda» ni «Derecha».',
-    sql: "select id, name from exercises\n where id in (580,702,986,988,991,1008,1028,1231,1233)\n order by id;",
-    exp: '9 filas, ninguna con lado en el nombre' },
+    sql: "select id, name from exercises\n where id in (572,580,702,986,988,991,1008,1020,1028,1231,1233,1636)\n order by id;",
+    exp: '12 filas, ninguna con lado en el nombre' },
   { t: 'No quedan duplicados visibles', d: 'El caso que más se notaba: cuatro filas de press de pecho en máquina.',
     sql: "select id, name, is_active from exercises\n where name ilike '%pecho%press%' or name ilike '%press de pecho%'\n order by is_active desc, id;",
     exp: 'solo #129 activo' },

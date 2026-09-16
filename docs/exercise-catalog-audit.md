@@ -101,7 +101,7 @@ Conclusión: la taxonomía sale gratis; **las imágenes son una compra, no un de
 
 # Paso 1 ejecutado: migración `036_exercise_catalog_hygiene.sql`
 
-Generada por `scripts/plan-catalog-hygiene.mjs`. **No aplicada** — pendiente de revisión.
+Generada por `scripts/plan-catalog-hygiene.mjs`. **Aplicada el 2026-09-16.**
 
 ## Qué hace
 
@@ -110,11 +110,11 @@ Generada por `scripts/plan-catalog-hygiene.mjs`. **No aplicada** — pendiente d
 | Fusiona 22 grupos de duplicados | 25 filas absorbidas |
 | Repunta el historial (`workout_sets`) | 18 sets, 6 workouts |
 | Repunta plantillas (`workout_templates`) | 0 (ninguna apuntaba a una absorbida) |
-| Renombra supervivientes izquierda/derecha | 9 |
+| Renombra supervivientes izquierda/derecha | 11 |
 | Desactiva no-ejercicios | 3 (`Rest`, `Respiración profunda`, `Blackroll`) |
-| Asigna `muscle_group_id` por nombre | 34 |
+| Asigna `muscle_group_id` por nombre | 35 |
 
-Activos: **721 → 693**. Sin grupo muscular: **97 → 63**.
+Activos: **721 → 692**. Sin grupo muscular: **97 → 48**. Nombres con lado: **20 → 0**.
 
 Las filas absorbidas se desactivan (`is_active=false`), no se borran: reversible, y
 cualquier referencia rezagada sigue resolviendo. El superviviente de cada grupo se
@@ -148,8 +148,35 @@ de filas mal clasificadas justo en el filtro que queremos limpiar.
   longitud y orden preservados, solo cambia `exerciseId`, resto de claves intactas.
 - Mapa de fusión verificado: sin encadenamientos (ningún superviviente es a su vez
   absorbido), sin ids absorbidos dos veces.
-- **La migración no se ha ejecutado.** Conviene probarla en una rama de Supabase
-  antes de tocar producción.
+## Resultado tras aplicar
+
+| Comprobación | Esperado | Real |
+|---|---|---|
+| Ejercicios activos | 692 | 692 ✓ |
+| Sin grupo muscular | — | 48 |
+| Series totales (ninguna perdida) | 4.455 | 4.455 ✓ |
+| Filas absorbidas aún activas | 0 | 0 ✓ |
+| Nombres con izquierda/derecha | 0 | 0 ✓ |
+| `smart_enabled` activos | 121 | 121 ✓ |
+| Duplicados de «press de pecho en máquina» | 1 | 1 ✓ |
+
+Dos correcciones sobre la marcha, antes de aplicar:
+
+- La regla de `agarre|grip` se adelantaba a las de pecho y espalda, así que
+  `Mancuernas Cerrado grip Banco press`, `Inclinado Cerrado Grip Barra Banco Press` y
+  `Jalón al pecho con agarre ancho` acababan en *antebrazos*. Un «grip» suelto dice cómo
+  se sujeta la barra, no qué músculo trabaja: las reglas de movimiento van primero.
+- Al reordenar la alternancia, el `\b` final quedó pegado a `flexion` y «Flexiones» dejó
+  de casar. Ahora cada regla agrupa sus alternativas en `(?:…)`.
+
+### Lo que la verificación destapó
+
+- **27 series apuntan a ejercicios inactivos, pero son preexistentes**: `Sentadillas Hack`
+  (#1414) y `Polea Jalón through` (#1751), desactivados en junio de 2026 y que la 036 no
+  toca. Hay que decidir si se reactivan o se repuntan a un equivalente.
+- `workout_sets.exercise_id` guarda **ids no numéricos** (ejercicios personalizados como
+  `"aperturas"`), así que cualquier consulta que castee esa columna a `bigint` revienta.
+  Comparar siempre como texto.
 
 ---
 

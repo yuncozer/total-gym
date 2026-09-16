@@ -24,6 +24,8 @@ function pickSurvivor(g) {
 
 // Nombre neutro para los pares izquierda/derecha: un solo ejercicio mal partido.
 const RENOMBRA = {
+  572: 'Encogimientos con Mancuernas',
+  1636: 'Remo Unilateral en Polea',
   580: 'Plancha Lateral',
   702: 'Elevación de Pantorrilla a una Pierna',
   986: 'Sentadilla Lateral',
@@ -67,16 +69,25 @@ const GRUPOS = ['pecho', 'espalda', 'hombros', 'biceps', 'triceps', 'antebrazos'
 // Asignarles uno ensucia el filtro; necesitan decisión de producto aparte.
 const MOVILIDAD = /\bcuello|cervical|nuca|cabeza|estiramiento|movilidad|yoga|cobra|gato|cat-cow|postura|open book|bretzel|sit & reach|roll down|prayer|escapula|car\b/
 
+// El ORDEN importa: la primera que casa gana. Las reglas de aparato de agarre
+// van antes que nada porque son inequívocas, pero un "grip" o un "agarre" suelto
+// solo describe CÓMO se sujeta la barra — no el músculo que trabaja. Si esa regla
+// se adelanta a las de pecho y espalda, un "Cerrado grip Banco press" acaba en
+// antebrazos y un "Jalón al pecho con agarre ancho" también.
 const REGLAS = [
-  [/\bcurl\b.*\bbiceps\b|\bbiceps\b/, 'biceps'],
-  [/\btriceps\b|\bfondos\b/, 'triceps'],
-  [/\bmuneca|antebrazo|agarre|pellizco|regleta|multipresa|grip\b/, 'antebrazos'],
-  [/\bgluteo|patadas traseras\b/, 'gluteos'],
-  [/\bisquiotibiales|femoral\b/, 'piernas'],
-  [/\bpulldown|jalon|remo|rows|dominadas|lat\b/, 'espalda'],
-  [/\bflexion|press de pecho|pecho press|supino|banco press|banca\b/, 'pecho'],
-  [/\bhombro|delt|overhead|ohp|elevacion lateral|elevaciones posteriores|encogimientos\b/, 'hombros'],
-  [/\bburpee|montanero|caminata|escalador\b/, 'cardio'],
+// Cada alternativa va dentro de un (?:…) para que el \b del principio valga para
+// todas y no solo para la primera. Sin agrupar, un \b al final se pega a la última
+// alternativa y "flexion" deja de casar con "Flexiones".
+  [/\b(?:regleta|multipresa|pellizco|fortalecedor)/, 'antebrazos'],  // aparatos de agarre
+  [/\b(?:muneca|antebrazo)/, 'antebrazos'],
+  [/\b(?:biceps)/, 'biceps'],
+  [/\b(?:triceps|fondos)/, 'triceps'],
+  [/\b(?:gluteo|patadas traseras)/, 'gluteos'],
+  [/\b(?:isquiotibiales|femoral)/, 'piernas'],
+  [/\b(?:banca|banco press|press de pecho|pecho press|supino|flexion)/, 'pecho'],
+  [/\b(?:pulldown|jalon|remo|rows|dominadas|lat\b)/, 'espalda'],     // lat\b: no "lateral"
+  [/\b(?:hombro|delt|overhead|ohp|elevacion lateral|elevaciones posteriores|encogimientos)/, 'hombros'],
+  [/\b(?:burpee|montanero|caminata|escalador)/, 'cardio'],
 ]
 // Las filas absorbidas por una fusión desaparecen: no se les asigna nada.
 const absorbidas = new Set(merges.flatMap(m => m.absorbed.map(a => a.id)))
