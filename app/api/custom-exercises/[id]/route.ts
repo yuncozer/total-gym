@@ -26,7 +26,8 @@ export async function DELETE(
 ) {
   try {
     const supabase = createSupabaseClient(request);
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

@@ -5,6 +5,11 @@ import { NextRequest, NextResponse } from "next/server";
 const MAX_PHOTOS = 5;
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const BUCKET = "workout-photos";
+const ALLOWED_IMAGE_TYPES: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/webp": "webp",
+};
 
 function createAuthClient(request: NextRequest) {
   return createServerClient(
@@ -27,6 +32,40 @@ function createAdminClient() {
   );
 }
 
+type SupabaseAdmin = ReturnType<typeof createAdminClient>;
+
+async function getWorkoutOwner(admin: SupabaseAdmin, workoutId: string): Promise<string | null> {
+  const { data } = await admin
+    .from("workouts")
+    .select("user_id")
+    .eq("id", workoutId)
+    .maybeSingle();
+  return data?.user_id ?? null;
+}
+
+async function canReadWorkout(admin: SupabaseAdmin, workoutId: string, userId: string): Promise<boolean> {
+  const ownerId = await getWorkoutOwner(admin, workoutId);
+  if (!ownerId) return false;
+  if (ownerId === userId) return true;
+
+  const { data: share } = await admin
+    .from("friend_shares")
+    .select("id")
+    .eq("workout_id", workoutId)
+    .eq("receiver_id", userId)
+    .maybeSingle();
+  if (share) return true;
+
+  const { data: trainerLink } = await admin
+    .from("trainer_clients")
+    .select("id")
+    .eq("trainer_id", userId)
+    .eq("user_id", ownerId)
+    .maybeSingle();
+
+  return !!trainerLink;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -34,12 +73,17 @@ export async function GET(
   try {
     const { id: workoutId } = await params;
     const authClient = createAuthClient(request);
-    const { data: { session } } = await authClient.auth.getSession();
+    const { data: { user: authUser } } = await authClient.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const admin = createAdminClient();
+
+    if (!(await canReadWorkout(admin, workoutId, session.user.id))) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const { data: photos, error } = await admin
       .from("workout_photos")
@@ -68,12 +112,17 @@ export async function POST(
   try {
     const { id: workoutId } = await params;
     const authClient = createAuthClient(request);
-    const { data: { session } } = await authClient.auth.getSession();
+    const { data: { user: authUser } } = await authClient.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const admin = createAdminClient();
+
+    if ((await getWorkoutOwner(admin, workoutId)) !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     // Check photo limit
     const { count } = await admin
@@ -95,11 +144,11 @@ export async function POST(
       return NextResponse.json({ error: "File too large (max 5MB)" }, { status: 400 });
     }
 
-    if (!file.type.startsWith("image/")) {
-      return NextResponse.json({ error: "File must be an image" }, { status: 400 });
+    const ext = ALLOWED_IMAGE_TYPES[file.type];
+    if (!ext) {
+      return NextResponse.json({ error: "File must be a JPEG, PNG or WebP image" }, { status: 400 });
     }
 
-    const ext = file.name.split(".").pop() || "jpg";
     const storagePath = `${workoutId}/${Date.now()}.${ext}`;
 
     const arrayBuffer = await file.arrayBuffer();
@@ -139,7 +188,8 @@ export async function DELETE(
   try {
     const { id: workoutId } = await params;
     const authClient = createAuthClient(request);
-    const { data: { session } } = await authClient.auth.getSession();
+    const { data: { user: authUser } } = await authClient.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
     if (!session?.user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -150,6 +200,10 @@ export async function DELETE(
     }
 
     const admin = createAdminClient();
+
+    if ((await getWorkoutOwner(admin, workoutId)) !== session.user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
 
     const { data: photo } = await admin
       .from("workout_photos")

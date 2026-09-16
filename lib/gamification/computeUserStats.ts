@@ -1,6 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { levelFromXp } from "@/lib/gamification";
 
+function formatDay(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export interface UserStats {
   level: number;
   xp: number;
@@ -19,38 +23,39 @@ export async function computeUserStats(adminClient: SupabaseClient, userId: stri
   const completedWorkouts = (userWorkouts || []).filter((w: { completed_at: string | null }) => w.completed_at);
   const workoutIds = (userWorkouts || []).map((w: { id: string }) => w.id);
 
-  const { data: allSets } = await adminClient
-    .from("workout_sets")
-    .select("id, workout_id")
-    .eq("is_completed", true)
-    .in("workout_id", workoutIds.length > 0 ? workoutIds : ["none"]);
+  const { data: allSets } = workoutIds.length > 0
+    ? await adminClient
+        .from("workout_sets")
+        .select("workout_id, reps, weight_kg")
+        .eq("is_completed", true)
+        .in("workout_id", workoutIds)
+    : { data: [] as Array<{ workout_id: string; reps: number | null; weight_kg: number | null }> };
 
   const userWorkoutIdSet = new Set(workoutIds);
-  const totalSets = (allSets || []).filter((s: { workout_id: string }) => userWorkoutIdSet.has(s.workout_id)).length;
+  const userSets = (allSets || []).filter((s: { workout_id: string }) => userWorkoutIdSet.has(s.workout_id));
+  const totalSets = userSets.length;
   const totalWorkouts = completedWorkouts.length;
 
   const xp = totalSets * 10 + totalWorkouts * 25;
   const level = levelFromXp(xp);
 
-  const workoutDates: string[] = completedWorkouts.map((w: { completed_at: string }) => {
-    const d = new Date(w.completed_at);
-    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-  });
+  const workoutDates: string[] = completedWorkouts.map((w: { completed_at: string }) =>
+    formatDay(new Date(w.completed_at))
+  );
   const uniqueDates = [...new Set(workoutDates)].sort((a, b) => b.localeCompare(a));
+  const dateSet = new Set(uniqueDates);
 
   let currentStreak = 0;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const todayStr = today.toISOString().split("T")[0];
   const checkDate = new Date(today);
-  if (uniqueDates.includes(todayStr)) {
+  if (dateSet.has(formatDay(today))) {
     currentStreak = 1;
     checkDate.setDate(checkDate.getDate() - 1);
   }
-  while (true) {
-    const ds = checkDate.toISOString().split("T")[0];
-    if (uniqueDates.includes(ds)) { currentStreak++; checkDate.setDate(checkDate.getDate() - 1); }
-    else break;
+  while (dateSet.has(formatDay(checkDate))) {
+    currentStreak++;
+    checkDate.setDate(checkDate.getDate() - 1);
   }
 
   let longestStreak = 0;
@@ -77,16 +82,8 @@ export async function computeUserStats(adminClient: SupabaseClient, userId: stri
     .gte("started_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
 
   let totalVolume = 0;
-  if (workoutIds.length > 0) {
-    const { data: sets } = await adminClient
-      .from("workout_sets")
-      .select("reps, weight_kg")
-      .eq("is_completed", true)
-      .in("workout_id", workoutIds);
-
-    (sets || []).forEach((set: { reps: number | null; weight_kg: number | null }) => {
-      totalVolume += (set.reps || 0) * (set.weight_kg || 0);
-    });
+  for (const set of userSets) {
+    totalVolume += (set.reps || 0) * (set.weight_kg || 0);
   }
 
   return {

@@ -17,7 +17,8 @@ function createAuthClient(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   const authClient = createAuthClient(request);
-  const { data: { session } } = await authClient.auth.getSession();
+  const { data: { user: authUser } } = await authClient.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
   if (!session?.user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

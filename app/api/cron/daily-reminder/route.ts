@@ -70,26 +70,37 @@ export async function POST(request: NextRequest) {
       }
     }
 
+  const { data: workoutsToday } = await supabase
+    .from("workouts")
+    .select("user_id")
+    .in("user_id", userIds)
+    .gte("started_at", todayStart)
+    .lte("started_at", todayEnd)
+    .eq("status", "completed");
+
+  const trainedToday = new Set((workoutsToday || []).map((w) => w.user_id));
+
+  const { data: allSubs } = await supabase
+    .from("push_subs")
+    .select("*")
+    .in("user_id", userIds);
+
+  type PushSub = { id: string; user_id: string; endpoint: string; p256dh: string; auth: string };
+  const subsByUser = new Map<string, PushSub[]>();
+  for (const sub of (allSubs || []) as PushSub[]) {
+    const list = subsByUser.get(sub.user_id) || [];
+    list.push(sub);
+    subsByUser.set(sub.user_id, list);
+  }
+
   let sentCount = 0;
 
   for (const user of users) {
-    const { data: workoutsToday } = await supabase
-      .from("workouts")
-      .select("id")
-      .eq("user_id", user.id)
-      .gte("started_at", todayStart)
-      .lte("started_at", todayEnd)
-      .eq("status", "completed")
-      .limit(1);
-
-    if (workoutsToday && workoutsToday.length > 0) {
+    if (trainedToday.has(user.id)) {
       continue;
     }
 
-    const { data: subscriptions } = await supabase
-      .from("push_subs")
-      .select("*")
-      .eq("user_id", user.id);
+    const subscriptions = subsByUser.get(user.id);
 
     if (!subscriptions || subscriptions.length === 0) {
       continue;
