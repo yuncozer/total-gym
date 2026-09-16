@@ -122,6 +122,10 @@ function mapRowToExercise(row: any): Exercise {
     imageUrl: row.image_url,
     images: row.images ?? [],
     variationGroup: row.variation_group,
+    mechanics: row.mechanics ?? null,
+    movementPattern: row.movement_pattern ?? null,
+    forceType: row.force_type ?? null,
+    laterality: row.laterality ?? null,
   };
 }
 

@@ -1,8 +1,36 @@
+import { parseClassification } from "./classification";
+
 export type ExerciseRole = "compound" | "isolation" | "stabilization";
 
 export interface ExerciseProfile {
   role: ExerciseRole;
   pattern: string;
+  /** true cuando el perfil viene etiquetado y no adivinado. */
+  labeled?: boolean;
+}
+
+/** Etiquetas tal y como llegan de la fila de `exercises`. */
+export interface ExerciseLabels {
+  mechanics?: string | null;
+  movementPattern?: string | null;
+  forceType?: string | null;
+  laterality?: string | null;
+}
+
+/**
+ * El perfil etiquetado de un ejercicio, si lo tiene. Una fila sin etiquetar
+ * devuelve null y el llamante cae en las heurísticas por nombre de más abajo.
+ */
+function profileFromLabels(labels?: ExerciseLabels): ExerciseProfile | null {
+  if (!labels) return null;
+  const parsed = parseClassification({
+    mechanics: labels.mechanics,
+    movement_pattern: labels.movementPattern,
+    force_type: labels.forceType,
+    laterality: labels.laterality,
+  });
+  if (!parsed) return null;
+  return { role: parsed.mechanics, pattern: parsed.pattern, labeled: true };
 }
 
 function kw(name: string, keywords: string[]): boolean {
@@ -132,8 +160,12 @@ function classifyAbdomen(name: string): ExerciseProfile {
 
 export function classifyExercise(
   name: string,
-  muscleGroup: string
+  muscleGroup: string,
+  labels?: ExerciseLabels
 ): ExerciseProfile {
+  const labeled = profileFromLabels(labels);
+  if (labeled) return labeled;
+
   switch (muscleGroup) {
     case "pecho":
       return classifyPecho(name);

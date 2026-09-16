@@ -1,0 +1,396 @@
+<title>Revisión Migración 036</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<style>
+  /* Dark-first: es la identidad de Total Gym. El bloque :root desnudo lleva
+     la paleta oscura completa; los bloques de abajo la vuelcan a claro. */
+  :root {
+    --ground: #050505;
+    --surface: #111113;
+    --surface-2: #17171a;
+    --border: #27272a;
+    --text: #fafafa;
+    --muted: #a1a1aa;
+    --faint: #71717a;
+    --accent: #eab308;
+    --accent-dim: rgba(234, 179, 8, .14);
+    --ok: #22c55e;
+    --ok-dim: rgba(34, 197, 94, .13);
+    --danger: #ef4444;
+    --danger-dim: rgba(239, 68, 68, .12);
+    --shadow: 0 1px 2px rgba(0,0,0,.5);
+    color-scheme: dark;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --ground: #faf9f7;
+      --surface: #ffffff;
+      --surface-2: #f4f3f0;
+      --border: #e0ddd6;
+      --text: #1a1917;
+      --muted: #5c584f;
+      --faint: #8a857a;
+      --accent: #8a6d00;
+      --accent-dim: rgba(138, 109, 0, .10);
+      --ok: #15803d;
+      --ok-dim: rgba(21, 128, 61, .10);
+      --danger: #b91c1c;
+      --danger-dim: rgba(185, 28, 28, .08);
+      --shadow: 0 1px 2px rgba(0,0,0,.06);
+      color-scheme: light;
+    }
+  }
+  :root[data-theme="light"] {
+    --ground: #faf9f7;
+    --surface: #ffffff;
+    --surface-2: #f4f3f0;
+    --border: #e0ddd6;
+    --text: #1a1917;
+    --muted: #5c584f;
+    --faint: #8a857a;
+    --accent: #8a6d00;
+    --accent-dim: rgba(138, 109, 0, .10);
+    --ok: #15803d;
+    --ok-dim: rgba(21, 128, 61, .10);
+    --danger: #b91c1c;
+    --danger-dim: rgba(185, 28, 28, .08);
+    --shadow: 0 1px 2px rgba(0,0,0,.06);
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    background: var(--ground);
+    color: var(--text);
+    font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0;
+    padding-inline: 20px;
+    padding-block: 0 72px;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; }
+
+  .osw { font-family: Oswald, "Arial Narrow", sans-serif; }
+  .mono { font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+
+  /* ---- cabecera ---- */
+  header { padding-block: 44px 28px; border-bottom: 1px solid var(--border); }
+  .eyebrow {
+    font-family: Oswald, sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--accent);
+    margin: 0 0 10px;
+  }
+  h1 {
+    font-family: Oswald, sans-serif; font-weight: 700; font-size: clamp(30px, 6vw, 44px);
+    line-height: 1.05; margin: 0 0 14px; text-wrap: balance; letter-spacing: -.01em;
+  }
+  .lede { color: var(--muted); max-width: 62ch; margin: 0; font-size: 16px; }
+  .state {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 18px;
+    background: var(--danger-dim); border: 1px solid var(--danger);
+    color: var(--danger); border-radius: 999px; padding: 6px 14px;
+    font-family: Oswald, sans-serif; font-size: 12px; font-weight: 600;
+    letter-spacing: .1em; text-transform: uppercase;
+  }
+  .state::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  /* ---- radio de impacto ---- */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(128px, 1fr)); gap: 1px;
+           background: var(--border); border: 1px solid var(--border); border-radius: 12px;
+           overflow: hidden; margin-block: 28px; }
+  .stat { background: var(--surface); padding: 16px 18px; }
+  .stat b { display: block; font-family: Oswald, sans-serif; font-weight: 600;
+            font-size: 28px; line-height: 1.1; font-variant-numeric: tabular-nums; }
+  .stat span { display: block; font-size: 12px; color: var(--faint); margin-top: 3px; }
+  .stat .arrow { color: var(--accent); }
+
+  h2 {
+    font-family: Oswald, sans-serif; font-weight: 600; font-size: 13px;
+    letter-spacing: .16em; text-transform: uppercase; color: var(--accent);
+    margin: 44px 0 6px; padding-top: 22px; border-top: 1px solid var(--border);
+  }
+  h2:first-of-type { border-top: 0; }
+  .sub { color: var(--muted); margin: 0 0 20px; font-size: 14px; max-width: 64ch; }
+
+  /* ---- fusiones ---- */
+  .merge { background: var(--surface); border: 1px solid var(--border);
+           border-radius: 12px; padding: 14px 16px; margin-bottom: 10px; box-shadow: var(--shadow); }
+  .surv { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+  .id { font-family: "JetBrains Mono", monospace; font-size: 12px; color: var(--faint);
+        font-variant-numeric: tabular-nums; }
+  .surv-name { font-family: Oswald, sans-serif; font-weight: 600; font-size: 17px; }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .b { font-size: 11px; font-family: Oswald, sans-serif; font-weight: 500; letter-spacing: .06em;
+       text-transform: uppercase; padding: 2px 8px; border-radius: 999px;
+       border: 1px solid var(--border); color: var(--muted); white-space: nowrap; }
+  .b.on { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+  .b.use { background: var(--ok-dim); border-color: var(--ok); color: var(--ok); }
+  .was { font-size: 13px; color: var(--faint); margin-top: 4px; }
+  .was em { font-style: normal; color: var(--muted); }
+
+  .absorbed { list-style: none; margin: 12px 0 0; padding: 0 0 0 16px;
+              border-left: 2px solid var(--border); display: flex; flex-direction: column; gap: 7px; }
+  .absorbed li { display: flex; align-items: baseline; gap: 9px; flex-wrap: wrap; font-size: 14px; }
+  .absorbed .nm { color: var(--muted); text-decoration: line-through;
+                  text-decoration-color: var(--danger); text-decoration-thickness: 1px; }
+  .tag { font-size: 11px; color: var(--faint); font-family: "JetBrains Mono", monospace; }
+
+  /* ---- listas de chips ---- */
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 0 0 8px; padding: 0; list-style: none; }
+  .chip { background: var(--surface); border: 1px solid var(--border); border-radius: 8px;
+          padding: 5px 10px; font-size: 13px; display: flex; gap: 8px; align-items: baseline; }
+  .grp { margin-bottom: 18px; }
+  .grp-h { font-family: Oswald, sans-serif; font-size: 12px; font-weight: 600; letter-spacing: .12em;
+           text-transform: uppercase; color: var(--faint); margin-bottom: 8px; }
+
+  /* ---- checklist ---- */
+  .check { background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+           margin-bottom: 12px; overflow: hidden; }
+  .check-h { display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; cursor: pointer; }
+  .check-h input { width: 18px; height: 18px; margin: 2px 0 0; accent-color: var(--accent);
+                   flex-shrink: 0; cursor: pointer; }
+  .check-t { font-family: Oswald, sans-serif; font-weight: 500; font-size: 16px; }
+  .check-d { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+  .check input:checked ~ div .check-t { color: var(--faint); text-decoration: line-through; }
+  pre { margin: 0; padding: 13px 16px; background: var(--surface-2);
+        border-top: 1px solid var(--border); overflow-x: auto;
+        font-family: "JetBrains Mono", monospace; font-size: 12.5px; line-height: 1.65; }
+  pre .k { color: var(--accent); }
+  pre .c { color: var(--faint); }
+  .expect { display: flex; gap: 8px; align-items: baseline; padding: 10px 16px;
+            border-top: 1px solid var(--border); font-size: 13px; background: var(--ok-dim); }
+  .expect b { font-family: "JetBrains Mono", monospace; color: var(--ok); font-weight: 700; }
+  .expect span { color: var(--muted); }
+
+  .note { border-left: 3px solid var(--accent); background: var(--accent-dim);
+          padding: 14px 16px; border-radius: 0 8px 8px 0; margin-block: 20px; font-size: 14px; }
+  .note b { font-family: Oswald, sans-serif; letter-spacing: .04em; }
+  code { font-family: "JetBrains Mono", monospace; font-size: .9em;
+         background: var(--surface-2); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--border); }
+  a { color: var(--accent); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (prefers-reduced-motion: no-preference) { .check, .merge { transition: border-color .15s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Total Gym · catálogo de ejercicios</p>
+    <h1>Qué cambia la migración 036</h1>
+    <p class="lede">
+      Higiene del catálogo: fusiona duplicados, unifica los ejercicios partidos en
+      izquierda y derecha, y asigna grupo muscular donde el nombre no deja dudas.
+      Abajo está todo lo que toca, fila por fila, y las comprobaciones que conviene
+      correr antes y después.
+    </p>
+    <p class="state">Sin aplicar</p>
+  </header>
+
+  <div class="stats">
+    <div class="stat"><b>721 <span class="arrow">→</span> 693</b><span>ejercicios activos</span></div>
+    <div class="stat"><b>25</b><span>filas absorbidas</span></div>
+    <div class="stat"><b>18</b><span>series repuntadas</span></div>
+    <div class="stat"><b>6</b><span>workouts afectados</span></div>
+    <div class="stat"><b>0</b><span>plantillas tocadas</span></div>
+    <div class="stat"><b>97 <span class="arrow">→</span> 63</b><span>sin grupo muscular</span></div>
+  </div>
+
+  <div class="note">
+    <b>Nada se borra.</b> Las filas absorbidas pasan a <code>is_active = false</code>, así que
+    la operación se deshace con un <code>update</code> y cualquier referencia rezagada sigue
+    resolviendo. El historial no se pierde: <code>workout_sets</code> guarda su propia copia del
+    nombre, el músculo y la imagen de cada serie.
+  </div>
+
+  <h2>1 · Fusiones</h2>
+  <p class="sub">
+    El superviviente de cada grupo se eligió por uso real —series registradas y plantillas que
+    lo referencian— y hereda la mejor imagen y el <code>smart_enabled</code> de todo el grupo,
+    para no perder la única foto buena por quedarnos con la fila más usada.
+  </p>
+  <div id="merges"></div>
+
+  <h2>2 · Renombrados</h2>
+  <p class="sub">
+    Nueve ejercicios estaban partidos en dos filas, una por lado. Al fusionarlos, quedarse con
+    «Izquierda» en el nombre sería peor que el duplicado: pasan a nombre neutro.
+  </p>
+  <ul class="chips" id="renames"></ul>
+
+  <h2>3 · Desactivaciones</h2>
+  <p class="sub">Tres filas activas que no son ejercicios.</p>
+  <ul class="chips" id="off"></ul>
+
+  <h2>4 · Grupo muscular asignado</h2>
+  <p class="sub">
+    34 filas, asignadas por lo que dice el nombre. <strong>No se usa la columna
+    <code>category</code></strong>: en las filas sin curar es poco fiable —<em>Burpees</em> viene
+    como <code>Chest</code> y unos curls femorales como <code>Shoulders</code>—, así que asignar
+    por ahí habría metido decenas de filas mal clasificadas justo en el filtro que queremos limpiar.
+  </p>
+  <div id="groups"></div>
+
+  <h2>5 · Lo que no toca</h2>
+  <p class="sub">63 filas se quedan como están porque necesitan una decisión tuya, no una regla.</p>
+  <div class="grp">
+    <div class="grp-h">22 · movilidad, estiramiento y cuello</div>
+    <p class="sub" style="margin-bottom:10px">
+      No existe un grupo <code>movilidad</code> en <code>lib/data/ejercicios.ts</code> y ninguno de
+      los 11 actuales les encaja. O se crea el grupo —toca UI e i18n— o se desactivan.
+    </p>
+    <ul class="chips" id="mob"></ul>
+  </div>
+  <div class="grp">
+    <div class="grp-h">27 · nombres rotos o ambiguos</div>
+    <p class="sub" style="margin-bottom:10px">
+      Aquí hace falta criterio humano: hay nombres en italiano, a medio traducir y de jerga de gimnasio.
+    </p>
+    <ul class="chips" id="rev"></ul>
+  </div>
+
+  <h2>6 · Qué probar</h2>
+  <p class="sub">
+    En orden. Los tres primeros van antes de aplicar; el resto, después. Las marcas se guardan en
+    este navegador.
+  </p>
+  <div id="tests"></div>
+
+  <div class="note">
+    <b>Para deshacer.</b>
+    <pre style="background:none;border:0;padding:8px 0 0"><span class="k">update</span> exercises <span class="k">set</span> is_active = <span class="k">true</span>
+ <span class="k">where</span> id <span class="k">in</span> (379,1655,1883,1488,591,1933,283,1313,487,1645,1019,
+              1021,1661,1731,987,989,992,1009,1014,1029,1230,1232,
+              1621,1793,1943,1114,1591,1363);</pre>
+    Las 18 series repuntadas no vuelven solas — si hay que revertir del todo, hazlo desde el backup
+    del día, o repunta a mano los 6 workouts que lista la comprobación 3.
+  </div>
+</div>
+
+<script>
+const DATA = {"merges":[{"id":129,"nombre":"Press de Pecho en Máquina","antes":"Press de Pecho en Máquina","grupo":"pecho","sets":116,"tpl":4,"img":true,"smart":true,"renombrado":false,"abs":[{"id":379,"nombre":"Press de pecho con máquina","sets":0,"img":false},{"id":1655,"nombre":"Máquina Pecho Press Exercise","sets":9,"img":true},{"id":1883,"nombre":"Máquina Pecho Press","sets":3,"img":false}]},{"id":161,"nombre":"Pullover con Mancuerna","antes":"Pullover con Mancuerna","grupo":"pecho","sets":5,"tpl":0,"img":true,"smart":false,"renombrado":false,"abs":[{"id":1488,"nombre":"Mancuernas Pullover","sets":0,"img":false}]},{"id":167,"nombre":"Abdominales","antes":"Abdominales","grupo":"abdomen","sets":0,"tpl":0,"img":true,"smart":true,"renombrado":false,"abs":[{"id":591,"nombre":"Abdominales","sets":0,"img":false},{"id":1933,"nombre":"Abdominal Crunch","sets":0,"img":false}]},{"id":979,"nombre":"Elevaciones de Piernas Colgado","antes":"Elevaciones de Piernas Colgado","grupo":"abdomen","sets":9,"tpl":0,"img":true,"smart":true,"renombrado":false,"abs":[{"id":283,"nombre":"Elevaciones de Piernas Colgado","sets":0,"img":false}]},{"id":377,"nombre":"Elevación de Piernas Acostado","antes":"Elevación de Piernas Acostado","grupo":"abdomen","sets":0,"tpl":0,"img":true,"smart":true,"renombrado":false,"abs":[{"id":1313,"nombre":"Acostado Piernas Elevación","sets":0,"img":false}]},{"id":829,"nombre":"Elevación Deltoides Posterior","antes":"Elevación Deltoides Posterior","grupo":"hombros","sets":18,"tpl":0,"img":true,"smart":true,"renombrado":false,"abs":[{"id":487,"nombre":"Posterior Delt Raises","sets":0,"img":false}]},{"id":572,"nombre":"Encogimientos, Dumbbells","antes":"Encogimientos, Dumbbells","grupo":"hombros","sets":0,"tpl":0,"img":true,"smart":true,"renombrado":false,"abs":[{"id":1645,"nombre":"Mancuernas Encogimientos","sets":0,"img":true}]},{"id":580,"nombre":"Plancha Lateral","antes":"Plancha de lado izquierdo","grupo":"abdomen","sets":0,"tpl":0,"img":false,"smart":false,"renombrado":true,"abs":[{"id":1019,"nombre":"Plancha de lado derecho","sets":0,"img":false}]},{"id":702,"nombre":"Elevación de Pantorrilla a una Pierna","antes":"Elevación de Pantorrilla Izquierda","grupo":"pantorrillas","sets":0,"tpl":0,"img":false,"smart":false,"renombrado":true,"abs":[{"id":1021,"nombre":"Elevación de Pantorrilla Derecha","sets":0,"img":false}]},{"id":805,"nombre":"Empuje de tríceps en Polea","antes":"Empuje de tríceps en Polea","grupo":"triceps","sets":26,"tpl":2,"img":true,"smart":false,"renombrado":false,"abs":[{"id":1661,"nombre":"Polea Tríceps Press","sets":3,"img":false}]},{"id":917,"nombre":"Elevación frontal con Polea","antes":"Elevación frontal con Polea","grupo":"hombros","sets":3,"tpl":0,"img":false,"smart":false,"renombrado":false,"abs":[{"id":1731,"nombre":"Frontal Elevación (Polea)","sets":3,"img":false}]},{"id":986,"nombre":"Sentadilla Lateral","antes":"Sentadilla Lateral Izquierda","grupo":"piernas","sets":0,"tpl":0,"img":false,"smart":false,"renombrado":true,"abs":[{"id":987,"nombre":"Sentadilla Lateral Derecha","sets":0,"img":false}]},{"id":988,"nombre":"Sentadilla Búlgara","antes":"Sentadilla Búlgara Izquierda","grupo":"piernas","sets":3,"tpl":0,"img":true,"smart":false,"renombrado":true,"abs":[{"id":989,"nombre":"Sentadilla Búlgara Derecha","sets":0,"img":false}]},{"id":991,"nombre":"Media Sentadilla","antes":"Media Sentadilla Izquierda","grupo":"piernas","sets":0,"tpl":0,"img":false,"smart":false,"renombrado":true,"abs":[{"id":992,"nombre":"Media Sentadilla Derecha","sets":0,"img":false}]},{"id":1008,"nombre":"Estiramiento Lateral de Cuello","antes":"Estiramiento Lateral Izquierdo de Cuello","grupo":null,"sets":0,"tpl":0,"img":false,"smart":false,"renombrado":true,"abs":[{"id":1009,"nombre":"Estiramiento Lateral Derecho de Cuello","sets":0,"img":false}]},{"id":1013,"nombre":"Estiramiento del Elevador de la Escápula","antes":"Estiramiento del Elevador de la Escápula","grupo":null,"sets":0,"tpl":0,"img":false,"smart":false,"renombrado":false,"abs":[{"id":1014,"nombre":"Estiramiento del Elevador de la Escápula","sets":0,"img":false}]},{"id":1028,"nombre":"Rotación Torácica en Cuadrupedia","antes":"Quadruped thoracic Rotación Izquierdo","grupo":null,"sets":0,"tpl":0,"img":false,"smart":false,"renombrado":true,"abs":[{"id":1029,"nombre":"Quadruped thoracic Rotación Derecho","sets":0,"img":false}]},{"id":1231,"nombre":"Estiramiento de Tríceps","antes":"Tríceps Estiramiento Derecho","grupo":"triceps","sets":9,"tpl":0,"img":true,"smart":false,"renombrado":true,"abs":[{"id":1230,"nombre":"Tríceps Estiramiento Izquierdo","sets":0,"img":true}]},{"id":1233,"nombre":"Estiramiento de Bíceps de Pie","antes":"De pie Bíceps Estiramiento Derecho","grupo":"biceps","sets":9,"tpl":0,"img":true,"smart":false,"renombrado":true,"abs":[{"id":1232,"nombre":"De pie Bíceps Estiramiento Izquierdo","sets":0,"img":true}]},{"id":1636,"nombre":"Unilateral Polea Remo","antes":"Unilateral Polea Remo","grupo":"espalda","sets":0,"tpl":0,"img":true,"smart":false,"renombrado":false,"abs":[{"id":1621,"nombre":"Unilateral Polea Remo","sets":0,"img":false}]},{"id":1778,"nombre":"Supino inclinado","antes":"Supino inclinado","grupo":null,"sets":0,"tpl":0,"img":false,"smart":false,"renombrado":false,"abs":[{"id":1793,"nombre":"Supino Inclinado","sets":0,"img":false}]},{"id":1939,"nombre":"Cuello CARs","antes":"Cuello CARs","grupo":null,"sets":0,"tpl":0,"img":false,"smart":false,"renombrado":false,"abs":[{"id":1943,"nombre":"Cuello CARs","sets":0,"img":false}]}],"desactiva":[{"id":1114,"nombre":"Rest (for timed workouts)"},{"id":1591,"nombre":"Respiración profunda (de pie o sentado)"},{"id":1363,"nombre":"Blackroll"}],"grupos":[{"id":57,"name":"Caminata del Oso","group":"cardio"},{"id":82,"name":"Elevaciones Posteriores","group":"hombros"},{"id":112,"name":"Plancha Flexión","group":"pecho"},{"id":132,"name":"Burpees","group":"cardio"},{"id":182,"name":"Suspensiones en Regleta","group":"antebrazos"},{"id":188,"name":"Flexiones Declinadas","group":"pecho"},{"id":279,"name":"Fortalecedor de Agarre","group":"antebrazos"},{"id":454,"name":"Flexiones de pica","group":"pecho"},{"id":687,"name":"Overhead Press","group":"hombros"},{"id":820,"name":"Suspensión en regleta de 20 mm","group":"antebrazos"},{"id":821,"name":"Dominadas en Tabla de Multipresas","group":"antebrazos"},{"id":985,"name":"Flexiones rotación","group":"pecho"},{"id":996,"name":"Montañeros","group":"cardio"},{"id":997,"name":"Burpees de 4 Tiempos","group":"cardio"},{"id":998,"name":"Burpees sin Flexión","group":"pecho"},{"id":1004,"name":"Rotación de Hombros Hacia Adelante","group":"hombros"},{"id":1005,"name":"Rotación de Hombros Hacia Atrás","group":"hombros"},{"id":1198,"name":"Inverted Rows","group":"espalda"},{"id":1219,"name":"Australian Jalón-ups","group":"espalda"},{"id":1228,"name":"Mancuernas Cerrado grip Banco press","group":"antebrazos"},{"id":1430,"name":"Sostén con pellizco de disco","group":"antebrazos"},{"id":1440,"name":"Press OHP","group":"hombros"},{"id":1467,"name":"Inclinado Cerrado Grip Barra Banco Press","group":"antebrazos"},{"id":1575,"name":"De pie Dowel Hombros press","group":"hombros"},{"id":1686,"name":"Glúteos Puente Unilateral-Brazos Press","group":"gluteos"},{"id":1702,"name":"Jalón al pecho con agarre ancho","group":"antebrazos"},{"id":1703,"name":"Patadas traseras","group":"gluteos"},{"id":1707,"name":"Elevacion Lateral polea","group":"hombros"},{"id":1716,"name":"Inclinado Hombros Press Up","group":"hombros"},{"id":1778,"name":"Supino inclinado","group":"pecho"},{"id":1833,"name":"Suelo Glider Isquiotibiales Curls","group":"piernas"},{"id":1918,"name":"Legend Pecho Press","group":"pecho"},{"id":1971,"name":"Mentzer Pulldown","group":"espalda"},{"id":1972,"name":"Unilateral-Brazos Lat Pulldown","group":"espalda"}],"movilidad":[{"id":1002,"name":"Postura del Niño"},{"id":1006,"name":"Retracción Cervical"},{"id":1007,"name":"Rotación de Cabeza"},{"id":1008,"name":"Estiramiento Lateral Izquierdo de Cuello"},{"id":1010,"name":"Estiramiento Posterior de Cuello (Nuca)"},{"id":1011,"name":"Frontal Cuello Estiramiento"},{"id":1013,"name":"Estiramiento del Elevador de la Escápula"},{"id":1015,"name":"Círculos de Cuello (Sentido Horario)"},{"id":1016,"name":"Círculos de Cuello (Sentido Antihorario)"},{"id":1017,"name":"Medios Círculos de Cuello (Media Luna)"},{"id":1018,"name":"Inclinaciones Laterales de Cabeza"},{"id":1027,"name":"Elevated prayer Estiramiento"},{"id":1244,"name":"Gato-Vaca (movilidad espinal)"},{"id":1394,"name":"Sit & Reach"},{"id":1399,"name":"Roll Down"},{"id":1450,"name":"Postura de la Cobra (en Yoga)"},{"id":1451,"name":"Estiramiento de rotación del torso"},{"id":1577,"name":"Bretzel Estiramiento"},{"id":1822,"name":"Open Book"},{"id":1861,"name":"Side Estiramiento"},{"id":1938,"name":"Cat-Cow"},{"id":1939,"name":"Cuello CARs"}],"revisar":[{"id":284,"name":"Hercules Pillars","category":"Arms"},{"id":516,"name":"Frontal Wood Chop","category":"Back"},{"id":683,"name":"Power Cargada","category":"Chest"},{"id":688,"name":"Superior External Oblique","category":"Chest"},{"id":804,"name":"Suspensión en Romos","category":"Arms"},{"id":827,"name":"Frontal Discos Elevación","category":"Shoulders"},{"id":957,"name":"Quadriped Brazos y Piernas Elevación","category":"Back"},{"id":994,"name":"Círculos de brazo","category":"Arms"},{"id":995,"name":"Círculos con los Brazos Hacia Atrás","category":"Arms"},{"id":1028,"name":"Quadruped thoracic Rotación Izquierdo","category":"Back"},{"id":1087,"name":"Mancuernas Hang Power Cleans","category":"Back"},{"id":1111,"name":"Press-Ups | Inclinado","category":"Chest"},{"id":1207,"name":"Scorpion Kick","category":"Back"},{"id":1216,"name":"Recruitment Pulls","category":"Arms"},{"id":1223,"name":"Claps over head","category":"Arms"},{"id":1263,"name":"Puente con propio peso","category":"Back"},{"id":1294,"name":"Arco femorale una gamba","category":"Back"},{"id":1360,"name":"Bilateral Pesa rusa Cargada y Press","category":"Arms"},{"id":1433,"name":"Reverso Wood Chops","category":"Back"},{"id":1447,"name":"Arrancada OL","category":"Back"},{"id":1606,"name":"Brazos Raises (T/Y/I)","category":"Arms"},{"id":1654,"name":"Máquina Lateral wise","category":"Shoulders"},{"id":1692,"name":"Inclinado Smith Press","category":"Chest"},{"id":1730,"name":"Side Lateral Elevación (Polea)","category":"Back"},{"id":1832,"name":"Ring Support Resistencia","category":"Chest"},{"id":1901,"name":"Cargada y Press","category":"Shoulders"},{"id":1910,"name":"En cuadrupedia Superman","category":"Back"}]};
+
+const el = (t, c, txt) => { const n = document.createElement(t); if (c) n.className = c; if (txt != null) n.textContent = txt; return n; };
+
+/* ---- fusiones ---- */
+const mx = document.getElementById('merges');
+DATA.merges.forEach(m => {
+  const card = el('div', 'merge');
+  const head = el('div', 'surv');
+  head.append(el('span', 'id', '#' + m.id), el('span', 'surv-name', m.nombre));
+  const bg = el('div', 'badges');
+  if (m.sets) bg.append(el('span', 'b use', m.sets + (m.sets === 1 ? ' serie' : ' series')));
+  if (m.tpl) bg.append(el('span', 'b use', m.tpl + ' plantillas'));
+  if (m.img) bg.append(el('span', 'b on', 'con imagen'));
+  if (m.smart) bg.append(el('span', 'b on', 'smart'));
+  if (m.grupo) bg.append(el('span', 'b', m.grupo));
+  head.append(bg);
+  card.append(head);
+
+  if (m.renombrado) {
+    const w = el('div', 'was');
+    w.append(document.createTextNode('antes: '), el('em', null, m.antes));
+    card.append(w);
+  }
+
+  const ul = el('ul', 'absorbed');
+  m.abs.forEach(a => {
+    const li = el('li');
+    li.append(el('span', 'id', '#' + a.id), el('span', 'nm', a.nombre));
+    const bits = [];
+    if (a.sets) bits.push(a.sets + ' series → #' + m.id);
+    if (a.img) bits.push('tenía imagen');
+    if (bits.length) li.append(el('span', 'tag', bits.join(' · ')));
+    ul.append(li);
+  });
+  card.append(ul);
+  mx.append(card);
+});
+
+/* ---- listas simples ---- */
+const chipList = (host, items, fmt) => {
+  const ul = document.getElementById(host);
+  items.forEach(i => {
+    const li = el('li', 'chip');
+    li.append(el('span', 'id', '#' + i.id), el('span', null, fmt(i)));
+    ul.append(li);
+  });
+};
+chipList('renames', DATA.merges.filter(m => m.renombrado), m => m.nombre);
+chipList('off', DATA.desactiva, d => d.nombre);
+chipList('mob', DATA.movilidad, d => d.name);
+chipList('rev', DATA.revisar, d => d.name);
+
+/* ---- grupos asignados ---- */
+const gx = document.getElementById('groups');
+const porGrupo = {};
+DATA.grupos.forEach(g => (porGrupo[g.group] ||= []).push(g));
+Object.entries(porGrupo).sort((a, b) => b[1].length - a[1].length).forEach(([g, list]) => {
+  const box = el('div', 'grp');
+  box.append(el('div', 'grp-h', g + ' · ' + list.length));
+  const ul = el('ul', 'chips');
+  list.forEach(i => {
+    const li = el('li', 'chip');
+    li.append(el('span', 'id', '#' + i.id), el('span', null, i.name));
+    ul.append(li);
+  });
+  box.append(ul);
+  gx.append(box);
+});
+
+/* ---- checklist ---- */
+const TESTS = [
+  { t: 'Backup antes de nada', d: 'Snapshot del proyecto en Supabase, o al menos un volcado de exercises y workout_sets.', sql: null, exp: null },
+  { t: 'Anotar el estado de partida', d: 'Para comparar después con los mismos números.',
+    sql: "select count(*) filter (where is_active) activos,\n       count(*) filter (where is_active and muscle_group_id is null) sin_grupo\n  from exercises;",
+    exp: 'activos = 721 · sin_grupo = 97' },
+  { t: 'Probar con rollback', d: 'Pega la migración entera en el SQL editor cambiando el commit final por rollback. Si pasa sin error, la sintaxis es buena y no queda nada escrito.', sql: null, exp: 'sin errores' },
+  { t: 'Aplicar y contar', d: 'Ya con commit. Estos dos números son el resultado de toda la migración.',
+    sql: "select count(*) filter (where is_active) activos,\n       count(*) filter (where is_active and muscle_group_id is null) sin_grupo\n  from exercises;",
+    exp: 'activos = 693 · sin_grupo = 63' },
+  { t: 'Ninguna serie apunta a una fila muerta', d: 'Es la comprobación importante: si esto no da cero, hay historial huérfano.',
+    sql: "select count(*) from workout_sets ws\n  join exercises e on e.id = ws.exercise_id::bigint\n where not e.is_active;",
+    exp: '0' },
+  { t: 'Los 6 workouts afectados siguen enteros', d: 'Mismo número de series antes y después; solo cambia a qué ejercicio apuntan.',
+    sql: "select w.id, w.name, count(ws.id) series\n  from workouts w join workout_sets ws on ws.workout_id = w.id\n where ws.exercise_id in ('129','161','979','829','805','917','988','1231','1233')\n group by w.id, w.name;",
+    exp: 'las mismas series que antes de aplicar' },
+  { t: 'Los nombres neutros están puestos', d: 'Los nueve renombrados, sin «Izquierda» ni «Derecha».',
+    sql: "select id, name from exercises\n where id in (580,702,986,988,991,1008,1028,1231,1233)\n order by id;",
+    exp: '9 filas, ninguna con lado en el nombre' },
+  { t: 'No quedan duplicados visibles', d: 'El caso que más se notaba: cuatro filas de press de pecho en máquina.',
+    sql: "select id, name, is_active from exercises\n where name ilike '%pecho%press%' or name ilike '%press de pecho%'\n order by is_active desc, id;",
+    exp: 'solo #129 activo' },
+  { t: 'Revisar en la app', d: 'Abre /entrenamiento, elige pecho y piernas, y comprueba que no salen nombres repetidos. Luego mira el historial de un usuario con sesiones viejas.', sql: null, exp: null }
+];
+
+const tx = document.getElementById('tests');
+let saved = {};
+try { saved = JSON.parse(localStorage.getItem('tg036') || '{}'); } catch (e) { saved = {}; }
+
+TESTS.forEach((t, i) => {
+  const box = el('div', 'check');
+  const lab = el('label', 'check-h');
+  const cb = el('input');
+  cb.type = 'checkbox';
+  cb.id = 'chk' + i;
+  cb.checked = !!saved[i];
+  cb.addEventListener('change', () => {
+    saved[i] = cb.checked;
+    try { localStorage.setItem('tg036', JSON.stringify(saved)); } catch (e) { /* sin persistencia */ }
+  });
+  const txt = el('div');
+  txt.append(el('div', 'check-t', (i + 1) + '. ' + t.t), el('div', 'check-d', t.d));
+  lab.append(cb, txt);
+  box.append(lab);
+  if (t.sql) {
+    const pre = el('pre');
+    pre.innerHTML = t.sql
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+      .replace(/\b(select|from|where|join|on|group by|order by|not|and|or|count|filter|update|set|in|desc)\b/gi,
+        '<span class="k">$1</span>');
+    box.append(pre);
+  }
+  if (t.exp) {
+    const e = el('div', 'expect');
+    e.append(el('span', null, 'esperado'), el('b', null, t.exp));
+    box.append(e);
+  }
+  tx.append(box);
+});
+</script>

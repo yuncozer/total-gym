@@ -29,6 +29,10 @@ interface RawExercise {
   imageUrl?: string | null;
   variationGroup?: string | null;
   muscleGroup?: string;
+  mechanics?: string | null;
+  movementPattern?: string | null;
+  forceType?: string | null;
+  laterality?: string | null;
 }
 
 interface PatternTarget {
@@ -155,7 +159,7 @@ function pickForPattern(
 
   const classified = exercises.map((ex) => ({
     ex,
-    profile: classifyExercise(ex.name, muscleGroup),
+    profile: classifyExercise(ex.name, muscleGroup, ex),
   }));
 
   let pool = classified.filter((c) => c.profile.pattern === pattern);
