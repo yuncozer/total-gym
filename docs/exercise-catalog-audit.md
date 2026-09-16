@@ -150,3 +150,80 @@ de filas mal clasificadas justo en el filtro que queremos limpiar.
   absorbido), sin ids absorbidos dos veces.
 - **La migración no se ha ejecutado.** Conviene probarla en una rama de Supabase
   antes de tocar producción.
+
+---
+
+# Evaluación: Functional Fitness Exercise Database v2.9 (xlsx)
+
+3.242 ejercicios, 32 columnas. Autor: Jensen Van Diepen / *Strength to Overcome*.
+
+## Licencia: bloqueante para nosotros
+
+La hoja «Contact Information» dice literalmente:
+
+> *this data is intended for personal use, please contact for commercial inquiries
+> regarding a potential collaboration.*
+> ©️ Strength to Overcome, 2025. All rights reserved.
+
+Descargarla gratis no la hace libre de usar. **No se puede incorporar a Total Gym tal
+cual.** Pero el autor es una persona identificable que invita explícitamente a
+colaboración comercial (jensen@strengthtoovercome.com) — mucho más negociable que
+Gym Visual.
+
+## No resuelve el problema de las imágenes
+
+Cero imágenes. 2.013 de 3.242 filas llevan enlace a YouTube de su propio canal.
+Embeber vídeo ajeno es otra negociación de permisos, y además empeora la UX: entre
+series, en móvil, un GIF de 180×180 gana a un reproductor de YouTube.
+
+## Lo que sí aporta: la clasificación del Smart Coach
+
+`lib/workout/exercise-classifier.ts` son 163 líneas de heurísticas por palabra clave
+que *adivinan* `role` (compound/isolation) y `pattern` desde el nombre en español.
+Esta base trae ambos campos **etiquetados a mano por un entrenador certificado**:
+
+- `Mechanics` → Compound / Isolation
+- `Movement Pattern #1-3` → 38 valores (Knee Dominant, Hip Hinge, Vertical Push,
+  Horizontal Pull, Anti-Extension, Loaded Carry…)
+- `Force Type` → Push / Pull / Push & Pull
+- `Body Region`, `Posture`, `Grip`, `Laterality`, `Difficulty Level`
+
+De nuestros 187 match fuertes, **187 traen `Mechanics` y 181 `Movement Pattern`**.
+
+## El problema: su centro de gravedad no es el nuestro
+
+| Equipamiento | Filas |
+|---|---|
+| Kettlebell | 861 |
+| Clubbell / Macebell | 302 |
+| Sliders | 165 |
+| Anillas / Suspensión / Parallettes | 257 |
+| Sandbag / Bulgarian Bag | 136 |
+
+Solo el **39 %** usa equipamiento de gimnasio convencional. `Quadriceps` es el
+músculo objetivo del 41 % de las filas. Es una base de *fitness funcional*, no de sala.
+
+Cobertura contra nuestras 721 activas: **25,9 % fuerte** (frente al 34,5 % del
+dataset MIT), 29,5 % dudoso, 44,5 % sin match. Y su granularidad de variantes
+produce cruces demasiado específicos: `Zancadas con Barra` → `Barbell Zombie
+Walking Lunge`.
+
+## Conclusión
+
+Tres fuentes, tres papeles distintos — ninguna sirve para todo:
+
+| | Taxonomía | Instrucciones ES | Imágenes | Biomecánica |
+|---|---|---|---|---|
+| wger (actual) | mala | sí | 32 % y heterogéneas | no |
+| Dataset MIT | buena | **sí, 10 idiomas** | licencia Gym Visual | no |
+| FFED v2.9 | buena | no | no | **sí, etiquetada** |
+
+Su valor para nosotros no es como catálogo ni como media: es como **fuente de verdad
+para el clasificador**. Dos vías:
+
+1. Escribir a Jensen. Invita a ello y preguntar es gratis.
+2. Usar su **vocabulario** de clasificación (Movement Pattern, Force Type, Mechanics,
+   Posture, Laterality) para etiquetar nuestro propio catálogo. Que un press de banca
+   sea *compound / horizontal push* es un hecho, y los hechos no son de nadie; lo que
+   protege el copyright es la selección y organización del conjunto. Inspirarnos en el
+   esquema es seguro; copiar las 3.242 filas no. Conviene confirmarlo antes de publicar.
