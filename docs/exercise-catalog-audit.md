@@ -86,9 +86,7 @@ Conclusión: la taxonomía sale gratis; **las imágenes son una compra, no un de
 
 ## Plan sugerido
 
-1. **Higiene primero, sin cambiar de fuente** (barato, sin migración): fusionar los 22 grupos
-   de duplicados, unificar las 20 filas izquierda/derecha, borrar las no-ejercicio y asignar
-   los 97 `muscle_group_id` que faltan.
+1. **Higiene primero, sin cambiar de fuente** — hecho: migración `036`, ver abajo.
 2. **Adoptar los metadatos MIT** como catálogo maestro, con tabla de equivalencias
    id-viejo → id-nuevo. `workout_sets` desnormaliza `exercise_name`, `muscle_group`,
    `image_url` y `description`, así que **el historial de los usuarios no se rompe**. Sí hay
@@ -98,3 +96,57 @@ Conclusión: la taxonomía sale gratis; **las imágenes son una compra, no un de
    en lugar de imagen incorrecta.
 4. **QA final a mano**: con ~121 `smart_enabled` una pantalla en `/admin` con imagen + nombre
    y dos botones cierra el 100 % restante en una tarde.
+
+---
+
+# Paso 1 ejecutado: migración `036_exercise_catalog_hygiene.sql`
+
+Generada por `scripts/plan-catalog-hygiene.mjs`. **No aplicada** — pendiente de revisión.
+
+## Qué hace
+
+| Acción | Filas |
+|---|---|
+| Fusiona 22 grupos de duplicados | 25 filas absorbidas |
+| Repunta el historial (`workout_sets`) | 18 sets, 6 workouts |
+| Repunta plantillas (`workout_templates`) | 0 (ninguna apuntaba a una absorbida) |
+| Renombra supervivientes izquierda/derecha | 9 |
+| Desactiva no-ejercicios | 3 (`Rest`, `Respiración profunda`, `Blackroll`) |
+| Asigna `muscle_group_id` por nombre | 34 |
+
+Activos: **721 → 693**. Sin grupo muscular: **97 → 63**.
+
+Las filas absorbidas se desactivan (`is_active=false`), no se borran: reversible, y
+cualquier referencia rezagada sigue resolviendo. El superviviente de cada grupo se
+elige por uso real (sets + plantillas) y hereda la mejor imagen y `smart_enabled`
+del grupo, para no perder la única foto buena por quedarnos con la fila más usada.
+
+## Lo que NO hace, y por qué
+
+**No usa la columna `category` para asignar grupo muscular.** Medida contra las filas
+ya curadas, `category` parecía fiable (Back→espalda 121/124, Chest→pecho 67/67,
+Shoulders→hombros 95/95). Pero eso mide que el curador estuvo de acuerdo con ella,
+no que sea correcta. En las 97 filas *sin curar* es mala: `Burpees` viene como
+`Chest`, `Suelo Glider Isquiotibiales Curls` (femoral) como `Shoulders`, y 20 de las
+37 `Back` son estiramientos de cuello. Asignar por `category` habría metido decenas
+de filas mal clasificadas justo en el filtro que queremos limpiar.
+
+## Pendiente de decisión (63 filas)
+
+- **22 de movilidad / estiramiento / cuello** (`Cat-Cow`, `Postura del Niño`,
+  `Círculos de Cuello`, `Sit & Reach`, `Open Book`, `Bretzel`…). No existe un grupo
+  `movilidad` en `lib/data/ejercicios.ts` y ninguno de los 11 actuales les encaja.
+  Opciones: crear el grupo (requiere UI e i18n) o desactivarlas.
+- **27 que requieren criterio humano**: nombres rotos o ambiguos — `Hercules Pillars`,
+  `Suspensión en Romos`, `Arco femorale una gamba` (italiano), `Recruitment Pulls`,
+  `Máquina Lateral wise`, `Claps over head`, `Brazos Raises (T/Y/I)`.
+- **14 restantes** ya cubiertas por las fusiones.
+
+## Validación hecha
+
+- Expresión de actualización del `jsonb` probada en lectura sobre una plantilla real:
+  longitud y orden preservados, solo cambia `exerciseId`, resto de claves intactas.
+- Mapa de fusión verificado: sin encadenamientos (ningún superviviente es a su vez
+  absorbido), sin ids absorbidos dos veces.
+- **La migración no se ha ejecutado.** Conviene probarla en una rama de Supabase
+  antes de tocar producción.
