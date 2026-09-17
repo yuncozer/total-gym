@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
+import { localDate } from "@/lib/time/timezone";
+import { resolveUserTimeZone } from "@/lib/time/userTimeZone";
 import { resolveIsPremium } from "@/lib/premium/server";
 
 function createSupabaseClient(request: NextRequest) {
@@ -39,7 +41,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid exercises data" }, { status: 400 });
     }
 
-    const fecha = new Date().toISOString().split("T")[0];
+    // La fecha es la del usuario, no la del servidor: Vercel corre en UTC y
+    // entrenar a las 19:00 en UTC-5 ya cae en el día siguiente para él.
+    const tz = await resolveUserTimeZone(supabase, session.user.id, body.timezone);
+    const fecha = localDate(tz);
 
     const { data: workout, error: workoutError } = await supabase
       .from("workouts")

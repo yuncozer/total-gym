@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
+import { localDate, shiftDate, todayIn } from "@/lib/time/timezone";
+import { resolveUserTimeZone } from "@/lib/time/userTimeZone";
 import { resolveIsPremium } from "@/lib/premium/server";
 
 function createSupabaseClient(request: NextRequest) {
@@ -98,23 +100,16 @@ export async function GET(request: NextRequest) {
 
     if (setsError) throw setsError;
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split("T")[0];
+    // Misma zona que usa /api/dashboard-stats: si difieren, el home y
+    // estadísticas enseñan rachas distintas para el mismo usuario.
+    const tz = await resolveUserTimeZone(supabase, userId);
+    const todayStr = todayIn(tz);
 
     const workoutDates = workouts
       .map(w => {
         if (w.date) return w.date;
-        if (w.completed_at) {
-          const d = new Date(w.completed_at);
-          d.setHours(0, 0, 0, 0);
-          return d.toISOString().split("T")[0];
-        }
-        if (w.started_at) {
-          const d = new Date(w.started_at);
-          d.setHours(0, 0, 0, 0);
-          return d.toISOString().split("T")[0];
-        }
+        if (w.completed_at) return localDate(tz, new Date(w.completed_at));
+        if (w.started_at) return localDate(tz, new Date(w.started_at));
         return null;
       })
       .filter(Boolean) as string[];
@@ -122,20 +117,16 @@ export async function GET(request: NextRequest) {
     const uniqueDates = [...new Set(workoutDates)].sort((a, b) => b.localeCompare(a));
     const todayWorkout = workoutDates.includes(todayStr);
 
+    const dateSet = new Set(uniqueDates);
     let streak = 0;
-    const checkDate = new Date(today);
+    let cursor = todayStr;
     if (todayWorkout) {
       streak = 1;
-      checkDate.setDate(checkDate.getDate() - 1);
+      cursor = shiftDate(cursor, -1);
     }
-    while (true) {
-      const dateStr = checkDate.toISOString().split("T")[0];
-      if (uniqueDates.includes(dateStr)) {
-        streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else {
-        break;
-      }
+    while (dateSet.has(cursor)) {
+      streak++;
+      cursor = shiftDate(cursor, -1);
     }
 
     const totalWorkouts = workouts.length;

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Dumbbell, Loader2, Play } from "lucide-react";
 import { useLanguage } from "@/lib/i18n";
+import { browserTimeZone } from "@/lib/time/timezone";
 
 interface AssignedRoutine {
   id: string;
@@ -32,7 +33,11 @@ export function AssignedRoutineBanner() {
   const handleStart = async () => {
     setStarting(true);
     try {
-      const res = await fetch("/api/workouts/assigned/start", { method: "POST" });
+      const res = await fetch("/api/workouts/assigned/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ timezone: browserTimeZone() }),
+      });
       if (res.ok) {
         const data = await res.json();
         router.push(`/workout/${data.id}`);

@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextRequest, NextResponse } from "next/server";
+import { localDate, shiftDate, todayIn } from "@/lib/time/timezone";
+import { resolveUserTimeZone } from "@/lib/time/userTimeZone";
 import { resolveIsPremium } from "@/lib/premium/server";
 
 function createSupabaseClient(request: NextRequest) {
@@ -33,9 +35,10 @@ export async function GET(request: NextRequest) {
     }
 
     const userId = session.user.id;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split("T")[0];
+    // "Hoy" y la racha se miden en la zona del usuario. Con el servidor en UTC,
+    // a las 19:00 en UTC-5 "hoy" ya era mañana y la racha se rompía sola.
+    const tz = await resolveUserTimeZone(supabase, userId);
+    const todayStr = todayIn(tz);
 
     const { data: sub } = await supabase
       .from("subscriptions")
@@ -105,11 +108,7 @@ export async function GET(request: NextRequest) {
     const workoutDates = completedWorkouts
       .map(w => {
         if (w.date) return w.date;
-        if (w.completed_at) {
-          const d = new Date(w.completed_at);
-          d.setHours(0, 0, 0, 0);
-          return d.toISOString().split("T")[0];
-        }
+        if (w.completed_at) return localDate(tz, new Date(w.completed_at));
         return null;
       })
       .filter(Boolean) as string[];
@@ -117,22 +116,18 @@ export async function GET(request: NextRequest) {
     const todayWorkout = workoutDates.includes(todayStr);
     const uniqueDates = [...new Set(workoutDates)].sort((a, b) => b.localeCompare(a));
 
+    const dateSet = new Set(uniqueDates);
     let streak = 0;
-    const checkDate = new Date(today);
+    let cursor = todayStr;
 
     if (todayWorkout) {
       streak = 1;
-      checkDate.setDate(checkDate.getDate() - 1);
+      cursor = shiftDate(cursor, -1);
     }
 
-    while (true) {
-      const dateStr = checkDate.toISOString().split("T")[0];
-      if (uniqueDates.includes(dateStr)) {
-        streak++;
-        checkDate.setDate(checkDate.getDate() - 1);
-      } else {
-        break;
-      }
+    while (dateSet.has(cursor)) {
+      streak++;
+      cursor = shiftDate(cursor, -1);
     }
 
     return NextResponse.json({

@@ -1,4 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
+import { localDate } from "@/lib/time/timezone";
+import { resolveUserTimeZone } from "@/lib/time/userTimeZone";
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import type { RoutineExercise } from "@/lib/trainer/types";
@@ -68,7 +70,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Routine has no exercises" }, { status: 400 });
     }
 
-    const fecha = new Date().toISOString().split("T")[0];
+    const sentTz = await request.json().then((b) => b?.timezone).catch(() => null);
+    const tz = await resolveUserTimeZone(authClient, session.user.id, sentTz);
+    const fecha = localDate(tz);
 
     const { data: workout, error: workoutError } = await authClient
       .from("workouts")
