@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 import webpush from "web-push";
+import { clientIp, rateLimit } from "@/lib/http/rateLimit";
 
 webpush.setVapidDetails(
   "mailto:notifications@totalgym.app",
@@ -12,6 +13,9 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export async function POST(request: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
+
+  const limited = rateLimit(`leads:${clientIp(request)}`, 5, 10 * 60 * 1000);
+  if (limited) return limited;
 
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -47,7 +51,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     if (existingLead.user_id) {
       return NextResponse.json({ alreadyRequested: true, alreadyClient: true });
     }
-    return NextResponse.json({ alreadyRequested: true, inviteToken: existingLead.invite_token });
+    return NextResponse.json({ alreadyRequested: true });
   }
 
   const { data: created, error: insertError } = await admin

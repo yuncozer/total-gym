@@ -158,6 +158,10 @@ export interface Exercise {
   imageUrl: string | null;
   images: string[];
   variationGroup: string | null;
+  mechanics?: string | null;
+  movementPattern?: string | null;
+  forceType?: string | null;
+  laterality?: string | null;
 }
 
 export function classifyEquipmentCategory(equipmentIds: number[]): string {

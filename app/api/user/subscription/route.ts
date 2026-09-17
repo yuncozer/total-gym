@@ -20,7 +20,8 @@ export async function GET() {
       }
     );
 
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { user: authUser } } = await supabase.auth.getUser();
+    const session = authUser ? { user: authUser } : null;
 
     if (!session?.user) {
       return NextResponse.json<SubscriptionResponse>({
