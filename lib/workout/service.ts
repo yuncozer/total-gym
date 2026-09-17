@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
 import type { ExerciseInWorkout, WorkoutSummary, WorkoutSet } from "./types";
 import type { ExerciseRole } from "./exercise-classifier";
+import { browserTimeZone } from "@/lib/time/timezone";
 
 export interface NewExerciseDef {
   exerciseId: string;
@@ -74,9 +75,11 @@ export async function createWorkout(
     sets: Array<{ reps: number; peso: number }>;
   }>
 ): Promise<{ id: string }> {
+  // La zona del navegador viaja con la petición: el servidor corre en UTC y no
+  // puede saber qué día es para el usuario sin ella.
   return fetchAPI("/api/workouts", {
     method: "POST",
-    body: JSON.stringify({ userId, exercises }),
+    body: JSON.stringify({ userId, exercises, timezone: browserTimeZone() }),
   });
 }
 
