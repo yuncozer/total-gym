@@ -254,3 +254,36 @@ para el clasificador**. Dos vías:
    sea *compound / horizontal push* es un hecho, y los hechos no son de nadie; lo que
    protege el copyright es la selección y organización del conjunto. Inspirarnos en el
    esquema es seguro; copiar las 3.242 filas no. Conviene confirmarlo antes de publicar.
+
+---
+
+# Migración `037_exercise_classification.sql` — aplicada el 2026-09-17
+
+Añade `mechanics`, `movement_pattern`, `force_type` y `laterality` a `exercises`,
+con `CHECK` sobre el vocabulario de `lib/workout/classification.ts`, e índice
+`(muscle_group_id, movement_pattern)`. Etiqueta los 121 `smart_enabled`.
+
+| Comprobación | Real |
+|---|---|
+| Filas etiquetadas | 121 |
+| `smart_enabled` sin clasificar | 0 ✓ |
+| Patrones distintos en uso | 25 |
+| Series huérfanas | 0 ✓ |
+| Activos | 694 |
+
+## Dos fallos corregidos antes de aplicar
+
+- **La coma separadora del `VALUES` quedaba dentro del comentario `--`**, así que
+  Postgres habría visto `(a)(b)(c)` sin separadores. La migración tal como se
+  committeó el día anterior nunca habría arrancado. 120 líneas recolocadas.
+- **La 036 absorbió `#283` en `#979`**, así que la etiqueta apuntaba a una fila ya
+  inactiva y `#979` se quedaba sin clasificar. El bloque de verificación de la propia
+  migración lo habría cazado, pero se detectó antes comparando etiquetas contra los
+  `smart_enabled` vivos. Lección: **las etiquetas se calcularon antes de la 036**;
+  cualquier fusión posterior obliga a recomprobar el cruce.
+
+## Huérfanos resueltos
+
+`Sentadillas Hack` (#1414, 21 series) y `Polea Jalón through` (#1751, 6 series),
+desactivados en junio de 2026, reactivados y asignados a `piernas` y `gluteos`.
+Reactivar sin asignar grupo los habría dejado activos pero invisibles en el filtro.
