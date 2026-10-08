@@ -406,3 +406,62 @@ remo inclinado. **Se le quitó la imagen.** Mejor sin foto que con una que enga�
 - **Pares de confianza baja, sin tocar**: `#512`/`#1117` (remo Gironda),
   `#1119`/`#1120` (remo máquina prono vs supino), `#628`/`#629` (straight-arm
   pulldown con barra vs cuerda). Pueden ser variantes legítimas.
+
+---
+
+# Migración `042_equipment_cable_machine.sql` — aplicada el 2026-10-08
+
+Añade **polea** y **máquina** a la taxonomía de equipamiento, en toda la base,
+no solo en espalda.
+
+| Categoría | Activos |
+|---|---|
+| body weight | 274 |
+| dumbbell | 123 |
+| **cable** (nueva) | **99** |
+| barbell | 78 |
+| **machine** (nueva) | **50** |
+| other | 48 |
+
+## La causa
+
+**El equipamiento de wger no tiene polea ni máquina.** Sus 11 ids son barra,
+barra EZ, mancuernas, mat, balón, barra fija, peso corporal, banco, banco
+inclinado, kettlebell y banda. Así que un jalón, una polea o una prensa
+llegaban clasificados como `body weight` y el filtro por equipamiento de la app
+no podía distinguirlos de una flexión.
+
+Dos señales de que las categorías ya estaban previstas y nunca se cablearon:
+
+- `CreateCustomExerciseModal` **ya ofrecía «Polea» y «Máquina»** al crear un
+  ejercicio propio — pero como no existían pestañas de filtro para ellas, ese
+  ejercicio no aparecía bajo ningún filtro.
+- `EQUIPMENT_PRIORITY` en `exercise-planner.ts` ya listaba `machine` y `cable`
+  para cada grupo muscular; nunca casaban con nada.
+
+## Cómo se clasifica
+
+Los ids de wger no pueden expresar polea ni máquina, así que la única señal es
+el nombre. **Si el nombre nombra el equipamiento, eso manda sobre la palabra del
+movimiento** — la regla sin esa guarda clasificaba mal:
+
+| Fila | Sin guarda | Correcto |
+|---|---|---|
+| `Sentadilla Hack con Barra` | machine | **barbell** |
+| `Jalón a la Cara con Mancuernas` | cable | **dumbbell** |
+| `Lat Jalón DB` | cable | **dumbbell** |
+
+«Jalón» en español es cualquier tracción y aparece en ejercicios con mancuerna;
+«hack con barra» es la sentadilla hack con barra, no la máquina.
+
+## Código
+
+- `equipmentCategoryFromName()` en `app/lib/wgerApi.ts`: la misma regla que la
+  migración, para que las importaciones futuras de wger se clasifiquen bien.
+  `classifyEquipmentCategory()` acepta ahora el nombre y lo prioriza.
+- Pestañas de filtro «Polea» y «Máquina» en `/entrenamiento` y en
+  `AddExerciseModal`, con sus claves i18n (`train.tabCable`, `train.tabMachine`).
+
+`getEquipmentIdsByCategory()` en `app/api/exercises/route.ts` sigue existiendo
+pero **es código muerto**: la app filtra en cliente por `equipmentCategory` y
+nadie manda `?equipment=` a la API.

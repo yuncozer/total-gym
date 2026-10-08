@@ -19,12 +19,14 @@ function TitleLine({ textKey }: { textKey: string }) {
 }
 
 const EQUIPMENT_TAB_IDS = [
-  "all", "barbell", "dumbbell", "body weight", "personalizados", "other"
+  "all", "barbell", "dumbbell", "cable", "machine", "body weight", "personalizados", "other"
 ] as const;
 const EQUIPMENT_TAB_KEY: Record<string, string> = {
   "all": "train.tabAll",
   "barbell": "train.tabBarbell",
   "dumbbell": "train.tabDumbbell",
+  "cable": "train.tabCable",
+  "machine": "train.tabMachine",
   "body weight": "train.tabBodyweight",
   "personalizados": "train.tabCustom",
   "other": "train.tabOther",
