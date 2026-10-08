@@ -465,3 +465,51 @@ movimiento** — la regla sin esa guarda clasificaba mal:
 `getEquipmentIdsByCategory()` en `app/api/exercises/route.ts` sigue existiendo
 pero **es código muerto**: la app filtra en cliente por `equipmentCategory` y
 nadie manda `?equipment=` a la API.
+
+---
+
+# Migración `043_piernas_duplicados.sql` — aplicada el 2026-10-08
+
+**Piernas: 112 → 108.** Catálogo total: 672 → 668. 0 series sin repuntar,
+4.600 series intactas, 0 nombres duplicados.
+
+Mucho menos que en espalda (que cayó 20), y es un buen resultado: **piernas está
+sana**. De 112 filas solo 4 eran duplicados reales.
+
+| Se queda | Absorbe |
+|---|---|
+| `#366 Curl Femoral Sentado` (56 series) | `#364 Curl Femoral` (genérico) |
+| `#1414 → Sentadilla Hack en Máquina` (21 series) | `#375` (le da imagen, smart y nombre) |
+| `#203 Sentadilla con Disco` | `#124 Sentadilla con Disco al Frente` |
+| `#1612 Sentadilla con pesa rusa` | `#1361 Sentadilla Frontal Bilateral con Pesa Rusa` |
+
+## Lección sobre el agrupador
+
+La primera pasada metió **45 sentadillas en un solo grupo**: todas comparten la
+palabra «sentadilla», y la similitud por contención daba 100 % a cualquier fila
+cuyo nombre fuera un subconjunto de otra.
+
+**En tren inferior el modificador ES el ejercicio**: una pistol, una búlgara y
+una hack no son «sentadilla» repetida. Recalibrado de 65 % contención / 35 %
+Jaccard a 25 % / 75 %, los 45 se separan en grupos reales y aparecen los 4
+duplicados que estaban enterrados.
+
+## Lo que NO se fusionó, y por qué
+
+- **Prensa de piernas** (`#371` / `#373` cerrada / `#374` abierta): la posición
+  del pie es el ejercicio.
+- **Curl femoral** sentado / acostado / de pie: tres máquinas distintas.
+- **Sentadilla Frontal** con barra (`#257`) vs con mancuernas (`#1640`).
+- **Sentadillas Smith** (`#1747`) vs **Sentadilla Dividida en Smith** (`#1593`):
+  dividida = split squat, otro ejercicio. El agrupador falló aquí.
+- **Zancadas**: 4 variantes reales en dos ejes (caminando/estáticas ×
+  mancuernas/barra) más la genérica.
+- `#984 Zancadas con peso` vs `#1324 Zancada a Peso Corporal`: son lo contrario,
+  no duplicados. (`#984` está marcado `body weight` pese a llamarse «con peso»
+  — inconsistencia menor, sin tocar.)
+
+## Pendiente en piernas
+
+La familia de la sentadilla tiene **45 filas**, la mayoría sin imagen y sin usar
+nunca. No es duplicación sino catálogo inflado: el problema de fondo que afecta
+a todos los grupos.
