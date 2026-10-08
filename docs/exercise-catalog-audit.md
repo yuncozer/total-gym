@@ -616,3 +616,16 @@ Catálogo tras 046: 649 activos, 193 con imagen, 456 sin imagen.
 
 Pendiente: 1223, 1325 y 31 son fichas cuyo nombre tampoco describe un ejercicio
 reconocible — candidatas a desactivar, no sólo a quedarse sin imagen.
+
+## Migración 047 — Desactivación de fichas no identificables (2026-10-08)
+
+Las tres fichas que 046 dejó sin imagen y cuyo nombre tampoco describe un
+ejercicio reconocible: #1223 «Claps over head» (sin grupo, 0 series), #1325
+«Press Off Lateral» (3 series) y #31 «Sostenimiento Lateral Isométrico»
+(clasificado en bíceps, 0 series). No son variantes corregibles: no hay nada
+que nombrar ni que ilustrar.
+
+El historial de #1325 se conserva: `workout_sets` guarda `exercise_name` junto
+al `exercise_id`, así que las 3 series siguen leyéndose en el historial.
+
+Catálogo tras 047: 646 activos, 193 con imagen.
