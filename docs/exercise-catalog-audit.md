@@ -344,3 +344,65 @@ militar» es su «Press frontal con barra»). Faltan sobre todo en **glúteos**
 —nuestro grupo más flojo, 23 activos y 6 con imagen— y en **hombros**:
 zancadas, extensión de cadera en polea/máquina/suelo, elevación de pelvis,
 press trasnuca, pájaros, remo al cuello.
+
+---
+
+# Migración `041_espalda_duplicados.sql` — aplicada el 2026-10-08
+
+Primera depuración por grupo muscular. **Espalda: 124 → 104 activos.**
+Total del catálogo: 692 → 672.
+
+| Comprobación | Real |
+|---|---|
+| Espalda activos | 124 → 104 |
+| Series sin repuntar | 0 ✓ |
+| Series totales | 4.600 (sin pérdida) ✓ |
+| Nombres duplicados en espalda | 0 ✓ |
+| `smart_enabled` en espalda | 14 (sin cambio) ✓ |
+
+## El hallazgo: 14 filas para 4 ejercicios
+
+El jalón al pecho estaba escrito de catorce formas. No eran catorce duplicados:
+son **cuatro variantes reales por agarre**, cada una repetida. Quedan así, y el
+superviviente hereda la imagen y el `smart_enabled` del grupo:
+
+| Variante | Se queda | Absorbe | Series |
+|---|---|---|---|
+| Agarre neutro | `#1136` | `#1510` | 63 |
+| Agarre ancho | `#258` | `#1124`, `#1702`, `#723`, `#1695` | 86 |
+| Agarre cerrado | `#158` | `#1126`, `#259` | 30 |
+| Agarre supino | `#1127` | `#1125` | 6 |
+| Genérico | `#1806` | — | 0 |
+
+`#354 Jalón al pecho (inclinado)` se desactiva: nombre ambiguo, 0 usos.
+
+## Fusiones
+
+`#919 Remo en Barra T` ← `#513` · `#154 Dominadas con Agarre Supino` ← `#152` ·
+`#301 Extensión de Espalda` ← `#1143`, `#1348` · `#83 Remo Inclinado con Barra`
+← `#1698` · `#81 Remo con Mancuernas` ← `#310` ·
+`#1637 Remo Unilateral con Mancuerna` ← `#1186`, `#1701` ·
+`#1972 Jalón Unilateral en Polea` ← `#1659` · `#636 Superman` ← `#1908`, `#1455`
+
+El caso que mejor ilustra el criterio: **`#919`** tenía 79 series y era
+`smart_enabled` pero no tenía imagen; **`#513`** tenía 18 series y la imagen
+correcta (`T-bar-row-1.png`). Sobrevive `#919` con las 97 series y **hereda la
+imagen de `#513`**.
+
+## Una imagen que no correspondía
+
+`#83 Remo Inclinado con Barra` (smart, 28 series) tenía como imagen
+`Barbell-rear-delt-row.png`: una foto de remo para deltoides posterior, no de
+remo inclinado. **Se le quitó la imagen.** Mejor sin foto que con una que engaña
+— que es justo el problema que abrió esta auditoría.
+
+## Dos cosas que quedan fuera
+
+- **No hay categoría de equipamiento para polea ni máquina.** Solo existen
+  `body weight`, `dumbbell`, `barbell` y `other`, así que todo lo de polea está
+  archivado como `body weight` y el filtro por equipamiento de la app no puede
+  distinguirlo. `#258` y `#259` estaban como `barbell`, que era peor todavía.
+  Arreglar la taxonomía de equipamiento es trabajo aparte.
+- **Pares de confianza baja, sin tocar**: `#512`/`#1117` (remo Gironda),
+  `#1119`/`#1120` (remo máquina prono vs supino), `#628`/`#629` (straight-arm
+  pulldown con barra vs cuerda). Pueden ser variantes legítimas.
