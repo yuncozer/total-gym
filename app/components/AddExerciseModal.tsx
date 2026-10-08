@@ -39,6 +39,8 @@ export function AddExerciseModal({ onClose, onAddExercises }: AddExerciseModalPr
     { id: "all", label: t("train.tabAll") },
     { id: "barbell", label: t("train.tabBarbell") },
     { id: "dumbbell", label: t("train.tabDumbbell") },
+    { id: "cable", label: t("train.tabCable") },
+    { id: "machine", label: t("train.tabMachine") },
     { id: "body weight", label: t("train.tabBodyweight") },
     { id: "personalizados", label: t("train.tabCustom") },
     { id: "other", label: t("train.tabOther") },

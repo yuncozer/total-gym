@@ -215,6 +215,8 @@ export const strings = {
   "train.tabAll": { es: "Todos", en: "All" },
   "train.tabBarbell": { es: "Barra", en: "Barbell" },
   "train.tabDumbbell": { es: "Mancuernas", en: "Dumbbells" },
+  "train.tabCable": { es: "Polea", en: "Cable" },
+  "train.tabMachine": { es: "Máquina", en: "Machine" },
   "train.tabBodyweight": { es: "Peso corporal", en: "Body weight" },
   "train.tabCustom": { es: "Personalizados", en: "Custom" },
   "train.tabOther": { es: "Otros", en: "Other" },

@@ -287,3 +287,181 @@ con `CHECK` sobre el vocabulario de `lib/workout/classification.ts`, e índice
 `Sentadillas Hack` (#1414, 21 series) y `Polea Jalón through` (#1751, 6 series),
 desactivados en junio de 2026, reactivados y asignados a `piernas` y `gluteos`.
 Reactivar sin asignar grupo los habría dejado activos pero invisibles en el filtro.
+
+---
+
+# Migración `040_exercise_names.sql` — aplicada el 2026-10-08
+
+18 renombrados, 2 fusiones y 1 corrección de grupo.
+
+| Comprobación | Real |
+|---|---|
+| Activos | 694 → 692 |
+| Filas fusionadas aún activas | 0 ✓ |
+| Series sin repuntar | 0 ✓ |
+| Nombres duplicados en el catálogo activo | 0 ✓ |
+| Nombres rotos visibles al usuario | 0 ✓ |
+
+## Alcance: 17 de 101, a propósito
+
+101 filas activas tenían el nombre en spanglish o con el orden de palabras del
+inglés. Solo **17 las ve un usuario** (8 `smart_enabled` + 10 con historial).
+Las otras **84 no son `smart_enabled` y nunca se han usado**: renombrarlas es
+maquillar lo que nadie mira. Para ellas la pregunta es si deben seguir activas,
+y eso es una decisión de catálogo, no de nomenclatura.
+
+## Dos fusiones que aparecieron al renombrar
+
+- `#188 Flexiones Declinadas` (0 series) → `#1112 Press-Ups | Declinado` (50 series)
+- `#1654 Máquina Lateral wise` (6) → `#1744 Elevación Lateral en maquina` (12)
+
+Eran el mismo ejercicio escrito de dos formas. Sobrevive el que tiene historial
+y se queda con el nombre bueno. `#1744` acumula ahora 18 series.
+
+`#1498 Elbows Tucked DB Banco Press` estaba clasificado en *biceps* y es un press
+de pecho: se corrigieron nombre y grupo.
+
+## Sobre el zip «Ejercicios Delavier»
+
+- **Las 125 imágenes no se usan.** Son páginas escaneadas de *Guía de los
+  movimientos de musculación* (Frédéric Delavier, Editorial Paidotribo): se ve la
+  maquetación completa, el número de página y el encabezado del capítulo. Libro
+  comercial en catálogo, todos los derechos reservados.
+- **El `indice.csv` sí sirvió, pero como referencia de estilo, no como fuente.**
+  De los 101 nombres rotos solo cubría 4 con seguridad: el libro tiene los 116
+  clásicos y nuestros nombres rotos son sobre todo variantes de máquina, marcas
+  comerciales y jerga que no aparecen ahí.
+- También se probó un normalizador mecánico (traducir y reordenar los tokens).
+  Produce ~10 nombres aceptables de 43 y el resto quedan peor (`Press diamond
+  ups`, `Remo lateral uno armed con polea`). Estos nombres no están rotos de
+  forma sistemática sino cada uno a su manera, así que la vía automática no
+  sirve: fueron 17 decisiones a mano.
+
+## Huecos detectados con el índice de Delavier
+
+Cubrimos ~68 % de sus 116 clásicos (suelo: el cruce no sabe que nuestro «Press
+militar» es su «Press frontal con barra»). Faltan sobre todo en **glúteos**
+—nuestro grupo más flojo, 23 activos y 6 con imagen— y en **hombros**:
+zancadas, extensión de cadera en polea/máquina/suelo, elevación de pelvis,
+press trasnuca, pájaros, remo al cuello.
+
+---
+
+# Migración `041_espalda_duplicados.sql` — aplicada el 2026-10-08
+
+Primera depuración por grupo muscular. **Espalda: 124 → 104 activos.**
+Total del catálogo: 692 → 672.
+
+| Comprobación | Real |
+|---|---|
+| Espalda activos | 124 → 104 |
+| Series sin repuntar | 0 ✓ |
+| Series totales | 4.600 (sin pérdida) ✓ |
+| Nombres duplicados en espalda | 0 ✓ |
+| `smart_enabled` en espalda | 14 (sin cambio) ✓ |
+
+## El hallazgo: 14 filas para 4 ejercicios
+
+El jalón al pecho estaba escrito de catorce formas. No eran catorce duplicados:
+son **cuatro variantes reales por agarre**, cada una repetida. Quedan así, y el
+superviviente hereda la imagen y el `smart_enabled` del grupo:
+
+| Variante | Se queda | Absorbe | Series |
+|---|---|---|---|
+| Agarre neutro | `#1136` | `#1510` | 63 |
+| Agarre ancho | `#258` | `#1124`, `#1702`, `#723`, `#1695` | 86 |
+| Agarre cerrado | `#158` | `#1126`, `#259` | 30 |
+| Agarre supino | `#1127` | `#1125` | 6 |
+| Genérico | `#1806` | — | 0 |
+
+`#354 Jalón al pecho (inclinado)` se desactiva: nombre ambiguo, 0 usos.
+
+## Fusiones
+
+`#919 Remo en Barra T` ← `#513` · `#154 Dominadas con Agarre Supino` ← `#152` ·
+`#301 Extensión de Espalda` ← `#1143`, `#1348` · `#83 Remo Inclinado con Barra`
+← `#1698` · `#81 Remo con Mancuernas` ← `#310` ·
+`#1637 Remo Unilateral con Mancuerna` ← `#1186`, `#1701` ·
+`#1972 Jalón Unilateral en Polea` ← `#1659` · `#636 Superman` ← `#1908`, `#1455`
+
+El caso que mejor ilustra el criterio: **`#919`** tenía 79 series y era
+`smart_enabled` pero no tenía imagen; **`#513`** tenía 18 series y la imagen
+correcta (`T-bar-row-1.png`). Sobrevive `#919` con las 97 series y **hereda la
+imagen de `#513`**.
+
+## Una imagen que no correspondía
+
+`#83 Remo Inclinado con Barra` (smart, 28 series) tenía como imagen
+`Barbell-rear-delt-row.png`: una foto de remo para deltoides posterior, no de
+remo inclinado. **Se le quitó la imagen.** Mejor sin foto que con una que engaña
+— que es justo el problema que abrió esta auditoría.
+
+## Dos cosas que quedan fuera
+
+- **No hay categoría de equipamiento para polea ni máquina.** Solo existen
+  `body weight`, `dumbbell`, `barbell` y `other`, así que todo lo de polea está
+  archivado como `body weight` y el filtro por equipamiento de la app no puede
+  distinguirlo. `#258` y `#259` estaban como `barbell`, que era peor todavía.
+  Arreglar la taxonomía de equipamiento es trabajo aparte.
+- **Pares de confianza baja, sin tocar**: `#512`/`#1117` (remo Gironda),
+  `#1119`/`#1120` (remo máquina prono vs supino), `#628`/`#629` (straight-arm
+  pulldown con barra vs cuerda). Pueden ser variantes legítimas.
+
+---
+
+# Migración `042_equipment_cable_machine.sql` — aplicada el 2026-10-08
+
+Añade **polea** y **máquina** a la taxonomía de equipamiento, en toda la base,
+no solo en espalda.
+
+| Categoría | Activos |
+|---|---|
+| body weight | 274 |
+| dumbbell | 123 |
+| **cable** (nueva) | **99** |
+| barbell | 78 |
+| **machine** (nueva) | **50** |
+| other | 48 |
+
+## La causa
+
+**El equipamiento de wger no tiene polea ni máquina.** Sus 11 ids son barra,
+barra EZ, mancuernas, mat, balón, barra fija, peso corporal, banco, banco
+inclinado, kettlebell y banda. Así que un jalón, una polea o una prensa
+llegaban clasificados como `body weight` y el filtro por equipamiento de la app
+no podía distinguirlos de una flexión.
+
+Dos señales de que las categorías ya estaban previstas y nunca se cablearon:
+
+- `CreateCustomExerciseModal` **ya ofrecía «Polea» y «Máquina»** al crear un
+  ejercicio propio — pero como no existían pestañas de filtro para ellas, ese
+  ejercicio no aparecía bajo ningún filtro.
+- `EQUIPMENT_PRIORITY` en `exercise-planner.ts` ya listaba `machine` y `cable`
+  para cada grupo muscular; nunca casaban con nada.
+
+## Cómo se clasifica
+
+Los ids de wger no pueden expresar polea ni máquina, así que la única señal es
+el nombre. **Si el nombre nombra el equipamiento, eso manda sobre la palabra del
+movimiento** — la regla sin esa guarda clasificaba mal:
+
+| Fila | Sin guarda | Correcto |
+|---|---|---|
+| `Sentadilla Hack con Barra` | machine | **barbell** |
+| `Jalón a la Cara con Mancuernas` | cable | **dumbbell** |
+| `Lat Jalón DB` | cable | **dumbbell** |
+
+«Jalón» en español es cualquier tracción y aparece en ejercicios con mancuerna;
+«hack con barra» es la sentadilla hack con barra, no la máquina.
+
+## Código
+
+- `equipmentCategoryFromName()` en `app/lib/wgerApi.ts`: la misma regla que la
+  migración, para que las importaciones futuras de wger se clasifiquen bien.
+  `classifyEquipmentCategory()` acepta ahora el nombre y lo prioriza.
+- Pestañas de filtro «Polea» y «Máquina» en `/entrenamiento` y en
+  `AddExerciseModal`, con sus claves i18n (`train.tabCable`, `train.tabMachine`).
+
+`getEquipmentIdsByCategory()` en `app/api/exercises/route.ts` sigue existiendo
+pero **es código muerto**: la app filtra en cliente por `equipmentCategory` y
+nadie manda `?equipment=` a la API.

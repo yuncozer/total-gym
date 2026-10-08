@@ -108,9 +108,33 @@ export const EQUIPMENT_CATEGORIES = {
   all: "Todos",
   barbell: "Barra",
   dumbbell: "Mancuernas",
+  cable: "Polea",
+  machine: "Máquina",
   body_weight: "Peso corporal",
   other: "Otros",
 };
+
+/**
+ * Polea y máquina no existen en el equipamiento de wger: sus 11 ids son barra,
+ * mancuernas, banco, kettlebell y poco más. Así que un jalón o una prensa
+ * llegaban como "peso corporal" y el filtro por equipamiento no podía
+ * distinguirlos. La única señal disponible es el nombre.
+ */
+const CABLE_RE = /\b(polea|poleas|cable|jal[oó]n|jalones|pulldown|crossover|pull-?through|gironda)\b/i;
+const MACHINE_RE = /\b(m[aá]quina|machine|smith|multipower|multipress|multi press|prensa|pec.?deck|leverage|hammerstrength|legend)\b/i;
+// "Jalón" en español es cualquier tracción, no implica polea: si el nombre
+// nombra el equipamiento, eso manda sobre la palabra del movimiento.
+const PESO_LIBRE_RE = /\b(mancuerna|mancuernas|db)\b/i;
+
+export function equipmentCategoryFromName(name: string): string | null {
+  if (!name) return null;
+  if (PESO_LIBRE_RE.test(name)) return null;
+  if (CABLE_RE.test(name)) return "cable";
+  // La sentadilla hack con barra no es la máquina de hack.
+  if (/\bhack\b/i.test(name) && !/con barra/i.test(name)) return "machine";
+  if (MACHINE_RE.test(name)) return "machine";
+  return null;
+}
 
 export const MUSCLE_MAP: Record<number, string> = {
   1: "Bíceps braquial",
@@ -164,7 +188,12 @@ export interface Exercise {
   laterality?: string | null;
 }
 
-export function classifyEquipmentCategory(equipmentIds: number[]): string {
+export function classifyEquipmentCategory(equipmentIds: number[], name?: string): string {
+  // El nombre gana cuando identifica polea o máquina: los ids de wger no
+  // pueden expresarlas.
+  const porNombre = name ? equipmentCategoryFromName(name) : null;
+  if (porNombre) return porNombre;
+
   if (equipmentIds.length === 0) return "body weight";
   
   const categories = equipmentIds.map(id => EQUIPMENT_CATEGORY_MAP[id] || "other");
@@ -753,7 +782,7 @@ export function transformWgerExerciseInfo(exerciseInfo: WgerExerciseInfo): Exerc
     secondaryMuscleIds: exerciseInfo.muscles_secondary.map(m => m.id),
     equipment: equipmentNames.join(", ") || "Peso corporal",
     equipmentIds: exerciseInfo.equipment.map(e => e.id),
-    equipmentCategory: classifyEquipmentCategory(exerciseInfo.equipment.map(e => e.id)),
+    equipmentCategory: classifyEquipmentCategory(exerciseInfo.equipment.map(e => e.id), exerciseInfo.translations?.[0]?.name),
     imageUrl: mainImage,
     images: exerciseInfo.images.map(img => {
       if (img.image.startsWith("http")) return img.image;
