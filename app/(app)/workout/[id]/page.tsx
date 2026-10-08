@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, useCallback, use } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
+import { SetFeedback } from "@/app/components/SetFeedback";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
 import * as service from "@/lib/workout/service";
 import type { ExerciseInWorkout } from "@/lib/workout/types";
@@ -131,7 +132,7 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
   const [showMotivationalModal, setShowMotivationalModal] = useState(false);
   const [modalPhrase, setModalPhrase] = useState("");
   const [modalSubPhrase, setModalSubPhrase] = useState("");
-  const [pendingAction, setPendingAction] = useState<"completeSet" | "addExtraSet" | null>(null);
+  const [showSetFeedback, setShowSetFeedback] = useState(false);
   const [exerciseImage, setExerciseImage] = useState<string | null>(null);
   const [listImageModal, setListImageModal] = useState<{ url: string; name: string; description?: string; gallery?: { imageUrl: string; name: string; description?: string }[]; index?: number } | null>(null);
   const [showReference, setShowReference] = useState(false);
@@ -202,49 +203,49 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
 
 const handleCompleteSet = () => {
     if (!selectedExercise || !canCompleteSet) return;
-    
-    setPendingAction("completeSet");
-    setModalPhrase(getRandomPhrase(COMPLETED_PHRASES));
-    setModalSubPhrase(getRandomPhrase(MOTIVATIONAL_PHRASES));
-    setShowMotivationalModal(true);
+
+    if (navigator.vibrate) navigator.vibrate(15);
+
+    const set = selectedExercise.sets[currentSetIndex];
+    const weight = set?.weight_kg ?? 0;
+    const reps = set?.reps ?? 0;
+    const lastWeight = getLastWeight(selectedExercise.exerciseId);
+    const isPR = weight > 0 && weight > lastWeight;
+    const isLastSetOfExercise = currentSetIndex === selectedExercise.sets.length - 1;
+
+    completeSet();
+
+    if (isPR) {
+      setPrCelebration({ exerciseName: selectedExercise.name, weight, reps });
+      return;
+    }
+
+    const phrase = getRandomPhrase(COMPLETED_PHRASES);
+    const subPhrase = getRandomPhrase(MOTIVATIONAL_PHRASES);
+    setModalPhrase(phrase);
+    setModalSubPhrase(subPhrase);
+
+    if (isLastSetOfExercise) {
+      setShowMotivationalModal(true);
+    } else {
+      setShowSetFeedback(true);
+    }
   };
 
   const handleAddExtraSet = () => {
     if (!selectedExercise) return;
-    setPendingAction("addExtraSet");
-    setModalPhrase(getRandomPhrase(COMPLETED_PHRASES));
-    setModalSubPhrase(getRandomPhrase(MOTIVATIONAL_PHRASES));
-    setShowMotivationalModal(true);
+    const originalSetsCount = selectedExercise.sets.length;
+    addExtraSet();
+    extraSetIndexRef.current = originalSetsCount;
   };
 
   const handleMotivationalComplete = () => {
     setShowMotivationalModal(false);
-
-    if (pendingAction === "addExtraSet" && selectedExercise) {
-      const originalSetsCount = selectedExercise.sets.length;
-      addExtraSet();
-      extraSetIndexRef.current = originalSetsCount;
-    } else if (pendingAction === "completeSet") {
-      if (navigator.vibrate) navigator.vibrate(15);
-
-      const set = selectedExercise?.sets[currentSetIndex];
-      const weight = set?.weight_kg ?? 0;
-      const reps = set?.reps ?? 0;
-      const lastWeight = getLastWeight(selectedExercise?.exerciseId ?? "");
-
-      if (weight > 0 && weight > lastWeight) {
-        setPrCelebration({
-          exerciseName: selectedExercise?.name ?? "",
-          weight,
-          reps,
-        });
-      }
-
-      completeSet();
-    }
-
-    setPendingAction(null);
   };
+
+  const handleSetFeedbackDone = useCallback(() => {
+    setShowSetFeedback(false);
+  }, []);
 
   const handleNextSet = () => {
     setTimer({ segundos: 0, activo: false, descansando: false });
@@ -933,12 +934,19 @@ const handleCompleteSet = () => {
           </button>
         )}
 
+        <SetFeedback
+          show={showSetFeedback}
+          phrase={modalPhrase}
+          subPhrase={modalSubPhrase}
+          onDone={handleSetFeedbackDone}
+        />
+
         <MotivationalModal
           show={showMotivationalModal}
           phrase={modalPhrase}
           subPhrase={modalSubPhrase}
           onComplete={handleMotivationalComplete}
-          duration={2500}
+          duration={1600}
         />
 
         {exerciseImage && (
