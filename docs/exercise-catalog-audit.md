@@ -578,3 +578,41 @@ imágenes mal asignadas entre las 211 que tienen foto.
   filas. Desactivar lo que no es `smart_enabled`, no tiene imagen y nunca se ha
   usado dejaría un catálogo mucho más navegable.
 - **Imágenes**: 211 de 649 (32,5 %). Sigue siendo una compra.
+
+## Migración 046 — Revisión visual de imágenes (2026-10-08)
+
+Se comparó visualmente cada una de las 211 imágenes del catálogo activo con el
+nombre de su ficha. Fuera de alcance por decisión del usuario: marcas de agua de
+terceros, escaneos de libros y diferencias de estilo.
+
+**10 fichas recuperan imagen correcta.** Siete estaban rotas (404) porque wger
+renumeró las carpetas de su media: el mismo archivo sigue publicado en otra ruta
+(`/829/ad724e5c…` → `/487/ad724e5c…`, etc.). Todas verificadas con HTTP 200 y
+revisadas a ojo antes de escribirlas.
+
+| id | ficha | problema |
+|----|-------|----------|
+| 1277 | Press inclinado con mancuernas | 404 — 232 series registradas, el ejercicio más usado |
+| 154 | Dominadas con Agarre Supino | 404; apuntaba a la carpeta del ejercicio 181 |
+| 829 | Elevación Deltoides Posterior | 404 |
+| 907 | Flexiones de Pino | 404 |
+| 1190 | Curl de Bíceps con agarre prono | 404 |
+| 921 | Tirar de cables sentados | 404 |
+| 1897 | Press de Banca con Agarre Cerrado | 404 |
+| 1119 | Remo maquina agarre estrecho | compartía archivo con #1117 |
+| 570 | Hombros Encogimientos | llevaba un logotipo abstracto |
+| 206 | Zancadas Caminando con Mancuernas | figura de pie sin zancada; hereda la imagen de #1903 |
+
+**18 fichas se quedan sin imagen** por no existir sustituto válido: 194, 349
+(negras), 1573 (logotipo), 184, 484, 1109, 1378, 1519, 1637, 1736, 1387, 31, 50,
+1223, 1325 (muestran otro movimiento), 427 (duplicada de #171), 1491, 1636 (404
+sin reemplazo limpio).
+
+Hallazgo nuevo durante la verificación: **#484 «Rack Peso muerto»** usaba una
+imagen de press declinado en Smith. No estaba en el informe inicial; salió al
+comprobar candidatos.
+
+Catálogo tras 046: 649 activos, 193 con imagen, 456 sin imagen.
+
+Pendiente: 1223, 1325 y 31 son fichas cuyo nombre tampoco describe un ejercicio
+reconocible — candidatas a desactivar, no sólo a quedarse sin imagen.
