@@ -33,11 +33,11 @@ function generateIconIndex(): number {
 }
 
 export function MotivationalModal({ 
-  show, 
-  phrase, 
-  subPhrase, 
-  onComplete, 
-  duration = 2500 
+  show,
+  phrase,
+  subPhrase,
+  onComplete,
+  duration = 1600
 }: MotivationalModalProps) {
   const [visible, setVisible] = useState(false);
   const [animating, setAnimating] = useState(false);
@@ -76,12 +76,32 @@ export function MotivationalModal({
     }
   }, [show, duration, handleAnimationComplete]);
 
+  const skip = useCallback(() => {
+    if (!isShowingRef.current) return;
+    isShowingRef.current = false;
+    setAnimating(false);
+    setVisible(false);
+    onComplete();
+  }, [onComplete]);
+
   if (!visible) return null;
 
   const IconComponent = ICONS[iconIndex];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div
+      role="button"
+      tabIndex={0}
+      aria-label={phrase}
+      onClick={skip}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " " || e.key === "Escape") {
+          e.preventDefault();
+          skip();
+        }
+      }}
+      className="fixed inset-0 z-50 flex cursor-pointer items-center justify-center p-4"
+    >
       <div 
         className={`absolute inset-0 bg-black/80 backdrop-blur-sm transition-opacity duration-300 ${
           animating ? "opacity-100" : "opacity-0"

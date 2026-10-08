@@ -390,3 +390,22 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   0%, 100% { box-shadow: 0 0 6px rgba(234, 179, 8, 0.3); }
   50% { box-shadow: 0 0 14px rgba(234, 179, 8, 0.6); }
 }
+@keyframes setFeedback {
+  0%   { opacity: 0; transform: translateY(-12px); }
+  12%  { opacity: 1; transform: translateY(0); }
+  82%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-12px); }
+}
+
+.animate-set-feedback {
+  animation-name: setFeedback;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-set-feedback {
+    animation-name: none;
+    opacity: 1;
+  }
+}
