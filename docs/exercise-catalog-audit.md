@@ -465,3 +465,116 @@ movimiento** — la regla sin esa guarda clasificaba mal:
 `getEquipmentIdsByCategory()` en `app/api/exercises/route.ts` sigue existiendo
 pero **es código muerto**: la app filtra en cliente por `equipmentCategory` y
 nadie manda `?equipment=` a la API.
+
+---
+
+# Migración `043_piernas_duplicados.sql` — aplicada el 2026-10-08
+
+**Piernas: 112 → 108.** Catálogo total: 672 → 668. 0 series sin repuntar,
+4.600 series intactas, 0 nombres duplicados.
+
+Mucho menos que en espalda (que cayó 20), y es un buen resultado: **piernas está
+sana**. De 112 filas solo 4 eran duplicados reales.
+
+| Se queda | Absorbe |
+|---|---|
+| `#366 Curl Femoral Sentado` (56 series) | `#364 Curl Femoral` (genérico) |
+| `#1414 → Sentadilla Hack en Máquina` (21 series) | `#375` (le da imagen, smart y nombre) |
+| `#203 Sentadilla con Disco` | `#124 Sentadilla con Disco al Frente` |
+| `#1612 Sentadilla con pesa rusa` | `#1361 Sentadilla Frontal Bilateral con Pesa Rusa` |
+
+## Lección sobre el agrupador
+
+La primera pasada metió **45 sentadillas en un solo grupo**: todas comparten la
+palabra «sentadilla», y la similitud por contención daba 100 % a cualquier fila
+cuyo nombre fuera un subconjunto de otra.
+
+**En tren inferior el modificador ES el ejercicio**: una pistol, una búlgara y
+una hack no son «sentadilla» repetida. Recalibrado de 65 % contención / 35 %
+Jaccard a 25 % / 75 %, los 45 se separan en grupos reales y aparecen los 4
+duplicados que estaban enterrados.
+
+## Lo que NO se fusionó, y por qué
+
+- **Prensa de piernas** (`#371` / `#373` cerrada / `#374` abierta): la posición
+  del pie es el ejercicio.
+- **Curl femoral** sentado / acostado / de pie: tres máquinas distintas.
+- **Sentadilla Frontal** con barra (`#257`) vs con mancuernas (`#1640`).
+- **Sentadillas Smith** (`#1747`) vs **Sentadilla Dividida en Smith** (`#1593`):
+  dividida = split squat, otro ejercicio. El agrupador falló aquí.
+- **Zancadas**: 4 variantes reales en dos ejes (caminando/estáticas ×
+  mancuernas/barra) más la genérica.
+- `#984 Zancadas con peso` vs `#1324 Zancada a Peso Corporal`: son lo contrario,
+  no duplicados. (`#984` está marcado `body weight` pese a llamarse «con peso»
+  — inconsistencia menor, sin tocar.)
+
+## Pendiente en piernas
+
+La familia de la sentadilla tiene **45 filas**, la mayoría sin imagen y sin usar
+nunca. No es duplicación sino catálogo inflado: el problema de fondo que afecta
+a todos los grupos.
+
+---
+
+# Depuración por grupo muscular — completada el 2026-10-08
+
+Migraciones `041` (espalda), `043` (piernas), `044` (hombros) y `045` (pecho,
+biceps, abdomen y renombrados del resto).
+
+**Catálogo: 692 → 649 activos.** 4.600 series intactas, 0 sin repuntar,
+0 nombres duplicados dentro de un mismo grupo.
+
+| Grupo | Antes | Después | Smart | Con imagen |
+|---|---|---|---|---|
+| piernas | 112 | 108 | 18 | 44 |
+| espalda | 124 | 104 | 14 | 35 |
+| hombros | 103 | 94 | 15 | 33 |
+| abdomen | 86 | 85 | 17 | 22 |
+| pecho | 80 | 74 | 17 | 26 |
+| biceps | 59 | 56 | 13 | 18 |
+| (sin grupo) | 47 | 47 | 0 | 9 |
+| triceps | 32 | 32 | 10 | 12 |
+| gluteos | 26 | 26 | 10 | 6 |
+| antebrazos | 10 | 10 | 0 | 2 |
+| pantorrillas | 8 | 8 | 6 | 4 |
+| cardio | 5 | 5 | 0 | 0 |
+
+## Dónde estaba la suciedad
+
+No repartida por igual. **Espalda se llevó la mitad de las bajas** (-20) por el
+lío de los jalones; hombros (-9) por el press militar escrito cuatro veces;
+pecho (-6) por el press inclinado con mancuernas escrito tres veces.
+
+**Triceps, gluteos, pantorrillas, antebrazos y cardio no tenían ni un duplicado
+real.** Lo que el agrupador marcó eran variantes legítimas: en tríceps, el
+accesorio de polea (cuerda, barra, una mano) es el ejercicio; en glúteos, la
+lateralidad.
+
+## Consolidaciones con más historial recuperado
+
+| Superviviente | Series acumuladas |
+|---|---|
+| `#1277 Press inclinado con mancuernas` | 201 + 31 = **232** |
+| `#73 Press de Banca` | 130 |
+| `#129 Press de Pecho en Máquina` | 128 |
+| `#919 Remo en Barra T` | 79 + 18 = **97** |
+| `#258 Jalón al Pecho con Agarre Ancho` | 47 + 36 + 3 = **86** |
+| `#926 Aperturas en Máquina` | 52 + 19 = **71** |
+
+## Segunda imagen que no correspondía
+
+`#237 Cruce de Poleas para Pecho` llevaba `Incline-cable-flyes-1.png`: un cruce
+en banco inclinado, no el cruce de poleas de pie. Al fusionarlo en `#924`
+**no se heredó esa imagen** — `#924` se queda sin foto antes que con una falsa.
+Es el segundo caso después de `#83`, así que conviene asumir que hay más
+imágenes mal asignadas entre las 211 que tienen foto.
+
+## Lo que queda
+
+- **47 filas sin grupo muscular**, de las que 22 son movilidad/cuello y siguen
+  esperando la decisión de crear un grupo `movilidad` o desactivarlas.
+- **Catálogo inflado**: el problema de fondo no era la duplicación sino el
+  volumen. Abdomen tiene 85 activos y 4 usados; la familia de la sentadilla, 45
+  filas. Desactivar lo que no es `smart_enabled`, no tiene imagen y nunca se ha
+  usado dejaría un catálogo mucho más navegable.
+- **Imágenes**: 211 de 649 (32,5 %). Sigue siendo una compra.
