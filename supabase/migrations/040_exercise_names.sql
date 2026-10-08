@@ -1,4 +1,4 @@
--- 040: nombres de ejercicio en español correcto.
+-- 040: nombres de ejercicio en español correcto. APLICADA el 2026-10-08.
 --
 -- 101 filas activas tenían el nombre en spanglish o con el orden de palabras
 -- del inglés. Pero solo 17 las ve un usuario (8 smart_enabled + 10 con

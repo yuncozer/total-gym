@@ -287,3 +287,60 @@ con `CHECK` sobre el vocabulario de `lib/workout/classification.ts`, e índice
 `Sentadillas Hack` (#1414, 21 series) y `Polea Jalón through` (#1751, 6 series),
 desactivados en junio de 2026, reactivados y asignados a `piernas` y `gluteos`.
 Reactivar sin asignar grupo los habría dejado activos pero invisibles en el filtro.
+
+---
+
+# Migración `040_exercise_names.sql` — aplicada el 2026-10-08
+
+18 renombrados, 2 fusiones y 1 corrección de grupo.
+
+| Comprobación | Real |
+|---|---|
+| Activos | 694 → 692 |
+| Filas fusionadas aún activas | 0 ✓ |
+| Series sin repuntar | 0 ✓ |
+| Nombres duplicados en el catálogo activo | 0 ✓ |
+| Nombres rotos visibles al usuario | 0 ✓ |
+
+## Alcance: 17 de 101, a propósito
+
+101 filas activas tenían el nombre en spanglish o con el orden de palabras del
+inglés. Solo **17 las ve un usuario** (8 `smart_enabled` + 10 con historial).
+Las otras **84 no son `smart_enabled` y nunca se han usado**: renombrarlas es
+maquillar lo que nadie mira. Para ellas la pregunta es si deben seguir activas,
+y eso es una decisión de catálogo, no de nomenclatura.
+
+## Dos fusiones que aparecieron al renombrar
+
+- `#188 Flexiones Declinadas` (0 series) → `#1112 Press-Ups | Declinado` (50 series)
+- `#1654 Máquina Lateral wise` (6) → `#1744 Elevación Lateral en maquina` (12)
+
+Eran el mismo ejercicio escrito de dos formas. Sobrevive el que tiene historial
+y se queda con el nombre bueno. `#1744` acumula ahora 18 series.
+
+`#1498 Elbows Tucked DB Banco Press` estaba clasificado en *biceps* y es un press
+de pecho: se corrigieron nombre y grupo.
+
+## Sobre el zip «Ejercicios Delavier»
+
+- **Las 125 imágenes no se usan.** Son páginas escaneadas de *Guía de los
+  movimientos de musculación* (Frédéric Delavier, Editorial Paidotribo): se ve la
+  maquetación completa, el número de página y el encabezado del capítulo. Libro
+  comercial en catálogo, todos los derechos reservados.
+- **El `indice.csv` sí sirvió, pero como referencia de estilo, no como fuente.**
+  De los 101 nombres rotos solo cubría 4 con seguridad: el libro tiene los 116
+  clásicos y nuestros nombres rotos son sobre todo variantes de máquina, marcas
+  comerciales y jerga que no aparecen ahí.
+- También se probó un normalizador mecánico (traducir y reordenar los tokens).
+  Produce ~10 nombres aceptables de 43 y el resto quedan peor (`Press diamond
+  ups`, `Remo lateral uno armed con polea`). Estos nombres no están rotos de
+  forma sistemática sino cada uno a su manera, así que la vía automática no
+  sirve: fueron 17 decisiones a mano.
+
+## Huecos detectados con el índice de Delavier
+
+Cubrimos ~68 % de sus 116 clásicos (suelo: el cruce no sabe que nuestro «Press
+militar» es su «Press frontal con barra»). Faltan sobre todo en **glúteos**
+—nuestro grupo más flojo, 23 activos y 6 con imagen— y en **hombros**:
+zancadas, extensión de cadera en polea/máquina/suelo, elevación de pelvis,
+press trasnuca, pájaros, remo al cuello.
