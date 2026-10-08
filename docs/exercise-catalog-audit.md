@@ -513,3 +513,68 @@ duplicados que estaban enterrados.
 La familia de la sentadilla tiene **45 filas**, la mayoría sin imagen y sin usar
 nunca. No es duplicación sino catálogo inflado: el problema de fondo que afecta
 a todos los grupos.
+
+---
+
+# Depuración por grupo muscular — completada el 2026-10-08
+
+Migraciones `041` (espalda), `043` (piernas), `044` (hombros) y `045` (pecho,
+biceps, abdomen y renombrados del resto).
+
+**Catálogo: 692 → 649 activos.** 4.600 series intactas, 0 sin repuntar,
+0 nombres duplicados dentro de un mismo grupo.
+
+| Grupo | Antes | Después | Smart | Con imagen |
+|---|---|---|---|---|
+| piernas | 112 | 108 | 18 | 44 |
+| espalda | 124 | 104 | 14 | 35 |
+| hombros | 103 | 94 | 15 | 33 |
+| abdomen | 86 | 85 | 17 | 22 |
+| pecho | 80 | 74 | 17 | 26 |
+| biceps | 59 | 56 | 13 | 18 |
+| (sin grupo) | 47 | 47 | 0 | 9 |
+| triceps | 32 | 32 | 10 | 12 |
+| gluteos | 26 | 26 | 10 | 6 |
+| antebrazos | 10 | 10 | 0 | 2 |
+| pantorrillas | 8 | 8 | 6 | 4 |
+| cardio | 5 | 5 | 0 | 0 |
+
+## Dónde estaba la suciedad
+
+No repartida por igual. **Espalda se llevó la mitad de las bajas** (-20) por el
+lío de los jalones; hombros (-9) por el press militar escrito cuatro veces;
+pecho (-6) por el press inclinado con mancuernas escrito tres veces.
+
+**Triceps, gluteos, pantorrillas, antebrazos y cardio no tenían ni un duplicado
+real.** Lo que el agrupador marcó eran variantes legítimas: en tríceps, el
+accesorio de polea (cuerda, barra, una mano) es el ejercicio; en glúteos, la
+lateralidad.
+
+## Consolidaciones con más historial recuperado
+
+| Superviviente | Series acumuladas |
+|---|---|
+| `#1277 Press inclinado con mancuernas` | 201 + 31 = **232** |
+| `#73 Press de Banca` | 130 |
+| `#129 Press de Pecho en Máquina` | 128 |
+| `#919 Remo en Barra T` | 79 + 18 = **97** |
+| `#258 Jalón al Pecho con Agarre Ancho` | 47 + 36 + 3 = **86** |
+| `#926 Aperturas en Máquina` | 52 + 19 = **71** |
+
+## Segunda imagen que no correspondía
+
+`#237 Cruce de Poleas para Pecho` llevaba `Incline-cable-flyes-1.png`: un cruce
+en banco inclinado, no el cruce de poleas de pie. Al fusionarlo en `#924`
+**no se heredó esa imagen** — `#924` se queda sin foto antes que con una falsa.
+Es el segundo caso después de `#83`, así que conviene asumir que hay más
+imágenes mal asignadas entre las 211 que tienen foto.
+
+## Lo que queda
+
+- **47 filas sin grupo muscular**, de las que 22 son movilidad/cuello y siguen
+  esperando la decisión de crear un grupo `movilidad` o desactivarlas.
+- **Catálogo inflado**: el problema de fondo no era la duplicación sino el
+  volumen. Abdomen tiene 85 activos y 4 usados; la familia de la sentadilla, 45
+  filas. Desactivar lo que no es `smart_enabled`, no tiene imagen y nunca se ha
+  usado dejaría un catálogo mucho más navegable.
+- **Imágenes**: 211 de 649 (32,5 %). Sigue siendo una compra.
