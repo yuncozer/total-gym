@@ -29,6 +29,7 @@ import {
 import toast from "react-hot-toast";
 import { MotivationalModal } from "@/app/components/MotivationalModal";
 import { SetFeedback } from "@/app/components/SetFeedback";
+import { useWakeLock } from "@/lib/use-wake-lock";
 import { WorkoutProvider, useWorkout } from "@/lib/workout";
 import * as service from "@/lib/workout/service";
 import type { ExerciseInWorkout } from "@/lib/workout/types";
@@ -120,6 +121,10 @@ function WorkoutContent({ workoutId }: { workoutId: string }) {
     addExercises,
     reorderExercises,
   } = workout;
+
+  // La pantalla no se apaga mientras el entreno está en marcha: entre serie y
+  // serie pasan minutos y desbloquear el móvil con las manos sudadas sobra.
+  useWakeLock(!loading && !isWorkoutComplete && !pendingCompletion);
 
   const [phraseSeed, setPhraseSeed] = useState(0);
   const lastCompletedRef = useRef<string>("");
